@@ -195,7 +195,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         'restrictfilenames': False,
         'quiet': True,
        # 'write_all_thumbnails': True,
-        "proxy": os.getenv("YTDL_PROXY")
+        "proxy": os.getenv("TAOBAO_PROXY")
     }
     formats = [
         "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
