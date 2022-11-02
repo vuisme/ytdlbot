@@ -25,7 +25,7 @@ services:
       driver: none
 
   ytdl:
-    image: bennythink/ytdlbot
+    image: ytdlbot_tb
     env_file:
       - env/ytdl.env
     restart: always
@@ -37,7 +37,7 @@ services:
       - ./data/vnstat/:/var/lib/vnstat/
 
   flower:
-    image: bennythink/ytdlbot
+    image: ytdlbot_tb
     env_file:
       - env/ytdl.env
     restart: on-failure
