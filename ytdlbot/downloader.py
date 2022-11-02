@@ -204,7 +204,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     ]
     adjust_formats(chat_id, url, formats, hijack)
     add_instagram_cookies(url, ydl_opts)
-
+    add_taobao_cookies(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_
@@ -295,7 +295,9 @@ def convert_audio_format(resp: "dict", bm):
 def add_instagram_cookies(url: "str", opt: "dict"):
     if url.startswith("https://www.instagram.com"):
         opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("instagram.com_cookies.txt").as_posix()
-
+def add_instagram_cookies(url: "str", opt: "dict"):
+    if url.startswith("https://world.taobao.com/"):
+        opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("taobao.com_cookies.txt").as_posix()
 
 def run_splitter(video_path: "str"):
     subprocess.check_output(f"sh split-video.sh {video_path} {TG_MAX_SIZE} ".split())
