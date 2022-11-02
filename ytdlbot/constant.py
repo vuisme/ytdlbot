@@ -19,7 +19,7 @@ from utils import get_func_queue
 
 
 class BotText:
-    start = "Welcome to YouTube Download bot. Type /help for more information."
+    start = "Welcome to TAOBAO Download bot. Type /help for more information."
 
     help = f"""
 1. This bot should works at all times. If it doesn't, try to send the link again or DM @BennyThink
@@ -35,7 +35,7 @@ every one can use this bot within **{sizeof_fmt(QUOTA)} of quota for every {int(
 5. Source code for this bot will always stay open, here-> https://github.com/tgbot-collection/ytdlbot
     """ if ENABLE_VIP else "Help text"
 
-    about = "YouTube-DL by @BennyThink. Open source on GitHub: https://github.com/tgbot-collection/ytdlbot"
+    about = "TAOBAO by @BennyThink. Open source on GitHub: https://github.com/tgbot-collection/ytdlbot"
 
     terms = f"""
 1. You can use this service, free of charge, {sizeof_fmt(QUOTA)} per {int(EX / 3600)} hours.
