@@ -194,7 +194,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         'outtmpl': output,
         'restrictfilenames': False,
         'quiet': True,
-       # 'write_all_thumbnails': True,
+        'write_all_thumbnails': True,
         "proxy": os.getenv("TAOBAO_PROXY")
     }
     formats = [
