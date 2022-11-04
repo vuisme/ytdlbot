@@ -259,7 +259,7 @@ def ytdl_normal_download(bot_msg, client, url):
         client.send_chat_action(chat_id, 'upload_document')
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
-        logging.info(video_paths)
+        logging.info(result)
         for video_path in video_paths:
             # normally there's only one video in that path...
             logging.info(video_path)
