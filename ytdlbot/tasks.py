@@ -274,7 +274,7 @@ def ytdl_normal_download(bot_msg, client, url):
                     client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
                     return
                 upload_processor(client, bot_msg, url, video_path)
-            bot_msg.edit_text('Download success!✅')
+                bot_msg.edit_text('Download success!✅')
     else:
         client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
