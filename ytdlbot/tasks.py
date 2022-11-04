@@ -273,7 +273,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 )
         newlst = split_list(lstimg, 10)
         for array in newlst:
-            await client.send_media_group(
+            client.send_media_group(
                 chat_id,
                 disable_notification=True,
                 media=list(array)
