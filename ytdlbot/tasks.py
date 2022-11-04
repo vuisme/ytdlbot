@@ -272,13 +272,13 @@ def ytdl_normal_download(bot_msg, client, url):
                         media = video_path
                     )
                 )
-            newlst=split_list(lstimg, 10)
-                for array in newlst:
-                    await client.send_media_group(
-                        chat_id,
-                        disable_notification=True,
-                        media=list(array)
-                        )
+                newlst=split_list(lstimg, 10)
+                    for array in newlst:
+                        await client.send_media_group(
+                            chat_id,
+                            disable_notification=True,
+                            media=list(array)
+                            )
             if extPath == '.mp4':
                 if st_size > TG_MAX_SIZE:
                     t = f"Your video({sizeof_fmt(st_size)}) is too large for Telegram. I'll upload it to transfer.sh"
