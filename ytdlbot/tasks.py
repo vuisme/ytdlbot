@@ -271,13 +271,13 @@ def ytdl_normal_download(bot_msg, client, url):
                         media = url_path
                     )
                 )
-         newlst = split_list(lstimg, 10)
-         for array in newlst:
-             await client.send_media_group(
-                 chat_id,
-                 disable_notification=True,
-                 media=list(array)
-             )
+        newlst = split_list(lstimg, 10)
+        for array in newlst:
+            await client.send_media_group(
+                chat_id,
+                disable_notification=True,
+                media=list(array)
+            )
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
