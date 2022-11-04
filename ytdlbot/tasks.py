@@ -260,24 +260,24 @@ def ytdl_normal_download(bot_msg, client, url):
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
         logging.info(result)
+        lstimg = []
         for url_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
             st_size = os.stat(video_path).st_size
-            lstimg = []
             if (extPath == '.jpg' or extPath == '.png') and st_size > 5000:
                 lstimg.append(
                     InputMediaPhoto(
                         media = video_path
                     )
                 )
-        newlst = split_list(lstimg, 10)
-            for array in newlst:
-                client.send_media_group(
-                    chat_id,
-                    disable_notification=True,
-                    media=list(array)
-                )
+         newlst = split_list(lstimg, 10)
+         for array in newlst:
+             await client.send_media_group(
+                 chat_id,
+                 disable_notification=True,
+                 media=list(array)
+             )
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
