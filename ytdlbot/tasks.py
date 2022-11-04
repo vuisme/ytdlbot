@@ -263,10 +263,23 @@ def ytdl_normal_download(bot_msg, client, url):
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
+            st_size = os.stat(video_path).st_size
+            lstimg = []
             logging.info(extPath)
+            if (extPath == '.jpg' or extPath == '.png') and st_size > 5000:
+                lstimg.append(
+                    InputMediaPhoto(
+                        media = video_path
+                    )
+                )
+            newlst=split_list(lstimg, 10)
+                for array in newlst:
+                    await client.send_media_group(
+                        chat_id,
+                        disable_notification=True,
+                        media=list(array)
+                        )
             if extPath == '.mp4':
-                logging.info(extPath)
-                st_size = os.stat(video_path).st_size
                 if st_size > TG_MAX_SIZE:
                     t = f"Your video({sizeof_fmt(st_size)}) is too large for Telegram. I'll upload it to transfer.sh"
                     bot_msg.edit_text(t)
@@ -275,6 +288,7 @@ def ytdl_normal_download(bot_msg, client, url):
                     return
                 upload_processor(client, bot_msg, url, video_path)
                 bot_msg.edit_text('Download success!✅')
+             
     else:
         client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
