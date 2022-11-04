@@ -264,7 +264,7 @@ def ytdl_normal_download(bot_msg, client, url):
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
             st_size = os.stat(video_path).st_size
-            lstimg = [])
+            lstimg = []
             if (extPath == '.jpg' or extPath == '.png') and st_size > 5000:
                 lstimg.append(
                     InputMediaPhoto(
