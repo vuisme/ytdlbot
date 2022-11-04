@@ -260,19 +260,21 @@ def ytdl_normal_download(bot_msg, client, url):
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
         logging.info(result)
+        try video_path in video_paths:
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
-            logging.info(extPath)
-            st_size = os.stat(video_path).st_size
-            if st_size > TG_MAX_SIZE:
-                t = f"Your video({sizeof_fmt(st_size)}) is too large for Telegram. I'll upload it to transfer.sh"
-                bot_msg.edit_text(t)
-                client.send_chat_action(chat_id, 'upload_document')
-                client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
-                return
-            upload_processor(client, bot_msg, url, video_path)
-        bot_msg.edit_text('Download success!✅')
+            if extPath == '.mp4'
+                logging.info(extPath)
+                st_size = os.stat(video_path).st_size
+                if st_size > TG_MAX_SIZE:
+                    t = f"Your video({sizeof_fmt(st_size)}) is too large for Telegram. I'll upload it to transfer.sh"
+                    bot_msg.edit_text(t)
+                    client.send_chat_action(chat_id, 'upload_document')
+                    client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
+                    return
+                upload_processor(client, bot_msg, url, video_path)
+            bot_msg.edit_text('Download success!✅')
     else:
         client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
