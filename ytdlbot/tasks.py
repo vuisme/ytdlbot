@@ -456,7 +456,13 @@ def run_celery():
         argv.extend(["-Q", worker_name])
     app.worker_main(argv)
 
-
+def split_list(the_list, chunk_size):
+    result_list = []
+    while the_list:
+        result_list.append(the_list[:chunk_size])
+        the_list = the_list[chunk_size:]
+    return result_list
+  
 if __name__ == '__main__':
     celery_client.start()
     print("Bootstrapping Celery worker now.....")
