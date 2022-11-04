@@ -263,7 +263,7 @@ def ytdl_normal_download(bot_msg, client, url):
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
-            if extPath == '.mp4'
+            if extPath == '.mp4':
                 logging.info(extPath)
                 st_size = os.stat(video_path).st_size
                 if st_size > TG_MAX_SIZE:
