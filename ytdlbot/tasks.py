@@ -28,7 +28,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
 from pyrogram import Client, idle
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, InputMediaPhoto
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from client_init import create_app
