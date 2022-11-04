@@ -262,7 +262,8 @@ def ytdl_normal_download(bot_msg, client, url):
         logging.info(result)
         for video_path in video_paths:
             # normally there's only one video in that path...
-            logging.info(video_path)
+            extPath = pathlib.Path(video_path).suffix
+            logging.info(extPath)
             st_size = os.stat(video_path).st_size
             if st_size > TG_MAX_SIZE:
                 t = f"Your video({sizeof_fmt(st_size)}) is too large for Telegram. I'll upload it to transfer.sh"
