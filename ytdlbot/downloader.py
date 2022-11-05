@@ -195,7 +195,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         'restrictfilenames': False,
         'quiet': True,
         'write_all_thumbnails': True,
-        "proxy": os.getenv("TAOBAO_PROXY")
+        "proxy": os.getenv("YTDL_PROXY")
     }
     formats = [
         "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
@@ -298,6 +298,7 @@ def add_instagram_cookies(url: "str", opt: "dict"):
 def add_taobao_cookies(url: "str", opt: "dict"):
     if url.startswith("https://world.taobao.com/"):
         opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("taobao.com_cookies.txt").as_posix()
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
 
 def run_splitter(video_path: "str"):
     subprocess.check_output(f"sh split-video.sh {video_path} {TG_MAX_SIZE} ".split())
