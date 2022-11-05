@@ -278,7 +278,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 disable_notification=True,
                 media=list(array)
             )
-            sleep(60)
+            time.sleep(30)
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
