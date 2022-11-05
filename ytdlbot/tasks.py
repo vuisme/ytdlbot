@@ -278,7 +278,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 disable_notification=True,
                 media=list(array)
             )
-            sleep_threshold=60
+            sleep(60)
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
@@ -298,7 +298,7 @@ def ytdl_normal_download(bot_msg, client, url):
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
 
-    #temp_dir.cleanup()
+    temp_dir.cleanup()
 
 
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
