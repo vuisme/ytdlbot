@@ -160,7 +160,7 @@ def ping_handler(client: "Client", message: "types.Message"):
     if os.uname().sysname == "Darwin" or ".heroku" in os.getenv("PYTHONHOME", ""):
         bot_info = "ping unavailable."
     else:
-        bot_info = get_runtime("ytdlbot_ytdl_1", "YouTube-dl")
+        bot_info = get_runtime("ytdlbot-ytdl-1", "Taobao Bot")
     if message.chat.username == OWNER:
         stats = bot_text.ping_worker()[:1000]
         client.send_document(chat_id, Redis().generate_file(), caption=f"{bot_info}\n\n{stats}")
@@ -265,7 +265,8 @@ def download_handler(client: "Client", message: "types.Message"):
     client.send_chat_action(chat_id, 'typing')
     red.user_count(chat_id)
 
-    url = re.sub(r'/ytdl\s*', '', message.text)
+    #url = re.sub(r'/ytdl\s*', '', message.text)
+    url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     logging.info("start %s", url)
 
     if not re.findall(r"^https?://", url.lower()):
