@@ -261,7 +261,7 @@ def vip_handler(client: "Client", message: "types.Message"):
 
 @app.on_message(filters.incoming & filters.text)
 @private_use
-def tbcn(tbcnurl):
+def tbcn(self, tbcnurl):
     #logger.info(tbcnurl)
     uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
     headers = {'User-Agent': uagent}
@@ -280,7 +280,7 @@ def tbcn(tbcnurl):
     #logger.info(tblink)
     return tblink
     
-def qr1688(url1688):
+def qr1688(self, url1688):
     #logger.info(tbcnurl)
     uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
     headers = {'User-Agent': uagent}
