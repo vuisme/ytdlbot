@@ -265,8 +265,8 @@ def download_handler(client: "Client", message: "types.Message"):
     client.send_chat_action(chat_id, 'typing')
     red.user_count(chat_id)
 
-    #url = re.sub(r'/ytdl\s*', '', message.text)
-    url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    url = re.sub(r'/ytdl\s*', '', message.text)
+    #url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     logging.info("start %s", url)
 
     if not re.findall(r"^https?://", url.lower()):
