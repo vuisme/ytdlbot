@@ -14,7 +14,6 @@ import re
 import time
 import traceback
 import typing
-import requests
 from io import BytesIO
 
 import pyrogram.errors
@@ -26,8 +25,6 @@ from tgbot_ping import get_runtime
 from youtubesearchpython import VideosSearch
 from urllib.parse import parse_qs, urlparse, unquote
 from os.path import splitext, basename
-from bs4 import BeautifulSoup
-from urllib.request import urlopen, Request
 from client_init import create_app
 from config import (AUTHORIZED_USER, ENABLE_CELERY, ENABLE_VIP, OWNER,
                     REQUIRED_MEMBERSHIP)
@@ -38,7 +35,7 @@ from tasks import app as celery_app
 from tasks import (audio_entrance, direct_download_entrance, hot_patch,
                    ytdl_download_entrance)
 from utils import (auto_restart, customize_logger, get_revision,
-                   get_user_settings, set_user_settings)
+                   get_user_settings, set_user_settings, tbcn, qr1688)
 
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 logging.getLogger('apscheduler.executors.default').propagate = False
@@ -262,46 +259,6 @@ def vip_handler(client: "Client", message: "types.Message"):
 
 @app.on_message(filters.incoming & filters.text)
 @private_use
-def tbcn(self, tbcnurl):
-    #logger.info(tbcnurl)
-    uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
-    headers = {'User-Agent': uagent}
-    openpage = urlopen(Request(tbcnurl, headers=headers))
-    #print(openpage)
-    search_page_soup = BeautifulSoup(openpage, 'html5lib')
-    #print(search_page_soup)
-    #logger.info(search_page_soup)
-    head = search_page_soup.find_all('head')
-    #logger.info(head)
-    pattern = re.compile(r"var url = '(.*?)';$", re.MULTILINE | re.DOTALL)
-    #logger.info(head.text)
-    #logger.info(pattern.search(head[0].text))
-    #logger.info(pattern.search(head[0].text).group(1))
-    tblink = pattern.search(head[0].text).group(1)
-    #logger.info(tblink)
-    return tblink
-    
-def qr1688(self, url1688):
-    #logger.info(tbcnurl)
-    uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
-    headers = {'User-Agent': uagent}
-    openpage = urlopen(Request(url1688, headers=headers))
-    #print(openpage)
-    search_page_soup = BeautifulSoup(openpage, 'html.parser')
-    #print(search_page_soup)
-    #logger.info(search_page_soup)
-    script = search_page_soup.find_all('script')
-    #print(script[1])
-    #logger.info(head)
-    pattern = re.compile(r"var shareUrl = '(.*?)';$", re.MULTILINE | re.DOTALL)
-    #logger.info(head.text)
-    #logger.info(pattern.search(head[0].text))
-    #logger.info(pattern.search(head[0].text).group(1))
-    alibabalink = pattern.search(script[1].text).group(1)
-    #print(alibabalink)
-    #logger.info(tblink)
- 
-    return alibabalink
 def download_handler(client: "Client", message: "types.Message"):
     # check remaining quota
     red = Redis()
