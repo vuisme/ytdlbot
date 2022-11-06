@@ -14,6 +14,7 @@ import re
 import time
 import traceback
 import typing
+import requests
 from io import BytesIO
 
 import pyrogram.errors
