@@ -205,6 +205,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     add_instagram_cookies(url, ydl_opts)
     add_taobao_cookies(url, ydl_opts)
     add_1688_cookies(url, ydl_opts)
+    add_facebook_cookies(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_
@@ -294,10 +295,15 @@ def convert_audio_format(resp: "dict", bm):
 
 def add_instagram_cookies(url: "str", opt: "dict"):
     if url.startswith("https://www.instagram.com"):
-        opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("instagram.com_cookies.txt").as_posix()
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/instagram.txt'
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+def add_facebook_cookies(url: "str", opt: "dict"):
+    if url.contains("facebook.com"):
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/facebook.txt'
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
 def add_taobao_cookies(url: "str", opt: "dict"):
     if url.startswith("https://world.taobao.com"):
-        opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("taobao.com_cookies.txt").as_posix()
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/taobao.txt'
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         opt['write_all_thumbnails'] = True
 def add_1688_cookies(url: "str", opt: "dict"):
