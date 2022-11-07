@@ -265,7 +265,9 @@ def download_handler(client: "Client", message: "types.Message"):
     chat_id = message.from_user.id
     client.send_chat_action(chat_id, 'typing')
     red.user_count(chat_id)
-    if not re.findall(r"^https?://", url.lower()):
+    #url = re.sub(r'/ytdl\s*', '', message.text)
+    url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    if url is None:
         red.update_metrics("bad_request")
         message.reply_text("I think you should send me a link.", quote=True)
         return
@@ -288,8 +290,7 @@ def download_handler(client: "Client", message: "types.Message"):
         # markup = InlineKeyboardMarkup([buttons])
         # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
         # return
-    #url = re.sub(r'/ytdl\s*', '', message.text)
-    url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+   
     logging.info("start %s", url)
     if "item.taobao.com" in url:
       vid = parse_qs(urlparse(url).query).get('id')
