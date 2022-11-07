@@ -299,7 +299,7 @@ def add_instagram_cookies(url: "str", opt: "dict"):
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         logging.info("add instagram cookies")
 def add_facebook_cookies(url: "str", opt: "dict"):
-    if url.contains("facebook.com"):
+    if url.startswith("https://www.facebook.com"):
         opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/facebook.txt'
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         logging.info("add facebook cookies")
