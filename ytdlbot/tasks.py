@@ -291,7 +291,6 @@ def ytdl_normal_download(bot_msg, client, url):
                 disable_notification=True,
                 media=list(array)
             )
-            time.sleep(60)
              
     else:
         client.send_chat_action(chat_id, 'typing')
