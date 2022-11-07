@@ -204,6 +204,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     adjust_formats(chat_id, url, formats, hijack)
     add_instagram_cookies(url, ydl_opts)
     add_taobao_cookies(url, ydl_opts)
+    add_1688_cookies(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_
@@ -295,11 +296,16 @@ def add_instagram_cookies(url: "str", opt: "dict"):
     if url.startswith("https://www.instagram.com"):
         opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("instagram.com_cookies.txt").as_posix()
 def add_taobao_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://world.taobao.com/"):
+    if url.startswith("https://world.taobao.com"):
         opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("taobao.com_cookies.txt").as_posix()
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         opt['write_all_thumbnails'] = True
-
+def add_1688_cookies(url: "str", opt: "dict"):
+    if url.startswith("https://m.1688.com"):
+        opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("1688.com_cookies.txt").as_posix()
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+        opt['write_all_thumbnails'] = True
+        
 def run_splitter(video_path: "str"):
     subprocess.check_output(f"sh split-video.sh {video_path} {TG_MAX_SIZE} ".split())
     os.remove(video_path)
