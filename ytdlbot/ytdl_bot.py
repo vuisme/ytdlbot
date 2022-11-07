@@ -284,12 +284,12 @@ def download_handler(client: "Client", message: "types.Message"):
     if "1688.com/offer/" in url:
       vid = os.path.basename(urlparse(url).path)
       url = "https://m.1688.com/offer/" + vid
-      logger.info("link sau khi convert")
-      logger.info(url)
+      logging.info("link sau khi convert")
+      logging.info(url)
     if "qr.1688.com" in url:
       oklink = qr1688(url)
-      logger.info("link 1688 sau khi convert")
-      logger.info(url)
+      logging.info("link 1688 sau khi convert")
+      logging.info(url)
       url = unquote(unquote(oklink))
     if "tb.cn" in url:
       linktb = tbcn(url)
@@ -301,9 +301,9 @@ def download_handler(client: "Client", message: "types.Message"):
       else:
           videoid = str(vid[0])
       url = "https://world.taobao.com/item/" + videoid + ".htm"
-      logger.info("tb.cn convert xong")
-      logger.info(linktb)
-      logger.info(url)
+      logging.info("tb.cn convert xong")
+      logging.info(linktb)
+      logging.info(url)
     if not re.findall(r"^https?://", url.lower()):
         red.update_metrics("bad_request")
         message.reply_text("I think you should send me a link.", quote=True)
