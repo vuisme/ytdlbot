@@ -302,7 +302,7 @@ def add_taobao_cookies(url: "str", opt: "dict"):
         opt['write_all_thumbnails'] = True
 def add_1688_cookies(url: "str", opt: "dict"):
     if url.startswith("https://m.1688.com"):
-        opt["cookiefi22"] = '/ytdlbot/ytdlbot/cookies/1688.txt'
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/1688.txt'
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         opt['write_all_thumbnails'] = True
         
