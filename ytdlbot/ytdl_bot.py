@@ -265,7 +265,29 @@ def download_handler(client: "Client", message: "types.Message"):
     chat_id = message.from_user.id
     client.send_chat_action(chat_id, 'typing')
     red.user_count(chat_id)
-
+    if not re.findall(r"^https?://", url.lower()):
+        red.update_metrics("bad_request")
+        message.reply_text("I think you should send me a link.", quote=True)
+        return
+        # TODO
+        # red.update_metrics("search_request")
+        # result = VideosSearch(url, limit=5).result().get("result", [])
+        # text = ""
+        # count = 1
+        # buttons = []
+        # for item in result:
+        #     text += f"{count}. {item['title']} - {item['link']}\n\n"
+        #     buttons.append(
+        #         InlineKeyboardButton(
+        #             f"{count}",
+        #             callback_data=f"search_{item['id']}"
+        #         )
+        #     )
+        #     count += 1
+        #
+        # markup = InlineKeyboardMarkup([buttons])
+        # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
+        # return
     #url = re.sub(r'/ytdl\s*', '', message.text)
     url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     logging.info("start %s", url)
@@ -304,29 +326,6 @@ def download_handler(client: "Client", message: "types.Message"):
       logging.info("tb.cn convert xong")
       logging.info(linktb)
       logging.info(url)
-    if not re.findall(r"^https?://", url.lower()):
-        red.update_metrics("bad_request")
-        message.reply_text("I think you should send me a link.", quote=True)
-        return
-        # TODO
-        # red.update_metrics("search_request")
-        # result = VideosSearch(url, limit=5).result().get("result", [])
-        # text = ""
-        # count = 1
-        # buttons = []
-        # for item in result:
-        #     text += f"{count}. {item['title']} - {item['link']}\n\n"
-        #     buttons.append(
-        #         InlineKeyboardButton(
-        #             f"{count}",
-        #             callback_data=f"search_{item['id']}"
-        #         )
-        #     )
-        #     count += 1
-        #
-        # markup = InlineKeyboardMarkup([buttons])
-        # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
-        # return
 
     if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)):
         message.reply_text("Channel download is disabled now. Please send me individual video link.", quote=True)
