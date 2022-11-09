@@ -296,6 +296,16 @@ def ytdl_normal_download(bot_msg, client, url):
         client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
+        try:
+            user_info = "@{} ({}) - {}".format(
+                message.from_user.username or "",
+                message.from_user.first_name or "" + message.from_user.last_name or "",
+                message.from_user.id
+            )
+        except Exception:
+            user_info = ""
+        texterror = f"{user_info}\nDownload failed!❌\n\n```{tb}```"
+        client.send_message(ARCHIVE_ID, texterror)
 
     temp_dir.cleanup()
 
