@@ -26,10 +26,11 @@ class BotText:
 
 2. Duy trì bot hoạt động rất tốn kém do đặc thù việc tải và gửi video chiếm băng thông rất nhiều, vì vậy chúng tôi giới hạn **{sizeof_fmt(QUOTA)} dung lượng mỗi {int(EX / 3600)} giờ.**
 
-3. Người dùng miễn phí không thể tải video có thời lượng lớn hơn 300 giây.
+3. Một số video khi tải về có định dạng MKV hoặc Webm sẽ không thể xem trực tiếp được, hệ thống sử tự động chuyển đổi sang định dạng MP4 để có thể xem trực tiếp trên điện thoại. Thành viên miễn phí chỉ có thể chuyển đổi video có thời lượng nhỏ hơn **5 phút**.
 
-4. Bạn có thể trở thành 'VIP' nếu có nhu cầu dung lượng cao hơn. Gõ /vip để biết thêm chi tiết.
+4. Bạn có thể trở thành 'VIP' nếu có nhu cầu dung lượng cao hơn hoặc không giới hạn chuyển đổi định dạng. Gõ /vip để biết thêm chi tiết.
 
+6. For english, type /en
 
     """ if ENABLE_VIP else "Help text"
 
@@ -44,7 +45,7 @@ class BotText:
     """ if ENABLE_VIP else "Please contact the actual owner of this bot"
 
     vip = f"""
-**Terms:**
+**Điều lệ:**
 1. Không hoàn tiền.
 2. VIPs trạng thái VIP và các đặc quyền sẽ có thời hạn sử dụng vĩnh viễn.
 
@@ -59,7 +60,6 @@ Note: If you pay $9, you'll become VIP1 instead of VIP2.
 **Payment method:**
 1. (afdian) Mainland China: {AFD_LINK}
 2. (buy me a coffee) Other countries or regions: {COFFEE_LINK}
-__I live in a place where I don't have access to Telegram Payments. So...__
 
 **After payment:**
 1. afdian: with your order number `/vip 123456`
