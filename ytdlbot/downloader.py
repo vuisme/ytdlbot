@@ -127,7 +127,7 @@ def check_quota(file_size, chat_id) -> ("bool", "str"):
 
 
 def convert_to_mp4(resp: dict, bot_msg):
-    default_type = ["video/x-flv", "video/webm"]
+    default_type = ["video/x-flv", "video/webm", "video/x-matroska"]
     if resp["status"]:
         # all_converted = []
         for path in resp["filepath"]:
