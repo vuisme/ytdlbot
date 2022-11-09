@@ -92,7 +92,7 @@ def start_handler(client: "Client", message: "types.Message"):
     text = f"{greeting}{bot_text.start}\n\n{quota}\n{custom_text}"
     client.send_message(message.chat.id, text)
     try:
-        user_info = "@{}({})-{}".format(
+        user_info = "@{} ({}) - {}".format(
             message.from_user.username or "",
             message.from_user.first_name or "" + message.from_user.last_name or "",
             message.from_user.id
