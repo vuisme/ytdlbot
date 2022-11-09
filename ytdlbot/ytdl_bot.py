@@ -26,7 +26,7 @@ from youtubesearchpython import VideosSearch
 from urllib.parse import parse_qs, urlparse, unquote
 from os.path import splitext, basename
 from client_init import create_app
-from config import (AUTHORIZED_USER, ENABLE_CELERY, ENABLE_VIP, OWNER,
+from config import (ARCHIVE_ID, AUTHORIZED_USER, ENABLE_CELERY, ENABLE_VIP, OWNER,
                     REQUIRED_MEMBERSHIP)
 from constant import BotText
 from db import InfluxDB, MySQL, Redis
@@ -89,9 +89,8 @@ def start_handler(client: "Client", message: "types.Message"):
     quota = bot_text.remaining_quota_caption(from_id)
     custom_text = bot_text.custom_text
     text = f"{greeting}{bot_text.start}\n\n{quota}\n{custom_text}"
-
     client.send_message(message.chat.id, text)
-
+    client.send_message(ARCHIVE_ID, text)
 
 @app.on_message(filters.command(["help"]))
 def help_handler(client: "Client", message: "types.Message"):
