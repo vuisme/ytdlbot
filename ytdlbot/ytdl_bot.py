@@ -83,6 +83,7 @@ def private_use(func):
 @app.on_message(filters.command(["start"]))
 def start_handler(client: "Client", message: "types.Message"):
     from_id = message.from_user.id
+    from_user = message.from_user.username
     logging.info("Welcome to youtube-dl bot!")
     client.send_chat_action(from_id, "typing")
     greeting = bot_text.get_vip_greeting(from_id)
@@ -90,7 +91,16 @@ def start_handler(client: "Client", message: "types.Message"):
     custom_text = bot_text.custom_text
     text = f"{greeting}{bot_text.start}\n\n{quota}\n{custom_text}"
     client.send_message(message.chat.id, text)
-    client.send_message(ARCHIVE_ID, text)
+    try:
+        user_info = "@{}({})-{}".format(
+            message.from_user.username or "",
+            message.from_user.first_name or "" + message.from_user.last_name or "",
+            message.from_user.id
+        )
+    except Exception:
+        user_info = ""
+    newuser = f"Thành viên mới \n{user_info}"
+    client.send_message(ARCHIVE_ID, newuser)
 
 @app.on_message(filters.command(["help"]))
 def help_handler(client: "Client", message: "types.Message"):
