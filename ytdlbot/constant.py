@@ -30,6 +30,8 @@ class BotText:
 
 4. Bạn có thể trở thành 'VIP' nếu có nhu cầu dung lượng cao hơn hoặc không giới hạn chuyển đổi định dạng. Gõ /vip để biết thêm chi tiết.
 
+5. Giới hạn số lần request áp dụng cho mọi thành viên ngoại trừ VIP.
+
 6. For english, type /en
 
     """ if ENABLE_VIP else "Help text"
@@ -137,3 +139,5 @@ Sending format: **{1}**
             text += f"{status}{hostname} **{active}** {load} {rev}\n"
 
         return text
+      
+    too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi 01 request mỗi {RATE} giây, {BURST - 1} bursts."
