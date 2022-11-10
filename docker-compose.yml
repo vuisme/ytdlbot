@@ -25,7 +25,7 @@ services:
       driver: none
 
   ytdl:
-    image: cpanel10x/ytdlbot_tb:1.0
+    image: cpanel10x/ytdlbot_tb:1.2
     env_file:
       - env/ytdl.env
     restart: always
@@ -37,7 +37,7 @@ services:
       - taobaobot_cookies:/ytdlbot/ytdlbot/cookies
 
   flower:
-    image: cpanel10x/ytdlbot_tb:1.0
+    image: cpanel10x/ytdlbot_tb:1.2
     env_file:
       - env/ytdl.env
     restart: on-failure
