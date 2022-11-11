@@ -228,6 +228,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
             break
 
     logging.info("%s - %s", url, response)
+    logging.info("%s - %s", url, response["description"])
     if response["status"] is False:
         return response
 
