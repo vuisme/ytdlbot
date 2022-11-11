@@ -139,5 +139,4 @@ Sending format: **{1}**
             text += f"{status}{hostname} **{active}** {load} {rev}\n"
 
         return text
-      
     too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi 01 request mỗi {RATE} giây, {BURST - 1} bursts."

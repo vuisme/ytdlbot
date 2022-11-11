@@ -50,7 +50,6 @@ logging.info("Authorized users are %s", AUTHORIZED_USER)
 mem = MemoryStorage()
 # 5 minutes, 2 bursts
 lim = Limiter(1 / RATE, BURST, mem)
-
 def private_use(func):
     def wrapper(client: "Client", message: "types.Message"):
         chat_id = getattr(message.from_user, "id", None)
@@ -350,7 +349,7 @@ def download_handler(client: "Client", message: "types.Message"):
         red.update_metrics("rate_limit")
         message.reply_text(bot_text.too_fast, quote=True)
         return
-      
+
     red.update_metrics("video_request")
     text = bot_text.get_receive_link_text()
     try:
@@ -396,7 +395,7 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-      
+        
     callback_query.answer(f"Converting to audio...please wait patiently")
     Redis().update_metrics("audio_request")
     vmsg = callback_query.message
