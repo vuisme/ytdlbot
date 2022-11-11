@@ -19,9 +19,10 @@ import threading
 import time
 import traceback
 import typing
+import googletrans
 from hashlib import md5
 from urllib.parse import quote_plus
-
+from googletrans import Translator
 import psutil
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -315,6 +316,8 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
     red = Redis()
     markup = gen_video_markup()
     cap, meta = gen_cap(bot_msg, url, vp_or_fid)
+    translator = Translator()
+    newcap = translator.translate(cap,dest='vi')
     settings = get_user_settings(str(chat_id))
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
@@ -323,7 +326,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
         try:
             # send as document could be sent as video even if it's a document
             res_msg = client.send_document(chat_id, vp_or_fid,
-                                           caption=cap,
+                                           caption=newcap,
                                            progress=upload_hook, progress_args=(bot_msg,),
                                            reply_markup=markup,
                                            thumb=meta["thumb"],
@@ -333,7 +336,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
             logging.error("Retry to send as video")
             res_msg = client.send_video(chat_id, vp_or_fid,
                                         supports_streaming=True,
-                                        caption=cap,
+                                        caption=newcap,
                                         progress=upload_hook, progress_args=(bot_msg,),
                                         reply_markup=markup,
                                         **meta
@@ -341,14 +344,14 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
     elif settings[2] == "audio":
         logging.info("Sending as audio")
         res_msg = client.send_audio(chat_id, vp_or_fid,
-                                    caption=cap,
+                                    caption=newcap,
                                     progress=upload_hook, progress_args=(bot_msg,),
                                     )
     else:
         logging.info("Sending as video")
         res_msg = client.send_video(chat_id, vp_or_fid,
                                     supports_streaming=True,
-                                    caption=cap,
+                                    caption=newcap,
                                     progress=upload_hook, progress_args=(bot_msg,),
                                     reply_markup=markup,
                                     **meta
