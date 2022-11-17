@@ -285,13 +285,9 @@ def ytdl_normal_download(bot_msg, client, url):
                         media = url_path
                     )
                 )
-        newlst = split_list(lstimg, 10)
-        for array in newlst:
-            client.send_media_group(
-                chat_id,
-                disable_notification=True,
-                media=list(array)
-            )
+        if lstimg:
+            send_image(client, bot_msg, lstimg, video_path)
+            bot_msg.edit_text('Download success!✅ - Image success!✅')
              
     else:
         client.send_chat_action(chat_id, 'typing')
@@ -310,7 +306,16 @@ def ytdl_normal_download(bot_msg, client, url):
 
     temp_dir.cleanup()
 
-
+def send_image(client, bot_msg, lstimg, vp_or_fid: "typing.Any[str, pathlib.Path]"):
+    chat_id = bot_msg.chat.id
+    red = Redis()
+    newlst = split_list(lstimg, 10)
+    for array in newlst:
+            res_msg = client.send_media_group(
+                chat_id,
+                disable_notification=True,
+                media=list(array)
+            )
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
     chat_id = bot_msg.chat.id
     red = Redis()
@@ -453,6 +458,7 @@ def async_task(task_name, *args):
         route = worker_name.split('@')[1]
         concurrency = stats['pool']['max-concurrency']
         route_queues.extend([route] * (concurrency + padding))
+    logging.info("route_queue is %s", route_queues)
     destination = random.choice(route_queues)
     logging.info("Selecting worker %s from %s in %.2fs", destination, route_queues, time.time() - t0)
     task_name.apply_async(args=args, queue=destination)
