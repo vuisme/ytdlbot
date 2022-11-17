@@ -273,7 +273,7 @@ def ytdl_normal_download(bot_msg, client, url):
                     client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
                     return
                 upload_processor(client, bot_msg, url, video_path)
-                bot_msg.edit_text('Download success!✅')
+                bot_msg.edit_text('Download Video Success!✅')
         lstimg = []
         for url_path in video_paths:
             # normally there's only one video in that path...
@@ -287,8 +287,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 )
         if lstimg:
             send_image(client, bot_msg, lstimg, video_path)
-            #client.edit_text('Send Images Success!✅')
-            client.send_message(chat_id, text="Send Images Success!✅", reply_to_message_id=bot_msg.id)
+            bot_msg.reply_text("Send Images Success!✅", quote=True)
              
     else:
         client.send_chat_action(chat_id, 'typing')
