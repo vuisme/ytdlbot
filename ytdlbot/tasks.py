@@ -285,8 +285,8 @@ def ytdl_normal_download(bot_msg, client, url):
                         media = url_path
                     )
                 )
-        if not newlst:
-            send_image(client, bot_msg, newlst, video_path)
+        if not lstimg:
+            send_image(client, bot_msg, lstimg, video_path)
             bot_msg.edit_text('Download success!✅ - Image success!✅')
              
     else:
@@ -306,7 +306,7 @@ def ytdl_normal_download(bot_msg, client, url):
 
     temp_dir.cleanup()
 
-def send_image(client, bot_msg, listimg, vp_or_fid: "typing.Any[str, pathlib.Path]"):
+def send_image(client, bot_msg, lstimg, vp_or_fid: "typing.Any[str, pathlib.Path]"):
     chat_id = bot_msg.chat.id
     red = Redis()
     newlst = split_list(lstimg, 10)
