@@ -287,7 +287,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 )
         if lstimg:
             send_image(client, bot_msg, lstimg, video_path)
-            client.edit_text('Send Images Success!✅')
+            #client.edit_text('Send Images Success!✅')
             client.send_message(chat_id, text="Send Images Success!✅", reply_to_message_id=bot_msg.id)
              
     else:
