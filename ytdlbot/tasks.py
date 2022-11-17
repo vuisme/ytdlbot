@@ -285,7 +285,7 @@ def ytdl_normal_download(bot_msg, client, url):
                         media = url_path
                     )
                 )
-        if not lstimg:
+        if lstimg:
             send_image(client, bot_msg, lstimg, video_path)
             bot_msg.edit_text('Download success!✅ - Image success!✅')
              
