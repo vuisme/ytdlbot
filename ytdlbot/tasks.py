@@ -287,7 +287,8 @@ def ytdl_normal_download(bot_msg, client, url):
                 )
         if lstimg:
             send_image(client, bot_msg, lstimg, video_path)
-            bot_msg.edit_text('Download success!✅ - Image success!✅')
+            client.edit_text('Send Images Success!✅')
+            client.send_message(chat_id, text="Send Images Success!✅", reply_to_message_id=bot_msg.id)
              
     else:
         client.send_chat_action(chat_id, 'typing')
@@ -308,7 +309,7 @@ def ytdl_normal_download(bot_msg, client, url):
 
 def send_image(client, bot_msg, lstimg, vp_or_fid: "typing.Any[str, pathlib.Path]"):
     chat_id = bot_msg.chat.id
-    red = Redis()
+    #red = Redis()
     newlst = split_list(lstimg, 10)
     for array in newlst:
             res_msg = client.send_media_group(
