@@ -261,6 +261,7 @@ def ytdl_normal_download(bot_msg, client, url):
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
         logging.info(result)
+        video_file = []
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
@@ -272,6 +273,7 @@ def ytdl_normal_download(bot_msg, client, url):
                     client.send_chat_action(chat_id, 'upload_document')
                     client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
                     return
+                video_file.append(video_path)
                 upload_processor(client, bot_msg, url, video_path)
                 bot_msg.edit_text('Download Video Success!✅')
         lstimg = []
@@ -286,7 +288,7 @@ def ytdl_normal_download(bot_msg, client, url):
                     )
                 )
         if lstimg:
-            send_image(client, bot_msg, lstimg, video_path)
+            send_image(client, bot_msg, lstimg, video_file[0])
             bot_msg.reply_text("Send Images Success!✅", quote=True)
              
     else:
@@ -310,7 +312,7 @@ def send_image(client, bot_msg, lstimg, vp_or_fid: "typing.Any[str, pathlib.Path
     chat_id = bot_msg.chat.id
     #red = Redis()
     newlst = split_list(lstimg, 10)
-    logging.info("img list %s", newlst)
+    logging.info("img list %s", vp_or_fid)
     for array in newlst:
             res_msg = client.send_media_group(
                 chat_id,
