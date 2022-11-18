@@ -310,12 +310,15 @@ def send_image(client, bot_msg, lstimg, vp_or_fid: "typing.Any[str, pathlib.Path
     chat_id = bot_msg.chat.id
     #red = Redis()
     newlst = split_list(lstimg, 10)
+    logging.info("img list %s", newlst)
     for array in newlst:
             res_msg = client.send_media_group(
                 chat_id,
                 disable_notification=True,
                 media=list(array)
             )
+            logging.info("sent %s", array)
+        
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
     chat_id = bot_msg.chat.id
     red = Redis()
