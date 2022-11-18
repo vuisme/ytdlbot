@@ -99,12 +99,14 @@ def direct_download_task(chat_id, message_id, url):
 
 
 def forward_video(url, client, bot_msg):
+    logging.info(bot_msg)
     chat_id = bot_msg.chat.id
     red = Redis()
     vip = VIP()
     unique = get_unique_clink(url, chat_id)
-
+    logging.info(unique)
     cached_fid = red.get_send_cache(unique)
+    logging.info(cached_fid)
     if not cached_fid:
         return False
 
