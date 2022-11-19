@@ -277,7 +277,7 @@ def ytdl_normal_download(bot_msg, client, url):
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
             st_size = os.stat(video_path).st_size
-            if (extPath == '.mp4' or extPath == '.mkv' or extPath == '.webm'):
+            if (extPath == '.mp4' or extPath == '.mkv' or extPath == '.webm' or extPath == '.mov'):
                 if st_size > TG_MAX_SIZE:
                     t = f"Your video({sizeof_fmt(st_size)}) is too large for Telegram. I'll upload it to transfer.sh"
                     bot_msg.edit_text(t)
@@ -285,7 +285,7 @@ def ytdl_normal_download(bot_msg, client, url):
                     client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
                     return
                 upload_processor(client, bot_msg, url, video_path)
-                bot_msg.edit_text('Download Video Success!✅')
+        bot_msg.edit_text('Download Video Success!✅')
              
     else:
         client.send_chat_action(chat_id, 'typing')
@@ -377,7 +377,7 @@ def gen_cap(bm, url, video_path):
     chat_id = bm.chat.id
     user = bm.chat
     try:
-        user_info = "@{}({})-{}".format(
+        user_info = "@{} ({}) - {}".format(
             user.username or "N/A",
             user.first_name or "" + user.last_name or "",
             user.id
