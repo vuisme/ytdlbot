@@ -99,24 +99,18 @@ def direct_download_task(chat_id, message_id, url):
 
 
 def forward_video(url, client, bot_msg):
-    logging.info(bot_msg)
     chat_id = bot_msg.chat.id
     red = Redis()
     vip = VIP()
     unique = get_unique_clink(url, chat_id)
-    logging.info(unique)
     cached_fid = red.get_send_cache(unique)
-    logging.info(cached_fid)
     if not cached_fid:
         return False
-
     try:
         res_msg: "Message" = upload_processor(client, bot_msg, url, cached_fid)
-        logging.info(res_msg)
         if not res_msg:
             raise ValueError("Failed to forward message")
         obj = res_msg.document or res_msg.video or res_msg.audio
-        logging.info(obj)
         if ENABLE_VIP:
             file_size = getattr(obj, "file_size", None) \
                         or getattr(obj, "file_size", None) \
@@ -124,7 +118,6 @@ def forward_video(url, client, bot_msg):
             # TODO: forward file size may exceed the limit
             vip.use_quota(chat_id, file_size)
         caption, _ = gen_cap(bot_msg, url, obj)
-        logging.info(caption)
         res_msg.edit_text(caption, reply_markup=gen_video_markup())
         bot_msg.edit_text(f"Download success!✅✅✅")
         red.update_metrics("cache_hit")
@@ -258,15 +251,12 @@ def upload_transfer_sh(bm, paths: list) -> "str":
 def ytdl_normal_download(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-")
-
     result = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     if result["status"]:
         client.send_chat_action(chat_id, 'upload_document')
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
-        logging.info(result)
-        video_file = []
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
@@ -293,10 +283,10 @@ def ytdl_normal_download(bot_msg, client, url):
                     )
                 )
         if lstimg:
-            newlst = split_list(lstimg, 10)
+            newlst = split_list(lstimg, 9)
             for array in newlst:
                 send_image(client, bot_msg, array)
-            bot_msg.reply_text("Send Images Success!✅", quote=True)
+            #bot_msg.reply_text("Send Images Success!✅", quote=True)
              
     else:
         client.send_chat_action(chat_id, 'typing')
