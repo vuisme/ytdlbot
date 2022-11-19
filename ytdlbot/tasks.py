@@ -318,6 +318,7 @@ def ytdl_normal_download(bot_msg, client, url):
 def send_image(client, bot_msg, lstimg):
     chat_id = bot_msg.chat.id
     #red = Redis()
+    client.send_chat_action(chat_id, 'upload_photo')
     res_msg = client.send_media_group(
             chat_id,
             disable_notification=True,
@@ -337,6 +338,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
         chat_id = ARCHIVE_ID
     if settings[2] == "document":
         logging.info("Sending as document")
+        client.send_chat_action(chat_id, 'upload_document')
         try:
             # send as document could be sent as video even if it's a document
             res_msg = client.send_document(chat_id, vp_or_fid,
@@ -348,6 +350,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
                                            )
         except ValueError:
             logging.error("Retry to send as video")
+            client.send_chat_action(chat_id, 'upload_video')
             res_msg = client.send_video(chat_id, vp_or_fid,
                                         supports_streaming=True,
                                         caption=cap,
@@ -363,6 +366,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
                                     )
     else:
         logging.info("Sending as video")
+        client.send_chat_action(chat_id, 'upload_video')
         res_msg = client.send_video(chat_id, vp_or_fid,
                                     supports_streaming=True,
                                     caption=cap,
