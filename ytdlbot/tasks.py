@@ -268,7 +268,6 @@ def ytdl_normal_download(bot_msg, client, url):
                     client.send_chat_action(chat_id, 'upload_document')
                     client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
                     return
-                video_file.append(video_path)
                 upload_processor(client, bot_msg, url, video_path)
                 bot_msg.edit_text('Download Video Success!✅')
         lstimg = []
