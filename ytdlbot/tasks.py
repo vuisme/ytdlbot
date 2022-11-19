@@ -321,7 +321,7 @@ def send_image(client, bot_msg, lstimg):
     res_msg = client.send_media_group(
             chat_id,
             disable_notification=True,
-            media=list(array)
+            media=list(lstimg)
             )
     return res_msg
         
