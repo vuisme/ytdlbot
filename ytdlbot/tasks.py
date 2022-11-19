@@ -293,7 +293,9 @@ def ytdl_normal_download(bot_msg, client, url):
                     )
                 )
         if lstimg:
-            send_image(client, bot_msg, lstimg, video_file[0])
+            newlst = split_list(lstimg, 10)
+            for array in newlst:
+                send_image(client, bot_msg, array)
             bot_msg.reply_text("Send Images Success!✅", quote=True)
              
     else:
@@ -313,16 +315,15 @@ def ytdl_normal_download(bot_msg, client, url):
 
     temp_dir.cleanup()
 
-def send_image(client, bot_msg, lstimg, vp_or_fid: "typing.Any[str, pathlib.Path]"):
+def send_image(client, bot_msg, lstimg):
     chat_id = bot_msg.chat.id
     #red = Redis()
-    newlst = split_list(lstimg, 10)
-    for array in newlst:
-            res_msg = client.send_media_group(
-                chat_id,
-                disable_notification=True,
-                media=list(array)
+    res_msg = client.send_media_group(
+            chat_id,
+            disable_notification=True,
+            media=list(array)
             )
+    return res_msg
         
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
     chat_id = bot_msg.chat.id
