@@ -38,7 +38,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.HITGUB_TOKEN }}
 
       - name: Lower case for Docker Hub
         id: dh_string
