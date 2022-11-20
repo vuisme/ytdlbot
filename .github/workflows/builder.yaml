@@ -2,7 +2,7 @@ name: docker image builder
 on:
   push:
     branches:
-      - 'master'
+      - 'tb_bot'
 
 jobs:
   docker:
