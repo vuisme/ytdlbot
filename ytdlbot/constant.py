@@ -19,51 +19,40 @@ from utils import get_func_queue
 
 
 class BotText:
-    start = "Welcome to YouTube Download bot. Type /help for more information."
+    start = "Taobao Tools - Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!"
 
     help = f"""
-1. This bot should works at all times. If it doesn't, try to send the link again or DM @BennyThink
+1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ.
 
-2. At this time of writing, this bot consumes hundreds of GigaBytes of network traffic per day. 
-In order to avoid being abused, 
-every one can use this bot within **{sizeof_fmt(QUOTA)} of quota for every {int(EX / 3600)} hours.**
+2. Duy trì bot hoạt động rất tốn kém do đặc thù việc tải và gửi video chiếm băng thông rất nhiều, vì vậy chúng tôi giới hạn **{sizeof_fmt(QUOTA)} dung lượng mỗi {int(EX / 3600)} giờ.**
 
-3. Free users can't receive streaming formats of one video whose duration is longer than 300 seconds.
+3. Một số video khi tải về có định dạng MKV hoặc Webm sẽ không thể xem trực tiếp được, hệ thống sử tự động chuyển đổi sang định dạng MP4 để có thể xem trực tiếp trên điện thoại. Thành viên miễn phí chỉ có thể chuyển đổi video có thời lượng nhỏ hơn **5 phút**.
 
-4. You can optionally choose to become 'VIP' user if you need more traffic. Type /vip for more information.
+4. Bạn có thể trở thành 'VIP' nếu có nhu cầu dung lượng cao hơn hoặc không giới hạn chuyển đổi định dạng. Gõ /vip để biết thêm chi tiết.
 
-5. Source code for this bot will always stay open, here-> https://github.com/tgbot-collection/ytdlbot
+5. Giới hạn số lần request áp dụng cho mọi thành viên ngoại trừ VIP.
 
-6. Request limit is applied for everyone, excluding VIP users.
+6. For english, type /en
+
     """ if ENABLE_VIP else "Help text"
 
-    about = "YouTube-DL by @BennyThink. Open source on GitHub: https://github.com/tgbot-collection/ytdlbot"
+    about = "Công cụ được phát triển từ YouTube-DL bởi @BennyThink. Mã nguồn mở trên GitHub: https://github.com/tgbot-collection/ytdlbot"
 
     terms = f"""
-1. You can use this service, free of charge, {sizeof_fmt(QUOTA)} per {int(EX / 3600)} hours.
+1. Thành viên miễn phí có thể sử dụng {sizeof_fmt(QUOTA)} mỗi {int(EX / 3600)} giờ.
 
-2. The above traffic, is counted for one-way. 
-For example, if you download a video of 1GB, your current quota will be 9GB instead of 8GB.
+2. Công cụ không thu nhập dữ liệu cá nhân từ người dùng ngoài ID Telegram
 
-3. Streaming support is limited due to high costs of conversion.
-
-4. I won't gather any personal information, which means I don't know how many and what videos did you download.
-
-5. Please try not to abuse this service.
-
-6. It's a open source project, you can always deploy your own bot.
-
-7. For VIPs, please refer to /vip command
+3. Để trở thành VIP và hưởng các đặc quyền, vui lòng gõ /vip
     """ if ENABLE_VIP else "Please contact the actual owner of this bot"
 
     vip = f"""
-**Terms:**
-1. No refund, I'll keep it running as long as I can.
-2. I'll record your unique ID after a successful payment, usually it's payment ID or email address.
-3. VIPs identity won't expire.
+**Điều lệ:**
+1. Không hoàn tiền.
+2. VIPs trạng thái VIP và các đặc quyền sẽ có thời hạn sử dụng vĩnh viễn.
 
-**Pay Tier:**
-1. Everyone: {sizeof_fmt(QUOTA)} per {int(EX / 3600)} hours
+**Các hạng:**
+1. Miễn phí: {sizeof_fmt(QUOTA)} mỗi {int(EX / 3600)} giờ
 2. VIP1: ${MULTIPLY} or ¥{MULTIPLY * USD2CNY}, {sizeof_fmt(QUOTA * 5)} per {int(EX / 3600)} hours
 3. VIP2: ${MULTIPLY * 2} or ¥{MULTIPLY * USD2CNY * 2}, {sizeof_fmt(QUOTA * 5 * 2)} per {int(EX / 3600)} hours
 4. VIP4....VIPn.
@@ -73,7 +62,6 @@ Note: If you pay $9, you'll become VIP1 instead of VIP2.
 **Payment method:**
 1. (afdian) Mainland China: {AFD_LINK}
 2. (buy me a coffee) Other countries or regions: {COFFEE_LINK}
-__I live in a place where I don't have access to Telegram Payments. So...__
 
 **After payment:**
 1. afdian: with your order number `/vip 123456`
@@ -151,5 +139,4 @@ Sending format: **{1}**
             text += f"{status}{hostname} **{active}** {load} {rev}\n"
 
         return text
-
-    too_fast = f"You have reached rate limit. Current rate limit is 1 request per {RATE} seconds, {BURST - 1} bursts."
+    too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi 01 request mỗi {RATE} giây, {BURST - 1} bursts."
