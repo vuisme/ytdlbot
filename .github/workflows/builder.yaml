@@ -52,7 +52,7 @@ jobs:
         with:
           string: ${{ github.event.repository.full_name }}
 
-      - name: Build and push
+      - name: Build and pushh
         uses: docker/build-push-action@v2
         with:
           context: .
