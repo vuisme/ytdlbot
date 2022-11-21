@@ -398,8 +398,7 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-        
-    callback_query.answer(f"Converting to audio...please wait patiently")
+    callback_query.answer("Converting to audio...please wait patiently")
     Redis().update_metrics("audio_request")
     vmsg = callback_query.message
     audio_entrance(vmsg, client)
@@ -428,6 +427,7 @@ def periodic_sub_check():
                     vip.deactivate_user_subscription(uid)
                 except Exception as e:
                     logging.error("Unknown error when sending message to user. %s", traceback.format_exc())
+                    logging.error(e)
                 finally:
                     time.sleep(random.random() * 3)
 
