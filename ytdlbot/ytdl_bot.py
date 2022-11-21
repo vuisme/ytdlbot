@@ -308,8 +308,8 @@ def download_handler(client: "Client", message: "types.Message"):
     url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     logging.info("start %s", url)
     if "item.taobao.com" in url:
-      vid = parse_qs(urlparse(url).query).get('id')
-      url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
     if "offerId" in url:
       vid = parse_qs(urlparse(url).query).get('offerId')
       url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
