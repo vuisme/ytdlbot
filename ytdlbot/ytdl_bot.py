@@ -311,33 +311,33 @@ def download_handler(client: "Client", message: "types.Message"):
         vid = parse_qs(urlparse(url).query).get('id')
         url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
     if "offerId" in url:
-      vid = parse_qs(urlparse(url).query).get('offerId')
-      url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
+        vid = parse_qs(urlparse(url).query).get('offerId')
+        url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
     if "intl.taobao.com" in url:
-      vid = parse_qs(urlparse(url).query).get('id')
-      url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
     if "tmall.com" in url:
-      vid = parse_qs(urlparse(url).query).get('id')
-      url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
     if "1688.com/offer/" in url:
-      vid = os.path.basename(urlparse(url).path)
-      url = "https://m.1688.com/offer/" + vid
-      logging.info("link sau khi convert")
-      logging.info(url)
+        vid = os.path.basename(urlparse(url).path)
+        url = "https://m.1688.com/offer/" + vid
+        logging.info("link sau khi convert")
+        logging.info(url)
     if "qr.1688.com" in url:
-      oklink = qr1688(url)
-      logging.info("link 1688 sau khi convert")
-      logging.info(url)
-      url = unquote(unquote(oklink))
+        oklink = qr1688(url)
+        logging.info("link 1688 sau khi convert")
+        logging.info(url)
+        url = unquote(unquote(oklink))
     if "tb.cn" in url:
-      linktb = tbcn(url)
-      vid = parse_qs(urlparse(linktb).query).get('id')
-      if "a.m.taobao.com" in linktb:
-        disassembled = urlparse(linktb)
-        videoid, file_ext = splitext(basename(disassembled.path))
-        videoid = re.sub(r"\D", "", videoid)
-      else:
-          videoid = str(vid[0])
+        linktb = tbcn(url)
+        vid = parse_qs(urlparse(linktb).query).get('id')
+        if "a.m.taobao.com" in linktb:
+            disassembled = urlparse(linktb)
+            videoid, file_ext = splitext(basename(disassembled.path))
+            videoid = re.sub(r"\D", "", videoid)
+        else:
+            videoid = str(vid[0])
       url = "https://world.taobao.com/item/" + videoid + ".htm"
       logging.info("tb.cn convert xong")
       logging.info(linktb)
