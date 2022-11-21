@@ -267,9 +267,7 @@ def convert_audio_format(resp: "dict", bm):
         path: "pathlib.Path"
         for path in resp["filepath"]:
             streams = ffmpeg.probe(path)["streams"]
-            if (AUDIO_FORMAT is None
-                    and len(streams) == 1
-                    and streams[0]["codec_type"] == "audio"):
+            if ((AUDIO_FORMAT is None) and (len(streams) == 1) and (streams[0]["codec_type"] == "audio")):
                 logging.info("%s is audio, default format, no need to convert", path)
             elif AUDIO_FORMAT is None and len(streams) >= 2:
                 logging.info("%s is video, default format, need to extract audio", path)
