@@ -113,14 +113,12 @@ def forward_video(url, client, bot_msg):
             raise ValueError("Failed to forward message")
         obj = res_msg.document or res_msg.video or res_msg.audio
         if ENABLE_VIP:
-            file_size = getattr(obj, "file_size", None) \
-                        or getattr(obj, "file_size", None) \
-                        or getattr(obj, "file_size", 10)
+            file_size = getattr(obj, "file_size", None) or getattr(obj, "file_size", None) or getattr(obj, "file_size", 10)
             # TODO: forward file size may exceed the limit
             vip.use_quota(chat_id, file_size)
         caption, _ = gen_cap(bot_msg, url, obj)
         res_msg.edit_text(caption, reply_markup=gen_video_markup())
-        bot_msg.edit_text(f"Download success!✅✅✅")
+        bot_msg.edit_text("Download success!✅✅✅")
         red.update_metrics("cache_hit")
         return True
 
@@ -174,7 +172,7 @@ def direct_normal_download(bot_msg, client, url):
         except (TypeError, requests.exceptions.RequestException):
             length = 0
         if remain < length:
-            bot_msg.reply_text(f"Sorry, you have reached your quota.\n")
+            bot_msg.reply_text("Sorry, you have reached your quota.\n")
             return
 
     req = None
@@ -243,7 +241,7 @@ def upload_transfer_sh(bm, paths: list) -> "str":
     headers = {'Content-Type': monitor.content_type}
     try:
         req = requests.post("https://transfer.sh", data=monitor, headers=headers)
-        bm.edit_text(f"Download success!✅")
+        bm.edit_text("Download success!✅")
         return re.sub(r"https://", "\nhttps://", req.text)
     except requests.exceptions.RequestException as e:
         return f"Upload failed!❌\n\n```{e}```"
