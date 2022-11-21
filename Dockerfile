@@ -1,4 +1,4 @@
-FROM python:3.10-alpine as builder
+FROM python:3.11-alpine3.16 as builder
 
 RUN apk update && apk add  --no-cache tzdata alpine-sdk libffi-dev ca-certificates
 ADD requirements.txt /tmp/
