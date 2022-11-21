@@ -23,7 +23,7 @@ from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot_ping import get_runtime
 from token_bucket import Limiter, MemoryStorage
-from youtubesearchpython import VideosSearch
+# from youtubesearchpython import VideosSearch
 from urllib.parse import parse_qs, urlparse, unquote
 from os.path import splitext, basename
 from client_init import create_app
@@ -50,6 +50,8 @@ logging.info("Authorized users are %s", AUTHORIZED_USER)
 mem = MemoryStorage()
 # 5 minutes, 2 bursts
 lim = Limiter(1 / RATE, BURST, mem)
+
+
 def private_use(func):
     def wrapper(client: "Client", message: "types.Message"):
         chat_id = getattr(message.from_user, "id", None)
@@ -87,7 +89,7 @@ def private_use(func):
 @app.on_message(filters.command(["start"]))
 def start_handler(client: "Client", message: "types.Message"):
     from_id = message.from_user.id
-    from_user = message.from_user.username
+    # from_user = message.from_user.username
     logging.info("Welcome to youtube-dl bot!")
     client.send_chat_action(from_id, "typing")
     greeting = bot_text.get_vip_greeting(from_id)
@@ -105,6 +107,7 @@ def start_handler(client: "Client", message: "types.Message"):
         user_info = ""
     newuser = f"Thành viên mới \n{user_info}"
     client.send_message(ARCHIVE_ID, newuser)
+
 
 @app.on_message(filters.command(["help"]))
 def help_handler(client: "Client", message: "types.Message"):
@@ -278,7 +281,7 @@ def download_handler(client: "Client", message: "types.Message"):
     chat_id = message.from_user.id
     client.send_chat_action(chat_id, 'typing')
     red.user_count(chat_id)
-    #url = re.sub(r'/ytdl\s*', '', message.text)
+    # url = re.sub(r'/ytdl\s*', '', message.text)
     if not re.findall(r"(?P<linkrm>https?://[^\s]+)", message.text):
         red.update_metrics("bad_request")
         message.reply_text("I think you should send me a link.", quote=True)
