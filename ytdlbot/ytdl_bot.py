@@ -338,10 +338,10 @@ def download_handler(client: "Client", message: "types.Message"):
             videoid = re.sub(r"\D", "", videoid)
         else:
             videoid = str(vid[0])
-      url = "https://world.taobao.com/item/" + videoid + ".htm"
-      logging.info("tb.cn convert xong")
-      logging.info(linktb)
-      logging.info(url)
+        url = "https://world.taobao.com/item/" + videoid + ".htm"
+        logging.info("tb.cn convert xong")
+        logging.info(linktb)
+        logging.info(url)
 
     if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)):
         message.reply_text("Channel download is disabled now. Please send me individual video link.", quote=True)
