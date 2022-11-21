@@ -44,7 +44,7 @@ jobs:
         id: dh_string
         uses: ASzc/change-string-case-action@v1
         with:
-          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb
 
       - name: Lower case for ghcr
         id: ghcr_string
@@ -52,7 +52,7 @@ jobs:
         with:
           string: ${{ github.event.repository.full_name }}
 
-      - name: Build and pushh
+      - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
