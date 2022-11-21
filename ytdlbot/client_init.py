@@ -7,7 +7,7 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import os
+# import os
 
 from pyrogram import Client
 

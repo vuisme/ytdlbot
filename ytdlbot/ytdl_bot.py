@@ -23,7 +23,7 @@ from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot_ping import get_runtime
 from token_bucket import Limiter, MemoryStorage
-from youtubesearchpython import VideosSearch
+# from youtubesearchpython import VideosSearch
 from urllib.parse import parse_qs, urlparse, unquote
 from os.path import splitext, basename
 from client_init import create_app
@@ -50,6 +50,8 @@ logging.info("Authorized users are %s", AUTHORIZED_USER)
 mem = MemoryStorage()
 # 5 minutes, 2 bursts
 lim = Limiter(1 / RATE, BURST, mem)
+
+
 def private_use(func):
     def wrapper(client: "Client", message: "types.Message"):
         chat_id = getattr(message.from_user, "id", None)
@@ -87,7 +89,7 @@ def private_use(func):
 @app.on_message(filters.command(["start"]))
 def start_handler(client: "Client", message: "types.Message"):
     from_id = message.from_user.id
-    from_user = message.from_user.username
+    # from_user = message.from_user.username
     logging.info("Welcome to youtube-dl bot!")
     client.send_chat_action(from_id, "typing")
     greeting = bot_text.get_vip_greeting(from_id)
@@ -105,6 +107,7 @@ def start_handler(client: "Client", message: "types.Message"):
         user_info = ""
     newuser = f"Thành viên mới \n{user_info}"
     client.send_message(ARCHIVE_ID, newuser)
+
 
 @app.on_message(filters.command(["help"]))
 def help_handler(client: "Client", message: "types.Message"):
@@ -278,7 +281,7 @@ def download_handler(client: "Client", message: "types.Message"):
     chat_id = message.from_user.id
     client.send_chat_action(chat_id, 'typing')
     red.user_count(chat_id)
-    #url = re.sub(r'/ytdl\s*', '', message.text)
+    # url = re.sub(r'/ytdl\s*', '', message.text)
     if not re.findall(r"(?P<linkrm>https?://[^\s]+)", message.text):
         red.update_metrics("bad_request")
         message.reply_text("I think you should send me a link.", quote=True)
@@ -302,43 +305,43 @@ def download_handler(client: "Client", message: "types.Message"):
         # markup = InlineKeyboardMarkup([buttons])
         # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
         # return
-    url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     logging.info("start %s", url)
     if "item.taobao.com" in url:
-      vid = parse_qs(urlparse(url).query).get('id')
-      url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
     if "offerId" in url:
-      vid = parse_qs(urlparse(url).query).get('offerId')
-      url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
+        vid = parse_qs(urlparse(url).query).get('offerId')
+        url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
     if "intl.taobao.com" in url:
-      vid = parse_qs(urlparse(url).query).get('id')
-      url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
     if "tmall.com" in url:
-      vid = parse_qs(urlparse(url).query).get('id')
-      url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
     if "1688.com/offer/" in url:
-      vid = os.path.basename(urlparse(url).path)
-      url = "https://m.1688.com/offer/" + vid
-      logging.info("link sau khi convert")
-      logging.info(url)
+        vid = os.path.basename(urlparse(url).path)
+        url = "https://m.1688.com/offer/" + vid
+        logging.info("link sau khi convert")
+        logging.info(url)
     if "qr.1688.com" in url:
-      oklink = qr1688(url)
-      logging.info("link 1688 sau khi convert")
-      logging.info(url)
-      url = unquote(unquote(oklink))
+        oklink = qr1688(url)
+        logging.info("link 1688 sau khi convert")
+        logging.info(url)
+        url = unquote(unquote(oklink))
     if "tb.cn" in url:
-      linktb = tbcn(url)
-      vid = parse_qs(urlparse(linktb).query).get('id')
-      if "a.m.taobao.com" in linktb:
-        disassembled = urlparse(linktb)
-        videoid, file_ext = splitext(basename(disassembled.path))
-        videoid = re.sub(r"\D", "", videoid)
-      else:
-          videoid = str(vid[0])
-      url = "https://world.taobao.com/item/" + videoid + ".htm"
-      logging.info("tb.cn convert xong")
-      logging.info(linktb)
-      logging.info(url)
+        linktb = tbcn(url)
+        vid = parse_qs(urlparse(linktb).query).get('id')
+        if "a.m.taobao.com" in linktb:
+            disassembled = urlparse(linktb)
+            videoid, file_ext = splitext(basename(disassembled.path))
+            videoid = re.sub(r"\D", "", videoid)
+        else:
+            videoid = str(vid[0])
+        url = "https://world.taobao.com/item/" + videoid + ".htm"
+        logging.info("tb.cn convert xong")
+        logging.info(linktb)
+        logging.info(url)
 
     if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)):
         message.reply_text("Channel download is disabled now. Please send me individual video link.", quote=True)
@@ -395,8 +398,7 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-        
-    callback_query.answer(f"Converting to audio...please wait patiently")
+    callback_query.answer("Converting to audio...please wait patiently")
     Redis().update_metrics("audio_request")
     vmsg = callback_query.message
     audio_entrance(vmsg, client)
@@ -420,11 +422,12 @@ def periodic_sub_check():
                 try:
                     bot_msg = app.send_message(uid, f"{video_url} is downloading...", disable_web_page_preview=True)
                     ytdl_download_entrance(bot_msg, app, video_url)
-                except(exceptions.bad_request_400.PeerIdInvalid, exceptions.bad_request_400.UserIsBlocked) as e:
+                except (exceptions.bad_request_400.PeerIdInvalid, exceptions.bad_request_400.UserIsBlocked) as e:
                     logging.warning("User is blocked or deleted. %s", e)
                     vip.deactivate_user_subscription(uid)
                 except Exception as e:
                     logging.error("Unknown error when sending message to user. %s", traceback.format_exc())
+                    logging.error(e)
                 finally:
                     time.sleep(random.random() * 3)
 

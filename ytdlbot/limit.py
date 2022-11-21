@@ -159,7 +159,7 @@ class VIP(Redis, MySQL):
                     f"playlistId={playlist_id}&key={api_key}"
         data = requests.get(video_api).json()
         video_id = data['items'][0]['snippet']['resourceId']['videoId']
-        logging.info(f"Latest video %s from %s", video_id, data['items'][0]['snippet']['channelTitle'])
+        logging.info("Latest video %s from %s", video_id, data['items'][0]['snippet']['channelTitle'])
         return f"https://www.youtube.com/watch?v={video_id}"
 
     def has_newer_update(self, channel_id: "str"):
@@ -177,7 +177,7 @@ class VIP(Redis, MySQL):
     def get_user_subscription(self, user_id: "int"):
         self.cur.execute(
             """
-               select title, link, channel.channel_id from channel, subscribe 
+               select title, link, channel.channel_id from channel, subscribe
                where subscribe.user_id = %s and channel.channel_id = subscribe.channel_id
             """, (user_id,))
         data = self.cur.fetchall()

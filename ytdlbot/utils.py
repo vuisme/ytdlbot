@@ -7,7 +7,7 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
-import requests
+# import requests
 import contextlib
 import inspect as pyinspect
 import logging
@@ -22,52 +22,55 @@ import re
 import ffmpeg
 import psutil
 
-from config import ENABLE_CELERY
+# from config import ENABLE_CELERY
 from db import MySQL
 from flower_tasks import app
 from bs4 import BeautifulSoup
 from urllib.request import urlopen, Request
 inspect = app.control.inspect()
 
+
 def tbcn(tbcnurl):
-    #logger.info(tbcnurl)
+    # logger.info(tbcnurl)
     uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
     headers = {'User-Agent': uagent}
     openpage = urlopen(Request(tbcnurl, headers=headers))
-    #print(openpage)
+    # print(openpage)
     search_page_soup = BeautifulSoup(openpage, 'html5lib')
-    #print(search_page_soup)
-    #logger.info(search_page_soup)
+    # print(search_page_soup)
+    # logger.info(search_page_soup)
     head = search_page_soup.find_all('head')
-    #logger.info(head)
+    # logger.info(head)
     pattern = re.compile(r"var url = '(.*?)';$", re.MULTILINE | re.DOTALL)
-    #logger.info(head.text)
-    #logger.info(pattern.search(head[0].text))
-    #logger.info(pattern.search(head[0].text).group(1))
+    # logger.info(head.text)
+    # logger.info(pattern.search(head[0].text))
+    # logger.info(pattern.search(head[0].text).group(1))
     tblink = pattern.search(head[0].text).group(1)
-    #logger.info(tblink)
+    # logger.info(tblink)
     return tblink
-    
+
+
 def qr1688(url1688):
-    #logger.info(tbcnurl)
+    # logger.info(tbcnurl)
     uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
     headers = {'User-Agent': uagent}
     openpage = urlopen(Request(url1688, headers=headers))
-    #print(openpage)
+    # print(openpage)
     search_page_soup = BeautifulSoup(openpage, 'html.parser')
-    #print(search_page_soup)
-    #logger.info(search_page_soup)
+    # print(search_page_soup)
+    # logger.info(search_page_soup)
     script = search_page_soup.find_all('script')
-    #print(script[1])
-    #logger.info(head)
+    # print(script[1])
+    # logger.info(head)
     pattern = re.compile(r"var shareUrl = '(.*?)';$", re.MULTILINE | re.DOTALL)
-    #logger.info(head.text)
-    #logger.info(pattern.search(head[0].text))
-    #logger.info(pattern.search(head[0].text).group(1))
+    # logger.info(head.text)
+    # logger.info(pattern.search(head[0].text))
+    # logger.info(pattern.search(head[0].text).group(1))
     alibabalink = pattern.search(script[1].text).group(1)
-    #print(alibabalink)
-    #logger.info(tblink)
+    # print(alibabalink)
+    # logger.info(tblink)
     return alibabalink
+
 
 def apply_log_formatter():
     logging.basicConfig(

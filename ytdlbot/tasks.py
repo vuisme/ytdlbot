@@ -19,29 +19,30 @@ import threading
 import time
 import traceback
 import typing
-#import googletrans
+# import googletrans
 from hashlib import md5
 from urllib.parse import quote_plus
-#from googletrans import Translator
+# from googletrans import Translator
 import psutil
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
-from pyrogram import Client, idle
+# from pyrogram import Client, idle
+from pyrogram import idle
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, InputMediaPhoto
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from client_init import create_app
-from config import (ARCHIVE_ID, AUDIO_FORMAT, BROKER, ENABLE_CELERY,
-                    ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
+# from config import (ARCHIVE_ID, AUDIO_FORMAT, BROKER, ENABLE_CELERY,
+#                    ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
+from config import (ARCHIVE_ID, BROKER, ENABLE_CELERY, ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
 from constant import BotText
 from db import Redis
-from downloader import (edit_text, run_ffmpeg, sizeof_fmt, tqdm_progress,
-                        upload_hook, ytdl_download)
+from downloader import (edit_text, sizeof_fmt, tqdm_progress, upload_hook, ytdl_download)
+# run_ffmpeg removed
 from limit import VIP
-from utils import (apply_log_formatter, auto_restart, customize_logger,
-                   get_metadata, get_revision, get_user_settings)
+from utils import (apply_log_formatter, auto_restart, customize_logger, get_metadata, get_revision, get_user_settings)
 
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 apply_log_formatter()
@@ -112,14 +113,12 @@ def forward_video(url, client, bot_msg):
             raise ValueError("Failed to forward message")
         obj = res_msg.document or res_msg.video or res_msg.audio
         if ENABLE_VIP:
-            file_size = getattr(obj, "file_size", None) \
-                        or getattr(obj, "file_size", None) \
-                        or getattr(obj, "file_size", 10)
+            file_size = getattr(obj, "file_size", None) or getattr(obj, "file_size", None) or getattr(obj, "file_size", 10)
             # TODO: forward file size may exceed the limit
             vip.use_quota(chat_id, file_size)
         caption, _ = gen_cap(bot_msg, url, obj)
         res_msg.edit_text(caption, reply_markup=gen_video_markup())
-        bot_msg.edit_text(f"Download success!✅✅✅")
+        bot_msg.edit_text("Download success!✅✅✅")
         red.update_metrics("cache_hit")
         return True
 
@@ -173,7 +172,7 @@ def direct_normal_download(bot_msg, client, url):
         except (TypeError, requests.exceptions.RequestException):
             length = 0
         if remain < length:
-            bot_msg.reply_text(f"Sorry, you have reached your quota.\n")
+            bot_msg.reply_text("Sorry, you have reached your quota.\n")
             return
 
     req = None
@@ -242,7 +241,7 @@ def upload_transfer_sh(bm, paths: list) -> "str":
     headers = {'Content-Type': monitor.content_type}
     try:
         req = requests.post("https://transfer.sh", data=monitor, headers=headers)
-        bm.edit_text(f"Download success!✅")
+        bm.edit_text("Download success!✅")
         return re.sub(r"https://", "\nhttps://", req.text)
     except requests.exceptions.RequestException as e:
         return f"Upload failed!❌\n\n```{e}```"
@@ -265,14 +264,14 @@ def ytdl_normal_download(bot_msg, client, url):
             if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
                 lstimg.append(
                     InputMediaPhoto(
-                        media = url_path
+                        media=url_path
                     )
                 )
         if lstimg:
             newlst = split_list(lstimg, 9)
             for array in newlst:
                 send_image(client, bot_msg, array)
-            #bot_msg.reply_text("Send Images Success!✅", quote=True)
+            # bot_msg.reply_text("Send Images Success!✅", quote=True)
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
@@ -286,16 +285,15 @@ def ytdl_normal_download(bot_msg, client, url):
                     return
                 upload_processor(client, bot_msg, url, video_path)
         bot_msg.edit_text('Download Video Success!✅')
-             
     else:
         client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
         try:
             user_info = "@{} ({}) - {}".format(
-                message.from_user.username or "",
-                message.from_user.first_name or "" + message.from_user.last_name or "",
-                message.from_user.id
+                bot_msg.chat.username or "",
+                bot_msg.chat.first_name or "" + bot_msg.chat.last_name or "",
+                bot_msg.chat.id
             )
         except Exception:
             user_info = ""
@@ -304,24 +302,25 @@ def ytdl_normal_download(bot_msg, client, url):
 
     temp_dir.cleanup()
 
+
 def send_image(client, bot_msg, lstimg):
     chat_id = bot_msg.chat.id
-    #red = Redis()
+    # red = Redis()
     client.send_chat_action(chat_id, 'upload_photo')
     res_msg = client.send_media_group(
-            chat_id,
-            disable_notification=True,
-            media=list(lstimg)
-            )
+        chat_id,
+        disable_notification=True,
+        media=list(lstimg))
     return res_msg
-        
+
+
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
     chat_id = bot_msg.chat.id
     red = Redis()
     markup = gen_video_markup()
     cap, meta = gen_cap(bot_msg, url, vp_or_fid)
-    #translator = Translator()
-    #newcap = translator.translate(cap,dest='vi')
+    # translator = Translator()
+    # newcap = translator.translate(cap,dest='vi')
     settings = get_user_settings(str(chat_id))
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
@@ -477,13 +476,15 @@ def run_celery():
         argv.extend(["-Q", worker_name])
     app.worker_main(argv)
 
+
 def split_list(the_list, chunk_size):
     result_list = []
     while the_list:
         result_list.append(the_list[:chunk_size])
         the_list = the_list[chunk_size:]
     return result_list
-  
+
+
 if __name__ == '__main__':
     celery_client.start()
     print("Bootstrapping Celery worker now.....")
