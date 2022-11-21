@@ -302,15 +302,15 @@ def ytdl_normal_download(bot_msg, client, url):
 
     temp_dir.cleanup()
 
+
 def send_image(client, bot_msg, lstimg):
     chat_id = bot_msg.chat.id
-    #red = Redis()
+    # red = Redis()
     client.send_chat_action(chat_id, 'upload_photo')
     res_msg = client.send_media_group(
-            chat_id,
-            disable_notification=True,
-            media=list(lstimg)
-            )
+        chat_id,
+        disable_notification=True,
+        media=list(lstimg))
     return res_msg
         
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
