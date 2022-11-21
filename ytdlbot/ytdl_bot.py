@@ -305,7 +305,7 @@ def download_handler(client: "Client", message: "types.Message"):
         # markup = InlineKeyboardMarkup([buttons])
         # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
         # return
-    url = re.search("(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     logging.info("start %s", url)
     if "item.taobao.com" in url:
       vid = parse_qs(urlparse(url).query).get('id')
