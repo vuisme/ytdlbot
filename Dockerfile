@@ -2,7 +2,7 @@ FROM python:3.11-alpine3.16 as builder
 
 RUN apk update && apk add  --no-cache tzdata alpine-sdk libffi-dev ca-certificates
 ADD requirements.txt /tmp/
-RUN pip3 install --upgrade pip3
+RUN pip3 install --upgrade pip
 RUN pip3 install --user -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
 
