@@ -264,14 +264,14 @@ def ytdl_normal_download(bot_msg, client, url):
             if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
                 lstimg.append(
                     InputMediaPhoto(
-                        media = url_path
+                        media=url_path
                     )
                 )
         if lstimg:
             newlst = split_list(lstimg, 9)
             for array in newlst:
                 send_image(client, bot_msg, array)
-            #bot_msg.reply_text("Send Images Success!✅", quote=True)
+            # bot_msg.reply_text("Send Images Success!✅", quote=True)
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
@@ -285,16 +285,15 @@ def ytdl_normal_download(bot_msg, client, url):
                     return
                 upload_processor(client, bot_msg, url, video_path)
         bot_msg.edit_text('Download Video Success!✅')
-             
     else:
         client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
         try:
             user_info = "@{} ({}) - {}".format(
-                message.from_user.username or "",
-                message.from_user.first_name or "" + message.from_user.last_name or "",
-                message.from_user.id
+                bot_msg.chat.username or "",
+                bot_msg.chat.first_name or "" + bot_msg.chat.last_name or "",
+                bot_msg.chat.id
             )
         except Exception:
             user_info = ""
