@@ -312,14 +312,15 @@ def send_image(client, bot_msg, lstimg):
         disable_notification=True,
         media=list(lstimg))
     return res_msg
-        
+
+
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
     chat_id = bot_msg.chat.id
     red = Redis()
     markup = gen_video_markup()
     cap, meta = gen_cap(bot_msg, url, vp_or_fid)
-    #translator = Translator()
-    #newcap = translator.translate(cap,dest='vi')
+    # translator = Translator()
+    # newcap = translator.translate(cap,dest='vi')
     settings = get_user_settings(str(chat_id))
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
@@ -475,13 +476,15 @@ def run_celery():
         argv.extend(["-Q", worker_name])
     app.worker_main(argv)
 
+
 def split_list(the_list, chunk_size):
     result_list = []
     while the_list:
         result_list.append(the_list[:chunk_size])
         the_list = the_list[chunk_size:]
     return result_list
-  
+
+
 if __name__ == '__main__':
     celery_client.start()
     print("Bootstrapping Celery worker now.....")
