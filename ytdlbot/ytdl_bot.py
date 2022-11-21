@@ -422,7 +422,7 @@ def periodic_sub_check():
                 try:
                     bot_msg = app.send_message(uid, f"{video_url} is downloading...", disable_web_page_preview=True)
                     ytdl_download_entrance(bot_msg, app, video_url)
-                except(exceptions.bad_request_400.PeerIdInvalid, exceptions.bad_request_400.UserIsBlocked) as e:
+                except (exceptions.bad_request_400.PeerIdInvalid, exceptions.bad_request_400.UserIsBlocked) as e:
                     logging.warning("User is blocked or deleted. %s", e)
                     vip.deactivate_user_subscription(uid)
                 except Exception as e:
