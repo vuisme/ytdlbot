@@ -19,28 +19,30 @@ import threading
 import time
 import traceback
 import typing
+# import googletrans
 from hashlib import md5
 from urllib.parse import quote_plus
-
+# from googletrans import Translator
 import psutil
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
-from pyrogram import Client, idle
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+# from pyrogram import Client, idle
+from pyrogram import idle
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, InputMediaPhoto
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from client_init import create_app
-from config import (ARCHIVE_ID, AUDIO_FORMAT, BROKER, ENABLE_CELERY,
-                    ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
+# from config import (ARCHIVE_ID, AUDIO_FORMAT, BROKER, ENABLE_CELERY,
+#                    ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
+from config import (ARCHIVE_ID, BROKER, ENABLE_CELERY, ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
 from constant import BotText
 from db import Redis
-from downloader import (edit_text, run_ffmpeg, sizeof_fmt, tqdm_progress,
-                        upload_hook, ytdl_download)
+from downloader import (edit_text, sizeof_fmt, tqdm_progress, upload_hook, ytdl_download)
+# run_ffmpeg removed
 from limit import VIP
-from utils import (apply_log_formatter, auto_restart, customize_logger,
-                   get_metadata, get_revision, get_user_settings)
+from utils import (apply_log_formatter, auto_restart, customize_logger, get_metadata, get_revision, get_user_settings)
 
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 apply_log_formatter()
@@ -102,25 +104,21 @@ def forward_video(url, client, bot_msg):
     red = Redis()
     vip = VIP()
     unique = get_unique_clink(url, chat_id)
-
     cached_fid = red.get_send_cache(unique)
     if not cached_fid:
         return False
-
     try:
         res_msg: "Message" = upload_processor(client, bot_msg, url, cached_fid)
         if not res_msg:
             raise ValueError("Failed to forward message")
         obj = res_msg.document or res_msg.video or res_msg.audio
         if ENABLE_VIP:
-            file_size = getattr(obj, "file_size", None) \
-                        or getattr(obj, "file_size", None) \
-                        or getattr(obj, "file_size", 10)
+            file_size = getattr(obj, "file_size", None) or getattr(obj, "file_size", None) or getattr(obj, "file_size", 10)
             # TODO: forward file size may exceed the limit
             vip.use_quota(chat_id, file_size)
         caption, _ = gen_cap(bot_msg, url, obj)
         res_msg.edit_text(caption, reply_markup=gen_video_markup())
-        bot_msg.edit_text(f"Download success!✅✅✅")
+        bot_msg.edit_text("Download success!✅✅✅")
         red.update_metrics("cache_hit")
         return True
 
@@ -174,7 +172,7 @@ def direct_normal_download(bot_msg, client, url):
         except (TypeError, requests.exceptions.RequestException):
             length = 0
         if remain < length:
-            bot_msg.reply_text(f"Sorry, you have reached your quota.\n")
+            bot_msg.reply_text("Sorry, you have reached your quota.\n")
             return
 
     req = None
@@ -243,7 +241,7 @@ def upload_transfer_sh(bm, paths: list) -> "str":
     headers = {'Content-Type': monitor.content_type}
     try:
         req = requests.post("https://transfer.sh", data=monitor, headers=headers)
-        bm.edit_text(f"Download success!✅")
+        bm.edit_text("Download success!✅")
         return re.sub(r"https://", "\nhttps://", req.text)
     except requests.exceptions.RequestException as e:
         return f"Upload failed!❌\n\n```{e}```"
@@ -252,29 +250,67 @@ def upload_transfer_sh(bm, paths: list) -> "str":
 def ytdl_normal_download(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-")
-
     result = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     if result["status"]:
         client.send_chat_action(chat_id, 'upload_document')
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
+        lstimg = []
+        for url_path in video_paths:
+            # normally there's only one video in that path...
+            extPathURL = pathlib.Path(url_path).suffix
+            st_size = os.stat(url_path).st_size
+            if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
+                lstimg.append(
+                    InputMediaPhoto(
+                        media=url_path
+                    )
+                )
+        if lstimg:
+            newlst = split_list(lstimg, 9)
+            for array in newlst:
+                send_image(client, bot_msg, array)
+            # bot_msg.reply_text("Send Images Success!✅", quote=True)
         for video_path in video_paths:
             # normally there's only one video in that path...
+            extPath = pathlib.Path(video_path).suffix
             st_size = os.stat(video_path).st_size
-            if st_size > TG_MAX_SIZE:
-                bot_msg.edit_text(f"Your video({sizeof_fmt(st_size)}) is too large for Telegram.")
-                # client.send_chat_action(chat_id, 'upload_document')
-                # client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
-                continue
-            upload_processor(client, bot_msg, url, video_path)
-        bot_msg.edit_text('Download success!✅')
+            if (extPath == '.mp4' or extPath == '.mkv' or extPath == '.webm' or extPath == '.mov'):
+                if st_size > TG_MAX_SIZE:
+                    bot_msg.edit_text(f"Your video({sizeof_fmt(st_size)}) is too large for Telegram.")
+                    # client.send_chat_action(chat_id, 'upload_document')
+                    # client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
+                    continue
+                upload_processor(client, bot_msg, url, video_path)
+            bot_msg.edit_text('Download Video Success!✅')
     else:
         client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
+        try:
+            user_info = "@{} ({}) - {}".format(
+                bot_msg.chat.username or "",
+                bot_msg.chat.first_name or "" + bot_msg.chat.last_name or "",
+                bot_msg.chat.id
+            )
+        except Exception:
+            user_info = ""
+        texterror = f"{user_info}\nDownload failed!❌\n\n```{tb}```"
+        client.send_message(ARCHIVE_ID, texterror)
 
     temp_dir.cleanup()
+
+
+def send_image(client, bot_msg, lstimg):
+    chat_id = bot_msg.chat.id
+    # red = Redis()
+    client.send_chat_action(chat_id, 'upload_photo')
+    res_msg = client.send_media_group(
+        chat_id,
+        disable_notification=True,
+        media=list(lstimg))
+    return res_msg
 
 
 def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
@@ -282,11 +318,14 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
     red = Redis()
     markup = gen_video_markup()
     cap, meta = gen_cap(bot_msg, url, vp_or_fid)
+    # translator = Translator()
+    # newcap = translator.translate(cap,dest='vi')
     settings = get_user_settings(str(chat_id))
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
     if settings[2] == "document":
         logging.info("Sending as document")
+        client.send_chat_action(chat_id, 'upload_document')
         try:
             # send as document could be sent as video even if it's a document
             res_msg = client.send_document(chat_id, vp_or_fid,
@@ -298,6 +337,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
                                            )
         except ValueError:
             logging.error("Retry to send as video")
+            client.send_chat_action(chat_id, 'upload_video')
             res_msg = client.send_video(chat_id, vp_or_fid,
                                         supports_streaming=True,
                                         caption=cap,
@@ -313,6 +353,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
                                     )
     else:
         logging.info("Sending as video")
+        client.send_chat_action(chat_id, 'upload_video')
         res_msg = client.send_video(chat_id, vp_or_fid,
                                     supports_streaming=True,
                                     caption=cap,
@@ -334,7 +375,7 @@ def gen_cap(bm, url, video_path):
     chat_id = bm.chat.id
     user = bm.chat
     try:
-        user_info = "@{}({})-{}".format(
+        user_info = "@{} ({}) - {}".format(
             user.username or "N/A",
             user.first_name or "" + user.last_name or "",
             user.id
@@ -417,6 +458,7 @@ def async_task(task_name, *args):
         route = worker_name.split('@')[1]
         concurrency = stats['pool']['max-concurrency']
         route_queues.extend([route] * (concurrency + padding))
+    logging.info("route_queue is %s", route_queues)
     destination = random.choice(route_queues)
     logging.info("Selecting worker %s from %s in %.2fs", destination, route_queues, time.time() - t0)
     task_name.apply_async(args=args, queue=destination)
@@ -426,12 +468,20 @@ def run_celery():
     worker_name = os.getenv("WORKER_NAME", "")
     argv = [
         "-A", "tasks", 'worker', '--loglevel=info',
-        "--pool=threads", f"--concurrency={WORKERS}",
+        "--pool=threads", f"--concurrency={WORKERS * 10}",
         "-n", worker_name
     ]
     if ENABLE_QUEUE:
         argv.extend(["-Q", worker_name])
     app.worker_main(argv)
+
+
+def split_list(the_list, chunk_size):
+    result_list = []
+    while the_list:
+        result_list.append(the_list[:chunk_size])
+        the_list = the_list[chunk_size:]
+    return result_list
 
 
 if __name__ == '__main__':

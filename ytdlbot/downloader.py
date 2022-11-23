@@ -127,7 +127,7 @@ def check_quota(file_size, chat_id) -> ("bool", "str"):
 
 
 def convert_to_mp4(resp: dict, bot_msg):
-    default_type = ["video/x-flv", "video/webm"]
+    default_type = ["video/x-flv", "video/webm", "video/x-matroska"]
     if resp["status"]:
         # all_converted = []
         for path in resp["filepath"]:
@@ -136,7 +136,7 @@ def convert_to_mp4(resp: dict, bot_msg):
             if mime in default_type:
                 if not can_convert_mp4(path, bot_msg.chat.id):
                     logging.warning("Conversion abort for %s", bot_msg.chat.id)
-                    bot_msg._client.send_message(bot_msg.chat.id, "Can't convert your video to streaming format.")
+                    bot_msg._client.send_message(bot_msg.chat.id, "Can't convert your video to MP4 streaming format. Need VIP for convert videos longer than 5 minuts.")
                     break
                 edit_text(bot_msg, f"{current_time()}: Converting {path.name} to mp4. Please wait.")
                 new_file_path = path.with_suffix(".mp4")
@@ -194,7 +194,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         'outtmpl': output,
         'restrictfilenames': False,
         'quiet': True,
-        "proxy": os.getenv("YTDL_PROXY")
+        'proxy': os.getenv("YTDL_PROXY")
     }
     formats = [
         "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
@@ -203,6 +203,10 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     ]
     adjust_formats(chat_id, url, formats, hijack)
     add_instagram_cookies(url, ydl_opts)
+    add_taobao_cookies(url, ydl_opts)
+    add_1688_cookies(url, ydl_opts)
+    # add_facebook_cookies(url, ydl_opts)
+
     # check quota before download
     if ENABLE_VIP:
         # check quota after download
@@ -273,9 +277,7 @@ def convert_audio_format(resp: "dict", bm):
         path: "pathlib.Path"
         for path in resp["filepath"]:
             streams = ffmpeg.probe(path)["streams"]
-            if (AUDIO_FORMAT is None and
-                    len(streams) == 1 and
-                    streams[0]["codec_type"] == "audio"):
+            if ((AUDIO_FORMAT is None) and (len(streams) == 1) and (streams[0]["codec_type"] == "audio")):
                 logging.info("%s is audio, default format, no need to convert", path)
             elif AUDIO_FORMAT is None and len(streams) >= 2:
                 logging.info("%s is video, default format, need to extract audio", path)
@@ -301,7 +303,32 @@ def convert_audio_format(resp: "dict", bm):
 
 def add_instagram_cookies(url: "str", opt: "dict"):
     if url.startswith("https://www.instagram.com"):
-        opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("instagram.com_cookies.txt").as_posix()
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/instagram.txt'
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+        logging.info("add instagram cookies")
+
+
+def add_facebook_cookies(url: "str", opt: "dict"):
+    if url.startswith("https://www.facebook.com") or url.startswith("https://m.facebook.com"):
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/facebook.txt'
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+        logging.info("add facebook cookies")
+
+
+def add_taobao_cookies(url: "str", opt: "dict"):
+    if url.startswith("https://world.taobao.com"):
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/taobao.txt'
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+        opt['write_all_thumbnails'] = True
+        logging.info("add taobao cookies")
+
+
+def add_1688_cookies(url: "str", opt: "dict"):
+    if url.startswith("https://m.1688.com"):
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/1688.txt'
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+        opt['write_all_thumbnails'] = True
+        logging.info("add 1688 cookies")
 
 
 def run_splitter(video_path: "str"):
