@@ -44,7 +44,7 @@ jobs:
 
       - name: Lower case for Docker Hub Branche
         id: dh_string
-        uses: ASzc/change-string-case-action@v1
+        uses: ASzc/change-string-case-action@v2
         with:
           string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb:${{ github.ref_name }}
           
