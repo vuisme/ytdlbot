@@ -206,13 +206,6 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     add_taobao_cookies(url, ydl_opts)
     add_1688_cookies(url, ydl_opts)
     # add_facebook_cookies(url, ydl_opts)
-    # if ENABLE_VIP:
-        # check quota after download
-        # remain, _, ttl = VIP().check_remaining_quota(chat_id)
-        # result, err_msg = check_quota(detect_filesize(url), chat_id)
-        # if not result:
-           # return {"status": False, "error": err_msg, "filepath": []}
-
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_
