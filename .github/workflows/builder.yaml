@@ -43,7 +43,7 @@ jobs:
         id: dh_string
         uses: ASzc/change-string-case-action@v1
         with:
-          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb
+          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb:${GITHUB_REF_NAME}
 
       - name: Lower case for ghcr
         id: ghcr_string
