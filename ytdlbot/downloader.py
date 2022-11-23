@@ -206,6 +206,13 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     add_taobao_cookies(url, ydl_opts)
     add_1688_cookies(url, ydl_opts)
     # add_facebook_cookies(url, ydl_opts)
+    if ENABLE_VIP:
+        # check quota after download
+        remain, _, ttl = VIP().check_remaining_quota(chat_id)
+        result, err_msg = check_quota(detect_filesize(url), chat_id)
+        if not result:
+            return {"status": False, "error": err_msg, "filepath": []}
+
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_
@@ -235,6 +242,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         p = pathlib.Path(tempdir, i)
         file_size = os.stat(p).st_size
         if ENABLE_VIP:
+            # check quota after download
             remain, _, ttl = VIP().check_remaining_quota(chat_id)
             result, err_msg = check_quota(file_size, chat_id)
         else:
@@ -255,7 +263,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     if settings[2] == "audio" or hijack == "bestaudio[ext=m4a]":
         convert_audio_format(response, bm)
     # disable it for now
-    # split_large_video(response)
+    split_large_video(response)
     return response
 
 
@@ -322,7 +330,7 @@ def add_1688_cookies(url: "str", opt: "dict"):
 
 
 def run_splitter(video_path: "str"):
-    subprocess.check_output(f"sh split-video.sh {video_path} {TG_MAX_SIZE} ".split())
+    subprocess.check_output(f"sh split-video.sh {video_path} {TG_MAX_SIZE * 0.95} ".split())
     os.remove(video_path)
 
 
