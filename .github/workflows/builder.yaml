@@ -42,15 +42,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.HITGUB_TOKEN }}
 
-      - name: Lower case for Docker Hub Master
-        if: ${{ github.ref_name == 'master' }}
-        id: dh_string
-        uses: ASzc/change-string-case-action@v1
-        with:
-          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb
-
       - name: Lower case for Docker Hub Branche
-        if: ${{ github.ref_name != 'master' }}
         id: dh_string
         uses: ASzc/change-string-case-action@v1
         with:
