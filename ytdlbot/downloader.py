@@ -346,7 +346,8 @@ def split_large_video(response: "dict"):
 
     if split and original_video:
         response["filepath"] = [i.as_posix() for i in pathlib.Path(original_video).parent.glob("*")]
-        
+
+
 def detect_filesize(url: "str") -> "int":
     # find the largest file size
     with ytdl.YoutubeDL() as ydl:
