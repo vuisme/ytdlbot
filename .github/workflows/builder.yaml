@@ -14,7 +14,10 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-
+      
+      - name: branche name
+        run: echo running on ${GITHUB_REF##*/}
+        
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -43,7 +46,7 @@ jobs:
         id: dh_string
         uses: ASzc/change-string-case-action@v1
         with:
-          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb:${GITHUB_REF_NAME}
+          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb:${GITHUB_REF##*/}
 
       - name: Lower case for ghcr
         id: ghcr_string
