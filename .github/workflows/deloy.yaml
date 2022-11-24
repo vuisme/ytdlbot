@@ -1,7 +1,5 @@
 name: Get pods
-on: workflow_dispatch
-permissions:
-  contents: read
+on: push
 
 jobs:
   deploy:
