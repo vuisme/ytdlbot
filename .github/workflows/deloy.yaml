@@ -12,4 +12,4 @@ jobs:
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:
-          args: kubectl rollout restart deployment ytdl --namespace=taobaobot
+          args: rollout restart deployment ytdl --namespace=taobaobot
