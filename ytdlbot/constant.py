@@ -19,7 +19,7 @@ from utils import get_func_queue
 
 
 class BotText:
-    start = "Taobao Tools - Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!"
+    start = "Taobao Tools 1.1.5 - Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!"
 
     help = f"""
 1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ.
