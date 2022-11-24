@@ -13,3 +13,10 @@ jobs:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:
           args: rollout restart deployment ytdl --namespace=taobaobot
+      
+      - uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: rollout restart deployment ytdl-worker --namespace=taobaobot
+    
