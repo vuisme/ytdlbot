@@ -205,6 +205,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     add_instagram_cookies(url, ydl_opts)
     add_taobao_cookies(url, ydl_opts)
     add_1688_cookies(url, ydl_opts)
+    add_douyin_cookies(url, ydl_opts)
     # add_facebook_cookies(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
@@ -297,6 +298,12 @@ def add_instagram_cookies(url: "str", opt: "dict"):
         opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/instagram.txt'
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         logging.info("add instagram cookies")
+
+
+def add_douyin_cookies(url: "str", opt: "dict"):
+    if url.startswith("https://www.douyin.com"):
+        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/douyin.txt'
+        logging.info("add douyin cookies")
 
 
 def add_facebook_cookies(url: "str", opt: "dict"):
