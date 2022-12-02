@@ -303,6 +303,7 @@ def add_instagram_cookies(url: "str", opt: "dict"):
 def add_douyin_cookies(url: "str", opt: "dict"):
     if url.startswith("https://www.douyin.com"):
         opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/douyin.txt'
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
         logging.info("add douyin cookies")
 
 
