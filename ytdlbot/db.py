@@ -231,7 +231,7 @@ class InfluxDB:
 
     @staticmethod
     def get_worker_data():
-        password = os.getenv("FLOWER_PASSWORD", "123456abc")
+        password = os.getenv("FLOWER_PASSWORD", "123456")
         username = os.getenv("FLOWER_USERNAME", "benny")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
