@@ -311,4 +311,3 @@ class InfluxDB:
             self.__fill_overall_data()
             self.__fill_redis_metrics()
             logging.debug("InfluxDB data was collected.")
-            logging.info("InfluxDB data was collected.")
