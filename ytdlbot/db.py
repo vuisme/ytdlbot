@@ -223,7 +223,7 @@ class MySQL:
 
 class InfluxDB:
     def __init__(self):
-        self.client = InfluxDBClient(host=os.getenv("INFLUX_HOST", "192.168.7.233"), database="celery")
+        self.client = InfluxDBClient(host=os.getenv("INFLUX_HOST", "192.168.7.233"), port="8086", username=os.getenv("INFLUX_USER", "admin"), password=os.getenv("INFLUX_PASS", "admin"), database="celery")
         self.data = None
 
     def __del__(self):
@@ -231,11 +231,11 @@ class InfluxDB:
 
     @staticmethod
     def get_worker_data():
-        password = os.getenv("FLOWER_PASSWORD", "123456abc")
+        password = os.getenv("FLOWER_PASSWORD", "123456")
         username = os.getenv("FLOWER_USERNAME", "benny")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-        r = requests.get("https://celery.dmesg.app/dashboard?json=1", headers=headers)
+        r = requests.get("https://flower.k3s.vutn.net/dashboard?json=1", headers=headers)
         if r.status_code != 200:
             return dict(data=[])
         return r.json()
