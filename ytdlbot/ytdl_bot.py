@@ -410,6 +410,7 @@ def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
     callback_query.answer("Đang lấy ảnh... Chỉ hỗ trợ Taobao/1688")
     Redis().update_metrics("images_request")
     vmsg = callback_query.message
+    logging.info(vmsg)
     image_entrance(vmsg, client)
 
 

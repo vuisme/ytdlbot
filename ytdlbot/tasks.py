@@ -268,8 +268,6 @@ def normal_image(bot_msg, client):
         if lstimg:
             newlst = split_list(lstimg, 9)
             for array in newlst:
-                # send_image(client, bot_msg, array)
-            # bot_msg.reply_text("Send Images Success!✅", quote=True)
                 client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_PHOTO)
                 client.send_media_group(
                     chat_id,
@@ -289,7 +287,7 @@ def normal_image(bot_msg, client):
             )
         except Exception:
             user_info = ""
-        texterror = f"{user_info}\nDownload failed!❌\n\n```{tb}```"
+        texterror = f"{user_info}\nLấy ảnh thất bại!❌\n\n```{tb}```"
         client.send_message(ARCHIVE_ID, texterror)
 
     temp_dir.cleanup()
@@ -320,9 +318,25 @@ def ytdl_normal_download(bot_msg, client, url):
     result = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     if result["status"]:
-        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+        client.send_chat_action(chat_id, 'upload_document')
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
+        lstimg = []
+        for url_path in video_paths:
+            # normally there's only one video in that path...
+            extPathURL = pathlib.Path(url_path).suffix
+            st_size = os.stat(url_path).st_size
+            if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
+                lstimg.append(
+                    InputMediaPhoto(
+                        media=url_path
+                    )
+                )
+        if lstimg:
+            newlst = split_list(lstimg, 9)
+            for array in newlst:
+                send_image(client, bot_msg, array)
+            # bot_msg.reply_text("Send Images Success!✅", quote=True)
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix
@@ -336,7 +350,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 upload_processor(client, bot_msg, url, video_path)
         bot_msg.edit_text('Download Video Success!✅')
     else:
-        client.send_chat_action(chat_id, enums.ChatAction.TYPING)
+        client.send_chat_action(chat_id, 'typing')
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
         try:
@@ -459,8 +473,12 @@ def gen_video_markup():
         [
             [  # First row
                 InlineKeyboardButton(  # Generates a callback query when pressed
-                    "convert to audio",
+                    "Tải ảnh (Taobao/1688)",
                     callback_data="getimg"
+                ),
+                InlineKeyboardButton(  # Generates a callback query when pressed
+                    "Convert sang Audio",
+                    callback_data="convert"
                 )
             ]
         ]
