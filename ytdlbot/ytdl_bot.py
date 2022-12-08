@@ -407,11 +407,15 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
 
 @app.on_callback_query(filters.regex(r"getimg"))
 def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
-    callback_query.answer("Đang lấy ảnh... Chỉ hỗ trợ Taobao/1688")
-    Redis().update_metrics("images_request")
     vmsg = callback_query.message
-    logging.info(vmsg.caption_entities)
-    image_entrance(vmsg, client)
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
+    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
+        callback_query.answer("Đang lấy ảnh...")
+        Redis().update_metrics("images_request")
+        image_entrance(vmsg, client)
+    else:
+        callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
+        callback_query.message.reply_text("Hoàn tất")
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))
