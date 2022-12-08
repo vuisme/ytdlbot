@@ -367,7 +367,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
     red.add_send_cache(unique, getattr(obj, "file_id", None))
     red.update_metrics("video_success")
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
-        client.forward_messages(bot_msg.chat.id, ARCHIVE_ID, res_msg.message_id)
+        client.forward_messages(bot_msg.chat.id, ARCHIVE_ID, res_msg.id)
     return res_msg
 
 
