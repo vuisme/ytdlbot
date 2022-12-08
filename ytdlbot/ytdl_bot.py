@@ -57,7 +57,7 @@ def private_use(func):
         chat_id = getattr(message.from_user, "id", None)
 
         # message type check
-        if message.chat.type != "private" and not message.text.lower().startswith("/ytdl"):
+        if message.chat.type != "ChatType.PRIVATE" and not message.text.lower().startswith("/ytdl"):
             logging.info(message.chat.type)
             logging.warning("%s, it's annoying me...🙄️ ", message.text)
             return
