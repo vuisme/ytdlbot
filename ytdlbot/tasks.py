@@ -105,6 +105,7 @@ def forward_video(url, client, bot_msg):
     vip = VIP()
     unique = get_unique_clink(url, chat_id)
     cached_fid = red.get_send_cache(unique)
+    red.update_metrics("cache_miss")
     if not cached_fid:
         return False
     try:
