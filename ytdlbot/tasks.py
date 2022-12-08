@@ -172,7 +172,7 @@ def image_entrance(bot_msg, client):
         async_task(image_task, bot_msg.chat.id, bot_msg.message_id)
         # audio_task.delay(bot_msg.chat.id, bot_msg.message_id)
     else:
-        normal_audio(bot_msg, client)
+        normal_image(bot_msg, client)
 
 
 def direct_normal_download(bot_msg, client, url):
