@@ -81,6 +81,14 @@ def audio_task(chat_id, message_id):
     logging.info("Audio celery tasks ended.")
 
 
+@app.task()
+def image_task(chat_id, message_id):
+    logging.info("Audio celery tasks started for %s-%s", chat_id, message_id)
+    bot_msg = get_messages(chat_id, message_id)
+    normal_image(bot_msg, celery_client)
+    logging.info("Audio celery tasks ended.")
+
+
 def get_unique_clink(original_url, user_id):
     settings = get_user_settings(str(user_id))
     clink = VIP().extract_canonical_link(original_url)
@@ -159,6 +167,14 @@ def audio_entrance(bot_msg, client):
         normal_audio(bot_msg, client)
 
 
+def image_entrance(bot_msg, client):
+    if ENABLE_CELERY:
+        async_task(image_task, bot_msg.chat.id, bot_msg.message_id)
+        # audio_task.delay(bot_msg.chat.id, bot_msg.message_id)
+    else:
+        normal_audio(bot_msg, client)
+
+
 def direct_normal_download(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     headers = {
@@ -229,6 +245,56 @@ def normal_audio(bot_msg, client):
         Redis().update_metrics("audio_success")
 
 
+def normal_image(bot_msg, client):
+    chat_id = bot_msg.chat.id
+    url: "str" = re.findall(r"https?://.*", bot_msg.caption)[0]
+    status_msg = bot_msg.reply_text("Đang lấy ảnh... vui lòng chờ", quote=True)
+    temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-")
+    result = ytdl_download(url, temp_dir.name, bot_msg)
+    logging.info("Download image complete.")
+    if result["status"]:
+        status_msg.edit_text("Lấy ảnh thành công! Đang gửi...")
+        video_paths = result["filepath"]
+        lstimg = []
+        for url_path in video_paths:
+            extPathURL = pathlib.Path(url_path).suffix
+            st_size = os.stat(url_path).st_size
+            if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
+                lstimg.append(
+                    InputMediaPhoto(
+                        media=url_path
+                    )
+                )
+        if lstimg:
+            newlst = split_list(lstimg, 9)
+            for array in newlst:
+                # send_image(client, bot_msg, array)
+            # bot_msg.reply_text("Send Images Success!✅", quote=True)
+                client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_PHOTO)
+                client.send_media_group(
+                    chat_id,
+                    disable_notification=True,
+                    media=array)
+            status_msg.edit_text("Hoàn tất lấy ảnh! ✅")
+            Redis().update_metrics("image_success")
+    else:
+        client.send_chat_action(chat_id, enums.ChatAction.TYPING)
+        tb = result["error"][0:4000]
+        bot_msg.edit_text(f"Lấy ảnh thất bại!❌\n\n```{tb}```", disable_web_page_preview=True)
+        try:
+            user_info = "@{} ({}) - {}".format(
+                bot_msg.chat.username or "",
+                bot_msg.chat.first_name or "" + bot_msg.chat.last_name or "",
+                bot_msg.chat.id
+            )
+        except Exception:
+            user_info = ""
+        texterror = f"{user_info}\nDownload failed!❌\n\n```{tb}```"
+        client.send_message(ARCHIVE_ID, texterror)
+
+    temp_dir.cleanup()
+
+
 def get_dl_source():
     worker_name = os.getenv("WORKER_NAME")
     if worker_name:
@@ -257,22 +323,6 @@ def ytdl_normal_download(bot_msg, client, url):
         client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
-        lstimg = []
-        for url_path in video_paths:
-            # normally there's only one video in that path...
-            extPathURL = pathlib.Path(url_path).suffix
-            st_size = os.stat(url_path).st_size
-            if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
-                lstimg.append(
-                    InputMediaPhoto(
-                        media=url_path
-                    )
-                )
-        if lstimg:
-            newlst = split_list(lstimg, 9)
-            for array in newlst:
-                send_image(client, bot_msg, array)
-            # bot_msg.reply_text("Send Images Success!✅", quote=True)
         for video_path in video_paths:
             # normally there's only one video in that path...
             extPath = pathlib.Path(video_path).suffix

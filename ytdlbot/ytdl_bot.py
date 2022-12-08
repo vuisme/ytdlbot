@@ -405,6 +405,14 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
     audio_entrance(vmsg, client)
 
 
+@app.on_callback_query(filters.regex(r"getimg"))
+def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
+    callback_query.answer("Đang lấy ảnh... Chỉ hỗ trợ Taobao/1688")
+    Redis().update_metrics("images_request")
+    vmsg = callback_query.message
+    audio_entrance(vmsg, client)
+
+
 @app.on_callback_query(filters.regex(r"Local|Celery"))
 def owner_local_callback(client: "Client", callback_query: types.CallbackQuery):
     chat_id = callback_query.message.chat.id
