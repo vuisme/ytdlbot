@@ -29,7 +29,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
 # from pyrogram import Client, idle
-from pyrogram import idle
+from pyrogram import idle, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, InputMediaPhoto
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
@@ -203,7 +203,7 @@ def direct_normal_download(bot_msg, client, url):
         st_size = os.stat(filepath).st_size
         if ENABLE_VIP:
             vip.use_quota(chat_id, st_size)
-        client.send_chat_action(chat_id, "upload_document")
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
         client.send_document(bot_msg.chat.id, filepath,
                              caption=f"filesize: {sizeof_fmt(st_size)}",
                              progress=upload_hook, progress_args=(bot_msg,),
@@ -217,11 +217,11 @@ def normal_audio(bot_msg, client):
     status_msg = bot_msg.reply_text("Converting to audio...please wait patiently", quote=True)
     orig_url: "str" = re.findall(r"https?://.*", bot_msg.caption)[0]
     with tempfile.TemporaryDirectory(prefix="ytdl-") as tmp:
-        client.send_chat_action(chat_id, 'record_audio')
+        client.send_chat_action(chat_id, enums.ChatAction.RECORD_AUDIO)
         # just try to download the audio using yt-dlp
         resp = ytdl_download(orig_url, tmp, status_msg, hijack="bestaudio[ext=m4a]")
         status_msg.edit_text("Sending audio now...")
-        client.send_chat_action(chat_id, 'upload_audio')
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_AUDIO)
         for f in resp["filepath"]:
             client.send_audio(chat_id, f)
         status_msg.edit_text("✅ Conversion complete.")
@@ -253,7 +253,7 @@ def ytdl_normal_download(bot_msg, client, url):
     result = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     if result["status"]:
-        client.send_chat_action(chat_id, 'upload_document')
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
         lstimg = []
@@ -285,7 +285,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 upload_processor(client, bot_msg, url, video_path)
         bot_msg.edit_text('Download Video Success!✅')
     else:
-        client.send_chat_action(chat_id, 'typing')
+        client.send_chat_action(chat_id, enums.ChatAction.TYPING)
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
         try:
@@ -305,7 +305,7 @@ def ytdl_normal_download(bot_msg, client, url):
 def send_image(client, bot_msg, lstimg):
     chat_id = bot_msg.chat.id
     # red = Redis()
-    client.send_chat_action(chat_id, 'upload_photo')
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_PHOTO)
     res_msg = client.send_media_group(
         chat_id,
         disable_notification=True,
@@ -325,7 +325,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
         chat_id = ARCHIVE_ID
     if settings[2] == "document":
         logging.info("Sending as document")
-        client.send_chat_action(chat_id, 'upload_document')
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
         try:
             # send as document could be sent as video even if it's a document
             res_msg = client.send_document(chat_id, vp_or_fid,
@@ -337,7 +337,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
                                            )
         except ValueError:
             logging.error("Retry to send as video")
-            client.send_chat_action(chat_id, 'upload_video')
+            client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
             res_msg = client.send_video(chat_id, vp_or_fid,
                                         supports_streaming=True,
                                         caption=cap,
@@ -353,7 +353,7 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
                                     )
     else:
         logging.info("Sending as video")
-        client.send_chat_action(chat_id, 'upload_video')
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
         res_msg = client.send_video(chat_id, vp_or_fid,
                                     supports_streaming=True,
                                     caption=cap,
