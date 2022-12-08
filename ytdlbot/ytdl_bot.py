@@ -415,7 +415,7 @@ def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
         image_entrance(vmsg, client)
     else:
         callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
-        callback_query.message.reply_text("Hoàn tất")
+        callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))

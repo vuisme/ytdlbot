@@ -83,10 +83,10 @@ def audio_task(chat_id, message_id):
 
 @app.task()
 def image_task(chat_id, message_id):
-    logging.info("Audio celery tasks started for %s-%s", chat_id, message_id)
+    logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
     bot_msg = get_messages(chat_id, message_id)
     normal_image(bot_msg, celery_client)
-    logging.info("Audio celery tasks ended.")
+    logging.info("Image celery tasks ended.")
 
 
 def get_unique_clink(original_url, user_id):
@@ -113,7 +113,6 @@ def forward_video(url, client, bot_msg):
     vip = VIP()
     unique = get_unique_clink(url, chat_id)
     cached_fid = red.get_send_cache(unique)
-    red.update_metrics("cache_miss")
     if not cached_fid:
         return False
     try:
