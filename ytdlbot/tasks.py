@@ -318,7 +318,7 @@ def ytdl_normal_download(bot_msg, client, url):
     result = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     if result["status"]:
-        client.send_chat_action(chat_id, 'upload_document')
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
         video_paths = result["filepath"]
         bot_msg.edit_text('Download complete. Sending now...')
         lstimg = []
@@ -350,7 +350,7 @@ def ytdl_normal_download(bot_msg, client, url):
                 upload_processor(client, bot_msg, url, video_path)
         bot_msg.edit_text('Download Video Success!✅')
     else:
-        client.send_chat_action(chat_id, 'typing')
+        client.send_chat_action(chat_id, enums.ChatAction.TYPING)
         tb = result["error"][0:4000]
         bot_msg.edit_text(f"Download failed!❌\n\n```{tb}```", disable_web_page_preview=True)
         try:
