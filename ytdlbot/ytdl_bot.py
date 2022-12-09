@@ -396,6 +396,8 @@ def download_resolution_callback(client: "Client", callback_query: types.Callbac
 def audio_callback(client: "Client", callback_query: types.CallbackQuery):
     vmsg = callback_query.message
     url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
+    logging.info(vmsg)
+    logging.info(url)
     if not ENABLE_FFMPEG:
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
