@@ -34,7 +34,7 @@ from db import InfluxDB, MySQL, Redis
 from limit import VIP, verify_payment
 from tasks import app as celery_app
 from tasks import (audio_entrance, direct_download_entrance, hot_patch,
-                   ytdl_download_entrance)
+                   ytdl_download_entrance, image_entrance)
 from utils import (auto_restart, customize_logger, get_revision,
                    get_user_settings, set_user_settings, tbcn, qr1688)
 
@@ -394,14 +394,33 @@ def download_resolution_callback(client: "Client", callback_query: types.Callbac
 
 @app.on_callback_query(filters.regex(r"convert"))
 def audio_callback(client: "Client", callback_query: types.CallbackQuery):
+    vmsg = callback_query.message
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
     if not ENABLE_FFMPEG:
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
+    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
+        callback_query.answer("Không hỗ trợ convert audio từ Taobao hoặc 1688")
+        callback_query.message.reply_text("Không hỗ trợ convert audio từ Taobao hoặc 1688")
+        return
     callback_query.answer("Converting to audio...please wait patiently")
     Redis().update_metrics("audio_request")
-    vmsg = callback_query.message
     audio_entrance(vmsg, client)
+
+
+@app.on_callback_query(filters.regex(r"getimg"))
+def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
+    vmsg = callback_query.message
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
+    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
+        callback_query.answer("Đang lấy ảnh...")
+        Redis().update_metrics("images_request")
+        image_entrance(vmsg, client)
+    else:
+        callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
+        callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
+        return
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))
