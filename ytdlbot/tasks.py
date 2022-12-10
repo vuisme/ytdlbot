@@ -521,13 +521,14 @@ def async_task(task_name, *args):
             inspect = app.control.inspect()
             worker_stats = inspect.stats()
             route_queues = []
-            padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
+            # padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
             for worker_name, stats in worker_stats.items():
                 route = worker_name.split('@')[1]
                 logging.info(route)
                 concurrency = stats['pool']['max-concurrency']
                 logging.info(concurrency)
-                route_queues.extend([route] * (concurrency + padding))
+                if route == 'singapore':
+                    route_queues.extend([route])
             logging.info("route_queue is %s", route_queues)
             destination_taobao = random.choice(route_queues)
             logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
