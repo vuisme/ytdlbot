@@ -228,7 +228,7 @@ def direct_normal_download(bot_msg, client, url):
         bot_msg.edit_text("Download success!✅")
 
 
-def normal_audio(bot_msg, client):
+def normal_audio(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     # fn = getattr(bot_msg.video, "file_name", None) or getattr(bot_msg.document, "file_name", None)
     status_msg = bot_msg.reply_text("Converting to audio...please wait patiently", quote=True)
@@ -245,7 +245,7 @@ def normal_audio(bot_msg, client):
         Redis().update_metrics("audio_success")
 
 
-def normal_image(bot_msg, client):
+def normal_image(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     url: "str" = re.findall(r"https?://.*", bot_msg.caption)[0]
     status_msg = bot_msg.reply_text("Đang lấy ảnh... vui lòng chờ", quote=True)
