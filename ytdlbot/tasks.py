@@ -515,9 +515,13 @@ def hot_patch(*args):
 
 def async_task(task_name, *args):
     if not ENABLE_QUEUE:
-        task_name.delay(*args)
-        logging.info(args[2])
-        return
+        url = args[2]
+        if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
+            route_queues = ['singapore']
+            task_name.apply_async(args=args, queue=route_queues)
+        else:
+            task_name.delay(*args)
+            return
 
     t0 = time.time()
     inspect = app.control.inspect()
