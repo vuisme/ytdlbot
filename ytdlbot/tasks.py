@@ -552,7 +552,7 @@ def async_task(task_name, *args):
             logging.info("route_queue is %s", route_queues)
             destination_taobao = random.choice(route_queues)
             logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
-            task_name.apply_async(args=args, queue=destination_taobao)
+            task_name.apply_async(args=args, routing_key='singapore')
             return
 
     t0 = time.time()
