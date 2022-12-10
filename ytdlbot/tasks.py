@@ -545,7 +545,7 @@ def run_celery():
     argv = [
         "-A", "tasks", 'worker', '--loglevel=info',
         "--pool=threads", f"--concurrency={WORKERS * 10}",
-        "-n", worker_name
+        "-n", worker_name, "-Q", worker_name
     ]
     if ENABLE_QUEUE:
         argv.extend(["-Q", worker_name])
