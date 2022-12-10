@@ -536,7 +536,7 @@ def async_task(task_name, *args):
             task_name.apply_async(args=args, queue=destination_taobao)
             return
         else:
-            queuevar = queue=os.getenv("WORKER_NAME", "")
+            queuevar = os.getenv("WORKER_NAME", "")
             t0 = time.time()
             inspect = app.control.inspect()
             worker_stats = inspect.stats()
