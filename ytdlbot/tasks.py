@@ -526,14 +526,14 @@ def async_task(task_name, *args):
     padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
     for worker_name, stats in worker_stats.items():
         route = worker_name.split('@')[1]
-        logging.info("route: ", route)
+        logging.info(route)
         concurrency = stats['pool']['max-concurrency']
-        logging.info("concurrency: ", concurrency)
+        logging.info(concurrency)
         route_queues.extend([route] * (concurrency + padding))
     logging.info("route_queue is %s", route_queues)
-    destination = random.choice(route_queues)
-    logging.info("Selecting worker %s from %s in %.2fs", destination, route_queues, time.time() - t0)
-    task_name.apply_async(args=args, queue=destination)
+    destination_taobao = random.choice(route_queues)
+    logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
+    task_name.apply_async(args=args, queue=destination_taobao)
 
 
 def run_celery():
