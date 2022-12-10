@@ -75,18 +75,18 @@ def ytdl_download_task(chat_id, message_id, url):
 
 
 @app.task()
-def image_task(chat_id, message_id):
+def image_task(chat_id, message_id, url):
     logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
     bot_msg = get_messages(chat_id, message_id)
-    normal_image(bot_msg, celery_client)
+    normal_image(bot_msg, celery_client, url)
     logging.info("Image celery tasks ended.")
 
 
 @app.task()
-def audio_task(chat_id, message_id):
+def audio_task(chat_id, message_id, url):
     logging.info("Audio celery tasks started for %s-%s", chat_id, message_id)
     bot_msg = get_messages(chat_id, message_id)
-    normal_audio(bot_msg, celery_client)
+    normal_audio(bot_msg, celery_client, url)
     logging.info("Audio celery tasks ended.")
 
 
@@ -159,20 +159,20 @@ def direct_download_entrance(bot_msg, client, url):
         direct_normal_download(bot_msg, client, url)
 
 
-def audio_entrance(bot_msg, client):
+def audio_entrance(bot_msg, client, url):
     if ENABLE_CELERY:
-        async_task(audio_task, bot_msg.chat.id, bot_msg.message_id)
+        async_task(audio_task, bot_msg.chat.id, bot_msg.message_id, url)
         # audio_task.delay(bot_msg.chat.id, bot_msg.message_id)
     else:
-        normal_audio(bot_msg, client)
+        normal_audio(bot_msg, client, url)
 
 
-def image_entrance(bot_msg, client):
+def image_entrance(bot_msg, client, url):
     if ENABLE_CELERY:
-        async_task(image_task, bot_msg.chat.id, bot_msg.message_id)
+        async_task(image_task, bot_msg.chat.id, bot_msg.message_id, url)
         # audio_task.delay(bot_msg.chat.id, bot_msg.message_id)
     else:
-        normal_image(bot_msg, client)
+        normal_image(bot_msg, client, url)
 
 
 def direct_normal_download(bot_msg, client, url):
@@ -517,6 +517,7 @@ def hot_patch(*args):
 def async_task(task_name, *args):
     if not ENABLE_QUEUE:
         url = args[2]
+        logging.info(args)
         if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
             t0 = time.time()
             inspect = app.control.inspect()
