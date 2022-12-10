@@ -526,7 +526,9 @@ def async_task(task_name, *args):
     padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
     for worker_name, stats in worker_stats.items():
         route = worker_name.split('@')[1]
+        logging.info("route: ", route)
         concurrency = stats['pool']['max-concurrency']
+        logging.info("concurrency: ", concurrency)
         route_queues.extend([route] * (concurrency + padding))
     logging.info("route_queue is %s", route_queues)
     destination = random.choice(route_queues)
