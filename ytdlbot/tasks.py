@@ -536,7 +536,6 @@ def async_task(task_name, *args):
             task_name.apply_async(args=args, queue=destination_taobao)
             return
         else:
-            worker_name = os.getenv("WORKER_NAME", "")
             t0 = time.time()
             inspect = app.control.inspect()
             worker_stats = inspect.stats()
@@ -544,15 +543,12 @@ def async_task(task_name, *args):
             # padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
             for worker_name, stats in worker_stats.items():
                 route = worker_name.split('@')[1]
-                logging.info(route)
                 concurrency = stats['pool']['max-concurrency']
-                logging.info(concurrency)
-            logging.info(worker_name)
-            route_queues.extend(worker_name)
+                route_queues.extend(route)
             logging.info("route_queue is %s", route_queues)
             destination_taobao = random.choice(route_queues)
             logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
-            task_name.apply_async(args=args, routing_key='singapore')
+            task_name.apply_async(args=args, queue=destination_taobao)
             return
 
     t0 = time.time()
@@ -577,7 +573,7 @@ def run_celery():
     argv = [
         "-A", "tasks", 'worker', '--loglevel=info',
         "--pool=threads", f"--concurrency={WORKERS * 10}",
-        "-n", "", "-Q", worker_name
+        "-n", worker_name, "-Q", worker_name
     ]
     if ENABLE_QUEUE:
         argv.extend(["-Q", worker_name])
