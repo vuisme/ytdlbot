@@ -297,7 +297,7 @@ def normal_image(bot_msg, client, url):
 def get_dl_source():
     worker_name = os.getenv("WORKER_NAME")
     if worker_name:
-        return f"Downloaded by  {worker_name}"
+        return f"Downloaded by {worker_name} server"
     return ""
 
 
@@ -532,7 +532,7 @@ def async_task(task_name, *args):
                 logging.info(route)
                 concurrency = stats['pool']['max-concurrency']
                 logging.info(concurrency)
-                if route == 'singapore':
+                if 'singapore' in route:
                     route_queues.extend([route])
             logging.info("route_queue is %s", route_queues)
             destination_taobao = random.choice(route_queues)
@@ -569,7 +569,10 @@ def async_task(task_name, *args):
 
 
 def run_celery():
-    worker_name = os.getenv("WORKER_NAME", "")
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(6))
+    worker_name_env = os.getenv("WORKER_NAME", "")
+    worker_name = worker_name_env + "-" + result_str
     argv = [
         "-A", "tasks", 'worker', '--loglevel=info',
         "--pool=threads", f"--concurrency={WORKERS * 10}",
