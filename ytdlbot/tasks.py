@@ -515,23 +515,16 @@ def hot_patch(*args):
 
 
 def async_task(task_name, *args):
+    t0 = time.time()
+    inspect = app.control.inspect()
+    worker_stats = inspect.stats()
+    url = args[2]
+    route_queues = []
     if not ENABLE_QUEUE:
-        t0 = time.time()
-        inspect = app.control.inspect()
-        logging.info("inspect is %s", inspect)
-        worker_stats = inspect.stats()
-        logging.info("worker stats is %s", worker_stats)
-        url = args[2]
-        logging.info("url from args is", url)
-        logging.info(args)
-        route_queues = []
         if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
             # padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
             for worker_name, stats in worker_stats.items():
                 route = worker_name.split('@')[1]
-                logging.info(route)
-                concurrency = stats['pool']['max-concurrency']
-                logging.info(concurrency)
                 if 'singapore' in route:
                     route_queues.extend([route])
             logging.info("route_queue is %s", route_queues)
@@ -540,21 +533,15 @@ def async_task(task_name, *args):
             task_name.apply_async(args=args, queue=destination_taobao)
             return
         else:
-            # padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
             for worker_name, stats in worker_stats.items():
                 route = worker_name.split('@')[1]
-                concurrency = stats['pool']['max-concurrency']
-                route_queues.extend([route])
+                if 'euro' in route:
+                    route_queues.extend([route])
             logging.info("route_queue is %s", route_queues)
             destination_taobao = random.choice(route_queues)
             logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
             task_name.apply_async(args=args, queue=destination_taobao)
             return
-
-    t0 = time.time()
-    inspect = app.control.inspect()
-    worker_stats = inspect.stats()
-    route_queues = []
     padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
     for worker_name, stats in worker_stats.items():
         route = worker_name.split('@')[1]
