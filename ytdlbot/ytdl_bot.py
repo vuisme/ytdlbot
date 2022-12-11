@@ -406,7 +406,7 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
         return
     callback_query.answer("Converting to audio...please wait patiently")
     Redis().update_metrics("audio_request")
-    audio_entrance(vmsg, client)
+    audio_entrance(vmsg, client, url)
 
 
 @app.on_callback_query(filters.regex(r"getimg"))
@@ -416,7 +416,7 @@ def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
     if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
         callback_query.answer("Đang lấy ảnh...")
         Redis().update_metrics("images_request")
-        image_entrance(vmsg, client)
+        image_entrance(vmsg, client, url)
     else:
         callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
         callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")

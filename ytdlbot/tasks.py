@@ -12,6 +12,7 @@ import math
 import os
 import pathlib
 import random
+import string
 import re
 import subprocess
 import tempfile
@@ -74,18 +75,18 @@ def ytdl_download_task(chat_id, message_id, url):
 
 
 @app.task()
-def image_task(chat_id, message_id):
+def image_task(chat_id, message_id, url):
     logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
     bot_msg = get_messages(chat_id, message_id)
-    normal_image(bot_msg, celery_client)
+    normal_image(bot_msg, celery_client, url)
     logging.info("Image celery tasks ended.")
 
 
 @app.task()
-def audio_task(chat_id, message_id):
+def audio_task(chat_id, message_id, url):
     logging.info("Audio celery tasks started for %s-%s", chat_id, message_id)
     bot_msg = get_messages(chat_id, message_id)
-    normal_audio(bot_msg, celery_client)
+    normal_audio(bot_msg, celery_client, url)
     logging.info("Audio celery tasks ended.")
 
 
@@ -158,20 +159,20 @@ def direct_download_entrance(bot_msg, client, url):
         direct_normal_download(bot_msg, client, url)
 
 
-def audio_entrance(bot_msg, client):
+def audio_entrance(bot_msg, client, url):
     if ENABLE_CELERY:
-        async_task(audio_task, bot_msg.chat.id, bot_msg.message_id)
+        async_task(audio_task, bot_msg.chat.id, bot_msg.message_id, url)
         # audio_task.delay(bot_msg.chat.id, bot_msg.message_id)
     else:
-        normal_audio(bot_msg, client)
+        normal_audio(bot_msg, client, url)
 
 
-def image_entrance(bot_msg, client):
+def image_entrance(bot_msg, client, url):
     if ENABLE_CELERY:
-        async_task(image_task, bot_msg.chat.id, bot_msg.message_id)
+        async_task(image_task, bot_msg.chat.id, bot_msg.message_id, url)
         # audio_task.delay(bot_msg.chat.id, bot_msg.message_id)
     else:
-        normal_image(bot_msg, client)
+        normal_image(bot_msg, client, url)
 
 
 def direct_normal_download(bot_msg, client, url):
@@ -227,7 +228,7 @@ def direct_normal_download(bot_msg, client, url):
         bot_msg.edit_text("Download success!✅")
 
 
-def normal_audio(bot_msg, client):
+def normal_audio(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     # fn = getattr(bot_msg.video, "file_name", None) or getattr(bot_msg.document, "file_name", None)
     status_msg = bot_msg.reply_text("Converting to audio...please wait patiently", quote=True)
@@ -244,7 +245,7 @@ def normal_audio(bot_msg, client):
         Redis().update_metrics("audio_success")
 
 
-def normal_image(bot_msg, client):
+def normal_image(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     url: "str" = re.findall(r"https?://.*", bot_msg.caption)[0]
     status_msg = bot_msg.reply_text("Đang lấy ảnh... vui lòng chờ", quote=True)
@@ -296,7 +297,7 @@ def normal_image(bot_msg, client):
 def get_dl_source():
     worker_name = os.getenv("WORKER_NAME")
     if worker_name:
-        return f"Downloaded by  {worker_name}"
+        return f"Downloaded by {worker_name} server"
     return ""
 
 
@@ -514,31 +515,55 @@ def hot_patch(*args):
 
 
 def async_task(task_name, *args):
-    if not ENABLE_QUEUE:
-        task_name.delay(*args)
-        return
-
     t0 = time.time()
     inspect = app.control.inspect()
     worker_stats = inspect.stats()
+    url = args[2]
     route_queues = []
+    if not ENABLE_QUEUE:
+        if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
+            # padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
+            for worker_name, stats in worker_stats.items():
+                route = worker_name.split('@')[1]
+                if 'singapore' in route:
+                    route_queues.extend([route])
+            logging.info("route_queue is %s", route_queues)
+            destination_taobao = random.choice(route_queues)
+            logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
+            task_name.apply_async(args=args, queue=destination_taobao)
+            return
+        else:
+            for worker_name, stats in worker_stats.items():
+                route = worker_name.split('@')[1]
+                if 'euro' in route:
+                    route_queues.extend([route])
+            logging.info("route_queue is %s", route_queues)
+            destination_taobao = random.choice(route_queues)
+            logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
+            task_name.apply_async(args=args, queue=destination_taobao)
+            return
     padding = math.ceil(sum([i['pool']['max-concurrency'] for i in worker_stats.values()]) / len(worker_stats))
     for worker_name, stats in worker_stats.items():
         route = worker_name.split('@')[1]
+        logging.info(route)
         concurrency = stats['pool']['max-concurrency']
+        logging.info(concurrency)
         route_queues.extend([route] * (concurrency + padding))
     logging.info("route_queue is %s", route_queues)
-    destination = random.choice(route_queues)
-    logging.info("Selecting worker %s from %s in %.2fs", destination, route_queues, time.time() - t0)
-    task_name.apply_async(args=args, queue=destination)
+    destination_taobao = random.choice(route_queues)
+    logging.info("Selecting worker %s from %s in %.2fs", destination_taobao, route_queues, time.time() - t0)
+    task_name.apply_async(args=args, queue=destination_taobao)
 
 
 def run_celery():
-    worker_name = os.getenv("WORKER_NAME", "")
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(6))
+    worker_name_env = os.getenv("WORKER_NAME", "")
+    worker_name = worker_name_env + "-" + result_str
     argv = [
         "-A", "tasks", 'worker', '--loglevel=info',
         "--pool=threads", f"--concurrency={WORKERS * 10}",
-        "-n", worker_name
+        "-n", worker_name, "-Q", worker_name
     ]
     if ENABLE_QUEUE:
         argv.extend(["-Q", worker_name])
