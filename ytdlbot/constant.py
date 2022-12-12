@@ -9,14 +9,17 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import os
 import time
+import logging
 
 from config import (AFD_LINK, BURST, COFFEE_LINK, ENABLE_CELERY, ENABLE_VIP,
                     EX, MULTIPLY, RATE, REQUIRED_MEMBERSHIP, USD2CNY)
 from db import InfluxDB
 from downloader import sizeof_fmt
 from limit import QUOTA, VIP
-from utils import get_func_queue
+from utils import get_func_queue, customize_logger
 
+customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
+logging.getLogger('apscheduler.executors.default').propagate = False
 
 class BotText:
     start = "Taobao Media 1.1.6 - Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!"
@@ -122,8 +125,10 @@ Sending format: **{1}**
     def ping_worker():
         from tasks import app as celery_app
         workers = InfluxDB().extract_dashboard_data()
+        logging.info(workers)
         # [{'celery@BennyのMBP': 'abc'}, {'celery@BennyのMBP': 'abc'}]
         response = celery_app.control.broadcast("ping_revision", reply=True)
+        logging.info("response is %s", response)
         revision = {}
         for item in response:
             revision.update(item)

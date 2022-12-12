@@ -179,9 +179,8 @@ def ping_handler(client: "Client", message: "types.Message"):
     # else:
     #     bot_info = get_runtime("ytdlbot-ytdl-1", "Taobao Bot")
     if message.chat.username == OWNER:
-        stats = bot_text.ping_worker()
+        stats = bot_text.ping_worker()[:1000]
         client.send_document(chat_id, Redis().generate_file(), caption=f"{stats}")
-        client.send_message(chat_id, stats)
     else:
         client.send_message(chat_id, "shtttttttt")
 
