@@ -134,16 +134,16 @@ Sending format: **{1}**
         logging.info(countsv)
         text = f"Have {countsv} Servers Online: \n"
         if countsv > 0:
-            for i in range(countsv):
-                text += f"🟢 {(list(response[i].keys())[0]).split('@')[1]}\n"
+            # for i in range(countsv):
+            #     text += f"🟢 {(list(response[i].keys())[0]).split('@')[1]}\n"
             for worker in workers:
                 fields = worker["fields"]
-            hostname = worker["tags"]["hostname"]
-            status = {True: "✅"}.get(fields["status"], "❌")
-            active = fields["active"]
-            load = "{},{},{}".format(fields["load1"], fields["load5"], fields["load15"])
-            rev = revision.get(hostname, "")
-            text += f"{status}{hostname} **{active}** {load} {rev}\n"
+                hostname = worker["tags"]["hostname"]
+                status = {True: "✅"}.get(fields["status"], "❌")
+                active = fields["active"]
+                load = "Load: {} - {} - {}".format(fields["load1"], fields["load5"], fields["load15"])
+                rev = revision.get(hostname, "")
+                text += f"{status}{hostname.split('@')[1]}: **{active}**\n{load} - Version: {rev}\n\n"
         else:
             text = "All server offline 🔴\n"
         logging.info(workers)
