@@ -125,23 +125,26 @@ Sending format: **{1}**
     def ping_worker():
         from tasks import app as celery_app
         workers = InfluxDB().extract_dashboard_data()
-        logging.info(workers)
+        # logging.info(workers)
         # [{'celery@BennyのMBP': 'abc'}, {'celery@BennyのMBP': 'abc'}]
         response = celery_app.control.broadcast("ping_revision", reply=True)
         logging.info("response is %s", response)
-        revision = {}
+        # revision = {}
+        # for item in response:
+        #     revision.update(item)
+        text = "Online Servers:"
         for item in response:
-            revision.update(item)
-
-        text = ""
-        for worker in workers:
-            fields = worker["fields"]
-            hostname = worker["tags"]["hostname"]
-            status = {True: "✅"}.get(fields["status"], "❌")
-            active = fields["active"]
-            load = "{},{},{}".format(fields["load1"], fields["load5"], fields["load15"])
-            rev = revision.get(hostname, "")
-            text += f"{status}{hostname} **{active}** {load} {rev}\n"
-
+            text += f"{response[item]}"
+        logging.info(text)
         return text
+        # for worker in workers:
+        #     fields = worker["fields"]
+        #     hostname = worker["tags"]["hostname"]
+        #     status = {True: "✅"}.get(fields["status"], "❌")
+        #     active = fields["active"]
+        #     load = "{},{},{}".format(fields["load1"], fields["load5"], fields["load15"])
+        #     rev = revision.get(hostname, "")
+        #     text += f"{status}{hostname} **{active}** {load} {rev}\n"
+
+        # return text
     too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi 01 request mỗi {RATE} giây, {BURST - 1} bursts."
