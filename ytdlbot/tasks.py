@@ -252,7 +252,7 @@ def normal_image(bot_msg, client, url):
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-")
     logging.info("Download image complete.")
     with tempfile.TemporaryDirectory(prefix="ytdl-") as tmp:
-        result = ytdl_download(url, tmp, bot_msg)
+        result = ytdl_download(url, tmp, status_msg)
         if result["status"]:
             status_msg.edit_text("Lấy ảnh thành công! Đang gửi...")
             video_paths = result["filepath"]
