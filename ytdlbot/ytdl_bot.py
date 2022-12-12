@@ -31,7 +31,7 @@ from config import (ARCHIVE_ID, AUTHORIZED_USER, BURST, ENABLE_CELERY, ENABLE_FF
                     ENABLE_VIP, OWNER, RATE, REQUIRED_MEMBERSHIP)
 from constant import BotText
 from db import InfluxDB, MySQL, Redis
-from limit import VIP, verify_payment
+from limit import VIP, verify_payment, admin_add_vip
 from tasks import app as celery_app
 from tasks import (audio_entrance, direct_download_entrance, hot_patch,
                    ytdl_download_entrance, image_entrance)
@@ -271,6 +271,24 @@ def vip_handler(client: "Client", message: "types.Message"):
         unique = text.replace("/vip", "").strip()
         msg = verify_payment(chat_id, unique, client)
         bm.edit_text(msg)
+
+
+@app.on_message(filters.command(["addvip"]))
+def vip_handler(client: "Client", message: "types.Message"):
+    # process as chat.id, not from_user.id
+    chat_id = message.chat.id
+    text = message.text.strip()
+    if message.chat.username == OWNER:
+        client.send_chat_action(chat_id, "typing")
+        if text == "/addvip":
+            client.send_message(chat_id, bot_text.vip, disable_web_page_preview=True)
+        else:
+            bm: typing.Union["types.Message", "typing.Any"] = message.reply_text(bot_text.vip_pay, quote=True)
+            unique = text.replace("/addvip", "").strip()
+            msg = verify_payment(chat_id, unique, client)
+            bm.edit_text(msg)
+    else:
+        client.send_message(chat_id, "You are not Admin")
 
 
 @app.on_message(filters.incoming & filters.text)

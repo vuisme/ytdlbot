@@ -321,6 +321,25 @@ def verify_payment(user_id, unique, client) -> "str":
         return message
 
 
+def admin_add_vip(user_id) -> "str":
+    if not ENABLE_VIP:
+        return "VIP is not enabled."
+    logging.info("Verifying payment for %s", user_id)
+    vip = VIP()
+    level = 10
+    ud = {
+        "user_id": user_id,
+        "username": user_id,
+        "payment_amount": 100,
+        "payment_id": 123456,
+        "level": level,
+        "quota": QUOTA * level * MULTIPLY
+    }
+
+    message = vip.add_vip(ud)
+    return message
+
+
 def subscribe_query():
     vip = VIP()
     for cid, uid in vip.group_subscriber().items():
