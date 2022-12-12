@@ -284,8 +284,8 @@ def vip_handler(client: "Client", message: "types.Message"):
             client.send_message(chat_id, bot_text.vip, disable_web_page_preview=True)
         else:
             bm: typing.Union["types.Message", "typing.Any"] = message.reply_text(bot_text.vip_pay, quote=True)
-            unique = text.replace("/addvip", "").strip()
-            msg = verify_payment(chat_id, unique, client)
+            user_id = text.replace("/addvip", "").strip()
+            msg = admin_add_vip(user_id)
             bm.edit_text(msg)
     else:
         client.send_message(chat_id, "You are not Admin")
