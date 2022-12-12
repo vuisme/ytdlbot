@@ -67,12 +67,12 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - name: Restart K3S Deloyment Master
-        uses: actions-hub/kubectl@master
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-        with:
-          args: rollout restart deployment ytdl --namespace=taobaobot
+#      - name: Restart K3S Deloyment Master
+#        uses: actions-hub/kubectl@master
+#        env:
+#          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+#        with:
+#          args: rollout restart deployment ytdl --namespace=taobaobot
       
       - name: Restart K3S Deloyment Worker
         uses: actions-hub/kubectl@master
@@ -80,10 +80,10 @@ jobs:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:
           args: rollout restart deployment ytdl-worker --namespace=taobaobot
-      
-      - name: REstart K3S Deloyment Flower
-        uses: actions-hub/kubectl@master
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-        with:
-          args: rollout restart deployment flower --namespace=taobaobot
+
+#      - name: REstart K3S Deloyment Flower
+#        uses: actions-hub/kubectl@master
+#        env:
+#          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+#        with:
+#          args: rollout restart deployment flower --namespace=taobaobot
