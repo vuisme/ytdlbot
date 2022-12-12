@@ -139,7 +139,7 @@ Sending format: **{1}**
             for worker in workers:
                 fields = worker["fields"]
                 hostname = worker["tags"]["hostname"]
-                status = {True: "✅"}.get(fields["status"], "❌")
+                status = {True: "🟢"}.get(fields["status"], "🔴")
                 active = fields["active"]
                 load = "Load: {} - {} - {}".format(fields["load1"], fields["load5"], fields["load15"])
                 rev = revision.get(hostname, "")
