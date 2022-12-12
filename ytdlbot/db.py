@@ -231,11 +231,12 @@ class InfluxDB:
 
     @staticmethod
     def get_worker_data():
+        flowerurl = os.getenv("FLOWER_LINK", "")
         password = os.getenv("FLOWER_PASSWORD", "123456")
         username = os.getenv("FLOWER_USERNAME", "benny")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-        r = requests.get("http://sv1.vutn.net:5555/dashboard?json=1", headers=headers)
+        r = requests.get(f"{flowerurl}/dashboard?json=1", headers=headers)
         if r.status_code != 200:
             return dict(data=[])
         return r.json()

@@ -124,8 +124,6 @@ Sending format: **{1}**
     @staticmethod
     def ping_worker():
         from tasks import app as celery_app
-        # workers = InfluxDB().extract_dashboard_data()
-        # logging.info(workers)
         # [{'celery@BennyのMBP': 'abc'}, {'celery@BennyのMBP': 'abc'}]
         response = celery_app.control.broadcast("ping_revision", reply=True)
         # revision = {}
@@ -139,6 +137,8 @@ Sending format: **{1}**
                 text += f"🟢 {(list(response[i].keys())[0]).split('@')[1]}\n"
         else:
             text = "All server offline 🔴\n"
+        workers = InfluxDB().extract_dashboard_data()
+        logging.info(workers)
         return text
         # for worker in workers:
         #     fields = worker["fields"]
