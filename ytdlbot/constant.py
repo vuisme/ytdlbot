@@ -124,11 +124,10 @@ Sending format: **{1}**
     @staticmethod
     def ping_worker():
         from tasks import app as celery_app
-        workers = InfluxDB().extract_dashboard_data()
+        # workers = InfluxDB().extract_dashboard_data()
         # logging.info(workers)
         # [{'celery@BennyのMBP': 'abc'}, {'celery@BennyのMBP': 'abc'}]
         response = celery_app.control.broadcast("ping_revision", reply=True)
-        logging.info("response is %s", response)
         # revision = {}
         # for item in response:
         #     revision.update(item)
@@ -137,10 +136,8 @@ Sending format: **{1}**
             for i in range(len(response)):
                 text += f"{(list(response[i].keys())[0]).split('@')[1]} 🟢\n"
             text += "```"
-            logging.info(text)
         else:
             text = "All server offline 🔴\n"
-            logging.info(text)
         return text
         # for worker in workers:
         #     fields = worker["fields"]
@@ -152,4 +149,4 @@ Sending format: **{1}**
         #     text += f"{status}{hostname} **{active}** {load} {rev}\n"
 
         # return text
-    too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi 01 request mỗi {RATE} giây, {BURST - 1} bursts."
+    too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi {BURST - 1} yêu cầu mỗi {RATE} giây. Nâng cấp lên VIP để không bị giới hạn"
