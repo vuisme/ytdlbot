@@ -136,10 +136,10 @@ Sending format: **{1}**
         if response is not None:
             for i in range(len(response)):
                 text += f"{list(response[i].keys())[0]} 🟢\n"
-                text += "```"
+            text += "```"
             logging.info(text)
         else:
-            text = "All server offline 🔴\n```"
+            text = "All server offline 🔴\n"
             logging.info(text)
         return text
         # for worker in workers:
