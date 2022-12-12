@@ -126,28 +126,27 @@ Sending format: **{1}**
         from tasks import app as celery_app
         # [{'celery@BennyのMBP': 'abc'}, {'celery@BennyのMBP': 'abc'}]
         response = celery_app.control.broadcast("ping_revision", reply=True)
-        # revision = {}
-        # for item in response:
-        #     revision.update(item)
+        workers = InfluxDB().extract_dashboard_data()
+        revision = {}
+        for item in response:
+            revision.update(item)
         countsv = len(response)
         logging.info(countsv)
         text = f"Have {countsv} Servers Online: \n"
         if countsv > 0:
             for i in range(countsv):
                 text += f"🟢 {(list(response[i].keys())[0]).split('@')[1]}\n"
+            for worker in workers:
+                fields = worker["fields"]
+            hostname = worker["tags"]["hostname"]
+            status = {True: "✅"}.get(fields["status"], "❌")
+            active = fields["active"]
+            load = "{},{},{}".format(fields["load1"], fields["load5"], fields["load15"])
+            rev = revision.get(hostname, "")
+            text += f"{status}{hostname} **{active}** {load} {rev}\n"
         else:
             text = "All server offline 🔴\n"
-        workers = InfluxDB().extract_dashboard_data()
         logging.info(workers)
         return text
-        # for worker in workers:
-        #     fields = worker["fields"]
-        #     hostname = worker["tags"]["hostname"]
-        #     status = {True: "✅"}.get(fields["status"], "❌")
-        #     active = fields["active"]
-        #     load = "{},{},{}".format(fields["load1"], fields["load5"], fields["load15"])
-        #     rev = revision.get(hostname, "")
-        #     text += f"{status}{hostname} **{active}** {load} {rev}\n"
-
         # return text
     too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi {BURST - 1} yêu cầu mỗi {RATE} giây. Nâng cấp lên VIP để không bị giới hạn"
