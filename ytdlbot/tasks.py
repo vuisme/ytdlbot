@@ -297,7 +297,7 @@ def normal_image(bot_msg, client, url):
 def get_dl_source():
     worker_name = os.getenv("WORKER_NAME")
     if worker_name:
-        return f"Downloaded by {worker_name} server"
+        return f"Downloaded by {worker_name.capitalize()} server"
     return ""
 
 

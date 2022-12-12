@@ -135,7 +135,7 @@ Sending format: **{1}**
         text = "Online Servers: \n```"
         if response is not None:
             for i in range(len(response)):
-                text += f"{list(response[i].keys())[0]} 🟢\n"
+                text += f"{(list(response[i].keys())[0]).split('@')[1]} 🟢\n"
             text += "```"
             logging.info(text)
         else:
