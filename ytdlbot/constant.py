@@ -19,7 +19,7 @@ from utils import get_func_queue
 
 
 class BotText:
-    start = "Taobao Tools 1.1.5.1 - Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!"
+    start = "Taobao Media 1.1.6 - Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!"
 
     help = f"""
 1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ.
@@ -114,7 +114,7 @@ Sending format: **{1}**
         if ENABLE_CELERY and reserved:
             text = f"Too many tasks. Your tasks was added to the reserved queue {reserved}."
         else:
-            text = "Your task was added to active queue.\nProcessing...\n\n"
+            text = "Đang lấy ảnh/video, vui lòng chờ...\nProcessing...\n\n"
 
         return text
 
