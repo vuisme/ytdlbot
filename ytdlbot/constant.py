@@ -133,8 +133,8 @@ Sending format: **{1}**
         # for item in response:
         #     revision.update(item)
         text = "Online Servers:"
-        for item in response:
-            text += f"{response[item]}"
+        for svname, svkey in response:
+            text += f"{svname}"
         logging.info(text)
         return text
         # for worker in workers:
