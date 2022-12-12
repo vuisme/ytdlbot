@@ -136,7 +136,7 @@ Sending format: **{1}**
         text = f"Have {countsv} Servers Online: \n"
         if countsv > 0:
             for i in range(countsv):
-                text += f"{(list(response[i].keys())[0]).split('@')[1]} 🟢\n"
+                text += f"🟢 {(list(response[i].keys())[0]).split('@')[1]}\n"
         else:
             text = "All server offline 🔴\n"
         return text
