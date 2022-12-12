@@ -131,11 +131,10 @@ Sending format: **{1}**
         # revision = {}
         # for item in response:
         #     revision.update(item)
-        text = "Online Servers: \n```"
+        text = "Online Servers: \n"
         if response is not None:
             for i in range(len(response)):
                 text += f"{(list(response[i].keys())[0]).split('@')[1]} 🟢\n"
-            text += "```"
         else:
             text = "All server offline 🔴\n"
         return text
