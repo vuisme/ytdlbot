@@ -132,6 +132,7 @@ Sending format: **{1}**
         # for item in response:
         #     revision.update(item)
         countsv = range(len(response))
+        logging.info(countsv)
         text = "Online Servers: \n"
         if countsv > 0:
             for i in countsv:
