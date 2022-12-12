@@ -133,7 +133,7 @@ Sending format: **{1}**
         #     revision.update(item)
         countsv = len(response)
         logging.info(countsv)
-        text = "Online Servers: \n"
+        text = f"Have {countsv} Servers Online: \n"
         if countsv > 0:
             for i in range(countsv):
                 text += f"{(list(response[i].keys())[0]).split('@')[1]} 🟢\n"
