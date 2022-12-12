@@ -132,10 +132,15 @@ Sending format: **{1}**
         # revision = {}
         # for item in response:
         #     revision.update(item)
-        text = "Online Servers:"
-        for item in response:
-            text += f"{item.keys()}"
-        logging.info(text)
+        text = "Online Servers: \n```"
+        if response is not None:
+            for i in range(len(response)):
+                text += f"{list(response[i].keys())[0]} 🟢\n"
+                text += "```"
+            logging.info(text)
+        else:
+            text = "All server offline 🔴\n```"
+            logging.info(text)
         return text
         # for worker in workers:
         #     fields = worker["fields"]
