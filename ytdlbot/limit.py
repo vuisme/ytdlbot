@@ -326,12 +326,12 @@ def admin_add_vip(user_id) -> "str":
         return "VIP is not enabled."
     logging.info("Verifying payment for %s", user_id)
     vip = VIP()
-    level = 10
+    level = 2
     ud = {
         "user_id": user_id,
         "username": user_id,
         "payment_amount": 100,
-        "payment_id": 123456,
+        "payment_id": user_id,
         "level": level,
         "quota": QUOTA * level * MULTIPLY
     }

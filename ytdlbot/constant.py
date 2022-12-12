@@ -107,7 +107,7 @@ Sending format: **{1}**
             return ""
         v = VIP().check_vip(chat_id)
         if v:
-            return f"Hello {v[1]}, VIP{v[-2]}☺️\n\n"
+            return f"Hello VIP{v[-2]}☺️\n\n"
         else:
             return ""
 
