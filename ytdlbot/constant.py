@@ -134,7 +134,7 @@ Sending format: **{1}**
         #     revision.update(item)
         text = "Online Servers:"
         for item in response:
-            text += f"{response[item].keys()}"
+            text += f"{item.keys()}"
         logging.info(text)
         return text
         # for worker in workers:
