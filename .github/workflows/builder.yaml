@@ -53,7 +53,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          platforms: linux/arm,linux/arm64
+          platforms: linux/arm64/v8
           push: true
           tags: |
             ${{ steps.dh_string.outputs.lowercase }}
@@ -74,12 +74,12 @@ jobs:
 #        with:
 #          args: rollout restart deployment ytdl --namespace=taobaobot
       
-      - name: Restart K3S Deloyment Worker
-        uses: actions-hub/kubectl@master
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-        with:
-          args: rollout restart deployment ytdl-worker --namespace=taobaobot
+#      - name: Restart K3S Deloyment Worker
+#        uses: actions-hub/kubectl@master
+#        env:
+#          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+#        with:
+#          args: rollout restart deployment ytdl-worker --namespace=taobaobot
 
 #      - name: REstart K3S Deloyment Flower
 #        uses: actions-hub/kubectl@master
