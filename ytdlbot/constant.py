@@ -79,7 +79,8 @@ class BotText:
                 active = fields["active"]
                 load = "Load: {} - {} - {}".format(fields["load1"], fields["load5"], fields["load15"])
                 rev = revision.get(hostname, "")
-                text += f"{status}{hostname.split('@')[1]}: **{active}**\n{load} - Rev: {rev}\n\n"
+                if fields["load5"]:
+                    text += f"{status}{hostname.split('@')[1]}: **{active}**\n{load} - Rev: {rev}\n\n"
         else:
             text = "All server offline 🔴\n"
         logging.info(workers)
