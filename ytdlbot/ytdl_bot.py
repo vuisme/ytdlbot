@@ -21,7 +21,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pyrogram import Client, filters, types
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot_ping import get_runtime
+# from tgbot_ping import get_runtime
 from token_bucket import Limiter, MemoryStorage
 # from youtubesearchpython import VideosSearch
 from urllib.parse import parse_qs, urlparse, unquote
@@ -274,7 +274,7 @@ def vip_handler(client: "Client", message: "types.Message"):
 
 
 @app.on_message(filters.command(["addvip"]))
-def vip_handler(client: "Client", message: "types.Message"):
+def add_vip_handler(client: "Client", message: "types.Message"):
     # process as chat.id, not from_user.id
     chat_id = message.chat.id
     text = message.text.strip()

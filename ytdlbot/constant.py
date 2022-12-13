@@ -21,8 +21,77 @@ from utils import get_func_queue, customize_logger
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 logging.getLogger('apscheduler.executors.default').propagate = False
 
+
 class BotText:
-    start = "Taobao Media 1.1.6 - Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!"
+    def remaining_quota_caption(self, chat_id):
+        if not ENABLE_VIP:
+            return ""
+        used, total, ttl = self.return_remaining_quota(chat_id)
+        refresh_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ttl + time.time()))
+        caption = f"Remaining quota: **{sizeof_fmt(used)}/{sizeof_fmt(total)}**, " \
+                  f"refresh at {refresh_time}\n"
+        return caption
+
+    @staticmethod
+    def return_remaining_quota(chat_id):
+        used, total, ttl = VIP().check_remaining_quota(chat_id)
+        return used, total, ttl
+
+    @staticmethod
+    def get_vip_greeting(chat_id):
+        if not ENABLE_VIP:
+            return ""
+        v = VIP().check_vip(chat_id)
+        if v:
+            return f"Hello VIP{v[-2]}☺️\n\n"
+        else:
+            return ""
+
+    @staticmethod
+    def get_receive_link_text():
+        reserved = get_func_queue("reserved")
+        if ENABLE_CELERY and reserved:
+            text = f"Too many tasks. Your tasks was added to the reserved queue {reserved}."
+        else:
+            text = "Đang lấy ảnh/video, vui lòng chờ...\nProcessing...\n\n"
+
+        return text
+
+    @staticmethod
+    def ping_worker():
+        from tasks import app as celery_app
+        # [{'celery@BennyのMBP': 'abc'}, {'celery@BennyのMBP': 'abc'}]
+        response = celery_app.control.broadcast("ping_revision", reply=True)
+        workers = InfluxDB().extract_dashboard_data()
+        revision = {}
+        for item in response:
+            revision.update(item)
+        countsv = len(response)
+        logging.info(countsv)
+        text = f"Have {countsv} Servers Online: \n"
+        if countsv > 0:
+            # for i in range(countsv):
+            #     text += f"🟢 {(list(response[i].keys())[0]).split('@')[1]}\n"
+            for worker in workers:
+                fields = worker["fields"]
+                hostname = worker["tags"]["hostname"]
+                status = {True: "🟢"}.get(fields["status"], "🔴")
+                active = fields["active"]
+                load = "Load: {} - {} - {}".format(fields["load1"], fields["load5"], fields["load15"])
+                rev = revision.get(hostname, "")
+                text += f"{status}{hostname.split('@')[1]}: **{active}**\n{load} - Rev: {rev}\n\n"
+        else:
+            text = "All server offline 🔴\n"
+        logging.info(workers)
+        return text
+        # return text
+
+    start = f"""
+🕹 Taobao Media - Version: 1.1.6 🕹
+Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!
+Server Status:
+{ping_worker()}
+"""
 
     help = f"""
 1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ.
@@ -87,66 +156,4 @@ Sending format: **{1}**
 """
     custom_text = os.getenv("CUSTOM_TEXT", "")
 
-    def remaining_quota_caption(self, chat_id):
-        if not ENABLE_VIP:
-            return ""
-        used, total, ttl = self.return_remaining_quota(chat_id)
-        refresh_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ttl + time.time()))
-        caption = f"Remaining quota: **{sizeof_fmt(used)}/{sizeof_fmt(total)}**, " \
-                  f"refresh at {refresh_time}\n"
-        return caption
-
-    @staticmethod
-    def return_remaining_quota(chat_id):
-        used, total, ttl = VIP().check_remaining_quota(chat_id)
-        return used, total, ttl
-
-    @staticmethod
-    def get_vip_greeting(chat_id):
-        if not ENABLE_VIP:
-            return ""
-        v = VIP().check_vip(chat_id)
-        if v:
-            return f"Hello VIP{v[-2]}☺️\n\n"
-        else:
-            return ""
-
-    @staticmethod
-    def get_receive_link_text():
-        reserved = get_func_queue("reserved")
-        if ENABLE_CELERY and reserved:
-            text = f"Too many tasks. Your tasks was added to the reserved queue {reserved}."
-        else:
-            text = "Đang lấy ảnh/video, vui lòng chờ...\nProcessing...\n\n"
-
-        return text
-
-    @staticmethod
-    def ping_worker():
-        from tasks import app as celery_app
-        # [{'celery@BennyのMBP': 'abc'}, {'celery@BennyのMBP': 'abc'}]
-        response = celery_app.control.broadcast("ping_revision", reply=True)
-        workers = InfluxDB().extract_dashboard_data()
-        revision = {}
-        for item in response:
-            revision.update(item)
-        countsv = len(response)
-        logging.info(countsv)
-        text = f"Have {countsv} Servers Online: \n"
-        if countsv > 0:
-            # for i in range(countsv):
-            #     text += f"🟢 {(list(response[i].keys())[0]).split('@')[1]}\n"
-            for worker in workers:
-                fields = worker["fields"]
-                hostname = worker["tags"]["hostname"]
-                status = {True: "🟢"}.get(fields["status"], "🔴")
-                active = fields["active"]
-                load = "Load: {} - {} - {}".format(fields["load1"], fields["load5"], fields["load15"])
-                rev = revision.get(hostname, "")
-                text += f"{status}{hostname.split('@')[1]}: **{active}**\n{load} - Rev: {rev}\n\n"
-        else:
-            text = "All server offline 🔴\n"
-        logging.info(workers)
-        return text
-        # return text
     too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi {BURST - 1} yêu cầu mỗi {RATE} giây. Nâng cấp lên VIP để không bị giới hạn"
