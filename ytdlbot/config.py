@@ -38,7 +38,7 @@ COFFEE_TOKEN = os.getenv("COFFEE_TOKEN")
 AFD_TOKEN = os.getenv("AFD_TOKEN")
 AFD_USER_ID = os.getenv("AFD_USER_ID")
 OWNER = os.getenv("OWNER", "BennyThink")
-TAOBAO_PROXY = os.environ.get("TAOBAO_PROXY", "http://14.161.27.151:8123")
+TAOBAO_PROXY = os.environ.get("TAOBAO_PROXY", "")
 # limitation settings
 AUTHORIZED_USER: "str" = os.getenv("AUTHORIZED_USER", "")
 # membership requires: the format could be username/chat_id of channel or group
