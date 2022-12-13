@@ -53,7 +53,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          platforms: linux/arm64/v8
+          platforms: linux/arm64,linux/amd64
           push: true
           tags: |
             ${{ steps.dh_string.outputs.lowercase }}
