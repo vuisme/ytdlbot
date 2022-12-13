@@ -90,8 +90,6 @@ class BotText:
     start = f"""
 🕹 Taobao Media - Version: 1.1.6 🕹
 Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!
-Server Status:
-{ping_worker()}
 """
 
     help = f"""
