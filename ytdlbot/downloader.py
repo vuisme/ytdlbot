@@ -142,7 +142,7 @@ def convert_to_mp4(resp: dict, bot_msg):
                 edit_text(bot_msg, f"{current_time()}: Converting {path.name} to mp4. Please wait.")
                 new_file_path = path.with_suffix(".mp4")
                 logging.info("Detected %s, converting to mp4...", mime)
-                run_ffmpeg(["ffmpeg", "-y", "-i", path, new_file_path, "--encoder_codec mp4v"], bot_msg)
+                run_ffmpeg(["ffmpeg", "-y", "-i", path, new_file_path], bot_msg)
                 index = resp["filepath"].index(path)
                 resp["filepath"][index] = new_file_path
 
@@ -198,8 +198,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         'proxy': os.getenv("YTDL_PROXY")
     }
     formats = [
-        "bv*[vcodec~='^((he|a)vc|h26[45])']+ba/bv*+ba/b",
-        "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
+        "bv*+ba/b"
         "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
         "bestvideo[vcodec^=avc]+bestaudio[acodec^=mp4a]/best[vcodec^=avc]/best",
         None
