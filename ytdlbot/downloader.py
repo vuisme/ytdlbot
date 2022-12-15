@@ -197,6 +197,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         'proxy': os.getenv("YTDL_PROXY")
     }
     formats = [
+        "(bv*[vcodec~='^((he|a)vc|h26[45])']+ba) / (bv*+ba/b)",
         "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4] / bv*+ba/b",
         "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
         "bestvideo[vcodec^=avc]+bestaudio[acodec^=mp4a]/best[vcodec^=avc]/best",
