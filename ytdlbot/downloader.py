@@ -131,6 +131,7 @@ def convert_to_mp4(resp: dict, bot_msg):
     if resp["status"]:
         # all_converted = []
         for path in resp["filepath"]:
+            logging.info(filetype.guess(path))
             # if we can't guess file type, we assume it's video/mp4
             mime = getattr(filetype.guess(path), "mime", "video/mp4")
             if mime in default_type:
