@@ -67,7 +67,6 @@ class BotText:
         for item in response:
             revision.update(item)
         countsv = len(response)
-        logging.info(countsv)
         text = f"Have {countsv} Servers Online: \n"
         if countsv > 0:
             # for i in range(countsv):
@@ -80,10 +79,9 @@ class BotText:
                 load = "Load: {} - {} - {}".format(fields["load1"], fields["load5"], fields["load15"])
                 rev = revision.get(hostname, "")
                 if fields["status"]:
-                    text += f"{status}{hostname.split('@')[1]}: **{active}**\n{load} - Rev: {rev}\n\n"
+                    text += f"{status} {hostname.split('@')[1]}: **{active}**\n{load} - Rev: {rev}\n\n"
         else:
             text = "All server offline 🔴\n"
-        logging.info(workers)
         return text
         # return text
 

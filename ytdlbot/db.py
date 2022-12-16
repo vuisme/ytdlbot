@@ -202,7 +202,11 @@ class MySQL:
 
     def __init__(self):
         if MYSQL_HOST:
-            self.con = pymysql.connect(host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl",
+            self.con = pymysql.connect(host=MYSQL_HOST,
+                                       port=os.getenv("MYSQL_PORT", "3306"),
+                                       user=MYSQL_USER,
+                                       passwd=MYSQL_PASS,
+                                       db="ytdl",
                                        charset="utf8mb4")
         else:
             self.con = FakeMySQL()
