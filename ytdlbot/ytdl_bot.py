@@ -323,9 +323,8 @@ def download_handler(client: "Client", message: "types.Message"):
         # markup = InlineKeyboardMarkup([buttons])
         # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
         # return
-    rawurl = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
-    url = VIP.extract_canonical_link(rawurl)
-    logging.info("start %s", url)
+    url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    # url = VIP.extract_canonical_link(rawurl)
     if "item.taobao.com" in url:
         vid = parse_qs(urlparse(url).query).get('id')
         url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
@@ -361,7 +360,7 @@ def download_handler(client: "Client", message: "types.Message"):
         logging.info("tb.cn convert xong")
         logging.info(linktb)
         logging.info(url)
-
+    logging.info("start get %s", url)
     if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)):
         message.reply_text("Channel download is disabled now. Please send me individual video link.", quote=True)
         red.update_metrics("reject_channel")
