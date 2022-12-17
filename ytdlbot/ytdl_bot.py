@@ -389,7 +389,7 @@ def download_handler(client: "Client", message: "types.Message"):
 
     client.send_chat_action(chat_id, 'upload_video')
     bot_msg.chat = message.chat
-    newurl=VIP.extract_canonical_link(url)
+    newurl = VIP.extract_canonical_link(url)
     ytdl_download_entrance(bot_msg, client, newurl)
 
 
