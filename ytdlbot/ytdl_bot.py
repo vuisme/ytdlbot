@@ -323,7 +323,8 @@ def download_handler(client: "Client", message: "types.Message"):
         # markup = InlineKeyboardMarkup([buttons])
         # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
         # return
-    url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    rawurl = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    url = VIP.extract_canonical_link(rawurl)
     logging.info("start %s", url)
     if "item.taobao.com" in url:
         vid = parse_qs(urlparse(url).query).get('id')
@@ -389,8 +390,7 @@ def download_handler(client: "Client", message: "types.Message"):
 
     client.send_chat_action(chat_id, 'upload_video')
     bot_msg.chat = message.chat
-    newurl = VIP.extract_canonical_link(url)
-    ytdl_download_entrance(bot_msg, client, newurl)
+    ytdl_download_entrance(bot_msg, client, url)
 
 
 @app.on_callback_query(filters.regex(r"document|video|audio"))
