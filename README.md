@@ -1,6 +1,6 @@
 # ytdlbot
 
-[![docker image](https://github.com/tgbot-collection/ytdlbot/actions/workflows/builder.yaml/badge.svg)](https://github.com/tgbot-collection/ytdlbot/actions/workflows/builder.yaml)
+[![docker image](https://github.com/dlcvietnam/ytdlbot/actions/workflows/builder.yaml/badge.svg)](https://github.com/tgbot-collection/ytdlbot/actions/workflows/builder.yaml)
 
 YouTube Download Bot🚀
 
@@ -20,7 +20,7 @@ longer be available.**
 
 # Usage
 
-[https://t.me/benny_ytdlbot](https://t.me/benny_ytdlbot)
+[https://t.me/taobao_order_bot](https://t.me/taobao_order_bot)
 
 Send link directly to the bot. Any
 Websites [supported by youtube-dl](https://ytdl-org.github.io/youtube-dl/supportedsites.html) will also work.
