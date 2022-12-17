@@ -337,7 +337,7 @@ def download_handler(client: "Client", message: "types.Message"):
         url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
     if "tmall.com" in url:
         vid = parse_qs(urlparse(url).query).get('id')
-        url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
     if "1688.com/offer/" in url:
         vid = os.path.basename(urlparse(url).path)
         url = "https://m.1688.com/offer/" + vid
