@@ -431,7 +431,7 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
 def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
     vmsg = callback_query.message
     url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
-    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
+    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com") or url.startswith("https://wwww.ebay"):
         callback_query.answer("Đang lấy ảnh...")
         Redis().update_metrics("images_request")
         image_entrance(vmsg, client, url)

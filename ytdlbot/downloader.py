@@ -318,6 +318,12 @@ def add_facebook_cookies(url: "str", opt: "dict"):
         logging.info("add facebook cookies")
 
 
+def add_ebay_cookies(url: "str", opt: "dict"):
+    if url.startswith("https://www.ebay"):
+        opt['write_all_thumbnails'] = True
+        logging.info("add ebay agr")
+
+
 def add_taobao_cookies(url: "str", opt: "dict"):
     if url.startswith("https://world.taobao.com"):
         opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/taobao.txt'
