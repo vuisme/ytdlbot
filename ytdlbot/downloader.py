@@ -210,6 +210,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     add_taobao_cookies(url, ydl_opts)
     add_1688_cookies(url, ydl_opts)
     add_douyin_cookies(url, ydl_opts)
+    add_ebay_cookies(url, ydl_opts)
     # add_facebook_cookies(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
