@@ -322,6 +322,8 @@ def add_facebook_cookies(url: "str", opt: "dict"):
 def add_image_download(url: "str", opt: "dict"):
     logging.info(URL_ARRAY)
     for link in URL_ARRAY:
+        logging.info(link)
+        logging.inff(url)
         if url.startswith(link):
             opt['write_all_thumbnails'] = True
             logging.info("add image download")
