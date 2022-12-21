@@ -60,3 +60,7 @@ IPv6 = os.getenv("IPv6", False)
 ENABLE_FFMPEG = os.getenv("ENABLE_FFMPEG", False)
 RATE = float(os.getenv("RATE", 60 * 5))
 BURST = int(os.getenv("BURST", 3))
+
+# URL WHITELIST
+URL_LIST = os.getenv("URL_LIST", "")
+URL_ARRAY = URL_LIST.split(',')

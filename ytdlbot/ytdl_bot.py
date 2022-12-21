@@ -28,7 +28,7 @@ from urllib.parse import parse_qs, urlparse, unquote
 from os.path import splitext, basename
 from client_init import create_app
 from config import (ARCHIVE_ID, AUTHORIZED_USER, BURST, ENABLE_CELERY, ENABLE_FFMPEG,
-                    ENABLE_VIP, OWNER, RATE, REQUIRED_MEMBERSHIP)
+                    ENABLE_VIP, OWNER, RATE, REQUIRED_MEMBERSHIP, URL_ARRAY)
 from constant import BotText
 from db import InfluxDB, MySQL, Redis
 from limit import VIP, verify_payment, admin_add_vip
@@ -418,7 +418,7 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com"):
+    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com") or url.startswith("https://wwww.ebay"):
         callback_query.answer("Không hỗ trợ convert audio từ Taobao hoặc 1688")
         callback_query.message.reply_text("Không hỗ trợ convert audio từ Taobao hoặc 1688")
         return
@@ -477,6 +477,7 @@ if __name__ == '__main__':
     scheduler.add_job(InfluxDB().collect_data, 'interval', seconds=60)
     #  default quota allocation of 10,000 units per day,
     scheduler.add_job(periodic_sub_check, 'interval', seconds=60 * 30)
+    logging.info(URL_ARRAY)
     scheduler.start()
     banner = f"""
 ▌ ▌         ▀▛▘     ▌       ▛▀▖              ▜            ▌
