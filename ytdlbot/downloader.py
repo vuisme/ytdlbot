@@ -25,7 +25,7 @@ import yt_dlp as ytdl
 from tqdm import tqdm
 
 from config import (AUDIO_FORMAT, ENABLE_FFMPEG, ENABLE_VIP, MAX_DURATION,
-                    TG_MAX_SIZE, IPv6)
+                    TG_MAX_SIZE, IPv6, URL_ARRAY)
 from db import Redis
 from limit import VIP
 from utils import (adjust_formats, apply_log_formatter, current_time,
@@ -210,7 +210,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     add_taobao_cookies(url, ydl_opts)
     add_1688_cookies(url, ydl_opts)
     add_douyin_cookies(url, ydl_opts)
-    add_ebay_cookies(url, ydl_opts)
+    add_image_download(url, ydl_opts)
     # add_facebook_cookies(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
@@ -319,17 +319,17 @@ def add_facebook_cookies(url: "str", opt: "dict"):
         logging.info("add facebook cookies")
 
 
-def add_ebay_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://www.ebay"):
-        opt['write_all_thumbnails'] = True
-        logging.info("add ebay agr")
+def add_image_download(url: "str", opt: "dict"):
+    for link in URL_ARRAY:
+        if url.startswith(link):
+            opt['write_all_thumbnails'] = True
+            logging.info("add image download")
 
 
 def add_taobao_cookies(url: "str", opt: "dict"):
     if url.startswith("https://world.taobao.com"):
         opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/taobao.txt'
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        opt['write_all_thumbnails'] = True
         logging.info("add taobao cookies")
 
 
@@ -337,7 +337,6 @@ def add_1688_cookies(url: "str", opt: "dict"):
     if url.startswith("https://m.1688.com"):
         opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/1688.txt'
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        opt['write_all_thumbnails'] = True
         logging.info("add 1688 cookies")
 
 

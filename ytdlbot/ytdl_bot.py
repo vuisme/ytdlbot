@@ -418,10 +418,11 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com") or url.startswith("https://wwww.ebay"):
-        callback_query.answer("Không hỗ trợ convert audio từ Taobao hoặc 1688")
-        callback_query.message.reply_text("Không hỗ trợ convert audio từ Taobao hoặc 1688")
-        return
+    for link in URL_ARRAY:
+        if url.startswith(link):
+            callback_query.answer("Không hỗ trợ convert audio từ Shop")
+            callback_query.message.reply_text("Không hỗ trợ convert audio từ Shop")
+            return
     callback_query.answer("Converting to audio...please wait patiently")
     Redis().update_metrics("audio_request")
     audio_entrance(vmsg, client, url)
@@ -431,14 +432,15 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
 def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
     vmsg = callback_query.message
     url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
-    if url.startswith("https://world.taobao.com") or url.startswith("https://m.1688.com") or url.startswith("https://wwww.ebay"):
-        callback_query.answer("Đang lấy ảnh...")
-        Redis().update_metrics("images_request")
-        image_entrance(vmsg, client, url)
-    else:
-        callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
-        callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Taobao hoặc 1688")
-        return
+    for link in URL_ARRAY:
+        if url.startswith(link):
+            callback_query.answer("Đang lấy ảnh...")
+            Redis().update_metrics("images_request")
+            image_entrance(vmsg, client, url)
+        else:
+            callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            return
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))
