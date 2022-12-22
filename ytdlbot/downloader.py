@@ -295,48 +295,6 @@ def convert_audio_format(resp: "dict", bm):
                 resp["filepath"][index] = new_path
 
 
-def add_instagram_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://www.instagram.com"):
-        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/instagram.txt'
-        opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        logging.info("add instagram cookies")
-
-
-def add_douyin_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://www.douyin.com"):
-        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/douyin.txt'
-        opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        logging.info("add douyin cookies")
-
-
-def add_facebook_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://www.facebook.com") or url.startswith("https://m.facebook.com"):
-        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/facebook.txt'
-        opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        logging.info("add facebook cookies")
-
-
-# def add_image_download(url: "str", opt: "dict"):
-#     for link in URL_ARRAY:
-#         if url.startswith(link):
-#             opt['write_all_thumbnails'] = True
-#             logging.info("add image download")
-
-
-def add_taobao_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://world.taobao.com"):
-        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/taobao.txt'
-        opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        logging.info("add taobao cookies")
-
-
-def add_1688_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://m.1688.com"):
-        opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/1688.txt'
-        opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        logging.info("add 1688 cookies")
-
-
 def run_splitter(video_path: "str"):
     subprocess.check_output(f"sh split-video.sh {video_path} {TG_MAX_SIZE * 0.95} ".split())
     os.remove(video_path)

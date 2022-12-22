@@ -133,7 +133,7 @@ def add_proxies(url: "str", opt: "dict"):
     link1688 = "1688.com"
     if (linkTaobao in url) or (link1688 in url):
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
-        logging.info("add %s cookies" % linkTaobao)
+        logging.info("add %s proxy" % linkTaobao)
 
 
 def add_image_download(url: "str", opt: "dict"):

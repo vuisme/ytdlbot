@@ -419,7 +419,7 @@ def audio_callback(client: "Client", callback_query: types.CallbackQuery):
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
     for link in URL_ARRAY:
-        if url.startswith(link):
+        if link in url:
             callback_query.answer("Không hỗ trợ convert audio từ Shop")
             callback_query.message.reply_text("Không hỗ trợ convert audio từ Shop")
             return
@@ -433,7 +433,7 @@ def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
     vmsg = callback_query.message
     url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
     for link in URL_ARRAY:
-        if url.startswith(link):
+        if link in url:
             callback_query.answer("Đang lấy ảnh...")
             Redis().update_metrics("images_request")
             image_entrance(vmsg, client, url)
