@@ -27,6 +27,7 @@ from db import MySQL
 from flower_tasks import app
 from bs4 import BeautifulSoup
 from urllib.request import urlopen, Request
+from config import (URL_ARRAY)
 inspect = app.control.inspect()
 
 
@@ -118,6 +119,28 @@ def set_user_settings(user_id: int, field: "str", value: "str"):
 def is_youtube(url: "str"):
     if url.startswith("https://www.youtube.com/") or url.startswith("https://youtu.be/"):
         return True
+
+
+def add_cookies(url: "str", opt: "dict"):
+    for link in URL_ARRAY:
+        if url.find(link):
+            opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/%s.txt' % link
+            logging.info("add %s cookies" % link)
+
+
+def add_proxies(url: "str", opt: "dict"):
+    linkTaobao = "taobao.com"
+    link1688 = "1688.com"
+    if url.find(linkTaobao) or url.find(link1688):
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+        logging.info("add %s cookies" % linkTaobao)
+
+
+def add_image_download(url: "str", opt: "dict"):
+    for link in URL_ARRAY:
+        if url.find(link):
+            opt['write_all_thumbnails'] = True
+            logging.info("add image download")
 
 
 def adjust_formats(user_id: "str", url: "str", formats: "list", hijack=None):

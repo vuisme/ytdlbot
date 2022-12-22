@@ -29,7 +29,7 @@ from config import (AUDIO_FORMAT, ENABLE_FFMPEG, ENABLE_VIP, MAX_DURATION,
 from db import Redis
 from limit import VIP
 from utils import (adjust_formats, apply_log_formatter, current_time,
-                   get_user_settings)
+                   get_user_settings, add_cookies, add_proxies, add_image_download)
 
 r = fakeredis.FakeStrictRedis()
 apply_log_formatter()
@@ -206,12 +206,9 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         None
     ]
     adjust_formats(chat_id, url, formats, hijack)
-    add_instagram_cookies(url, ydl_opts)
-    add_taobao_cookies(url, ydl_opts)
-    add_1688_cookies(url, ydl_opts)
-    add_douyin_cookies(url, ydl_opts)
+    add_cookies(url, ydl_opts)
+    add_proxies(url, ydl_opts)
     add_image_download(url, ydl_opts)
-    # add_facebook_cookies(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_
@@ -319,11 +316,11 @@ def add_facebook_cookies(url: "str", opt: "dict"):
         logging.info("add facebook cookies")
 
 
-def add_image_download(url: "str", opt: "dict"):
-    for link in URL_ARRAY:
-        if url.startswith(link):
-            opt['write_all_thumbnails'] = True
-            logging.info("add image download")
+# def add_image_download(url: "str", opt: "dict"):
+#     for link in URL_ARRAY:
+#         if url.startswith(link):
+#             opt['write_all_thumbnails'] = True
+#             logging.info("add image download")
 
 
 def add_taobao_cookies(url: "str", opt: "dict"):
