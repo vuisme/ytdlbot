@@ -123,7 +123,7 @@ def is_youtube(url: "str"):
 
 def add_cookies(url: "str", opt: "dict"):
     for link in URL_ARRAY:
-        if url.find(link):
+        if link in url:
             opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/%s.txt' % link
             logging.info("add %s cookies" % link)
 
@@ -131,14 +131,14 @@ def add_cookies(url: "str", opt: "dict"):
 def add_proxies(url: "str", opt: "dict"):
     linkTaobao = "taobao.com"
     link1688 = "1688.com"
-    if url.find(linkTaobao) or url.find(link1688):
+    if (linkTaobao in url) or (link1688 in url):
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         logging.info("add %s cookies" % linkTaobao)
 
 
 def add_image_download(url: "str", opt: "dict"):
     for link in URL_ARRAY:
-        if url.find(link):
+        if link in url:
             opt['write_all_thumbnails'] = True
             logging.info("add image download")
 
