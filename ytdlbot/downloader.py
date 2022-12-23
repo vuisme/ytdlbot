@@ -25,7 +25,7 @@ import yt_dlp as ytdl
 from tqdm import tqdm
 
 from config import (AUDIO_FORMAT, ENABLE_FFMPEG, ENABLE_VIP, MAX_DURATION,
-                    TG_MAX_SIZE, IPv6, URL_ARRAY)
+                    TG_MAX_SIZE, IPv6)
 from db import Redis
 from limit import VIP
 from utils import (adjust_formats, apply_log_formatter, current_time,

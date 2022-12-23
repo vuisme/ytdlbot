@@ -37,7 +37,7 @@ from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from client_init import create_app
 # from config import (ARCHIVE_ID, AUDIO_FORMAT, BROKER, ENABLE_CELERY,
 #                    ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
-from config import (ARCHIVE_ID, BROKER, ENABLE_CELERY, ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS, URL_ARRAY)
+from config import (ARCHIVE_ID, BROKER, ENABLE_CELERY, ENABLE_QUEUE, ENABLE_VIP, TG_MAX_SIZE, WORKERS)
 from constant import BotText
 from db import Redis
 from downloader import (edit_text, sizeof_fmt, tqdm_progress, upload_hook, ytdl_download)
