@@ -138,7 +138,7 @@ def add_retries(url: "str", opt: "dict"):
 def add_proxies(url: "str", opt: "dict"):
     linkTaobao = "taobao.com"
     link1688 = "1688.com"
-    if (linkTaobao in url) or (link1688 in url) or (linkAmazon in url):
+    if (linkTaobao in url) or (link1688 in url):
         opt['proxy'] = os.getenv("TAOBAO_PROXY")
         logging.info("add %s proxy" % linkTaobao)
 
