@@ -87,7 +87,25 @@ class BotText:
 
     start = """
 🕹 Taobao Media - Version: 1.1.6 🕹
-Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn. Gõ /help để xem thêm chi tiết!
+Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn
+\n
+***Sàn TMĐT:***
+```
+🇨🇳 Taobao.com
+🇨🇳 1688.com
+🇺🇸 Ebay.com
+🇺🇸 Amazon.com (Store & Video Review)
+```
+***Và các trang chia sẻ video/mạng xã hội:***
+```
+Tiktok.com
+Facebook.com
+Yotube.com
+Pornhub.com...
+```
+Và nhiều trang khác.\n
+[Xem toàn bộ](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
+\nGõ /help để xem thêm chi tiết!
 """
 
     help = f"""
