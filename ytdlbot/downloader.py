@@ -28,7 +28,7 @@ from config import (AUDIO_FORMAT, ENABLE_FFMPEG, ENABLE_VIP, MAX_DURATION,
                     TG_MAX_SIZE, IPv6)
 from db import Redis
 from limit import VIP
-from utils import (adjust_formats, apply_log_formatter, current_time,
+from utils import (adjust_formats, apply_log_formatter, current_time, add_retries,
                    get_user_settings, add_cookies, add_proxies, add_image_download)
 
 r = fakeredis.FakeStrictRedis()
@@ -211,6 +211,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     add_cookies(url, ydl_opts)
     add_proxies(url, ydl_opts)
     add_image_download(url, ydl_opts)
+    add_retries(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_

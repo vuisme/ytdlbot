@@ -128,6 +128,13 @@ def add_cookies(url: "str", opt: "dict"):
             logging.info("add %s cookies" % link)
 
 
+def add_retries(url: "str", opt: "dict"):
+    if "amazon.com" in url:
+        opt['extractor_retries'] = 20
+        opt['retry_sleep'] = 'extractor:10'
+        logging.info("add 20 times retries")
+
+
 def add_proxies(url: "str", opt: "dict"):
     linkTaobao = "taobao.com"
     link1688 = "1688.com"
