@@ -96,7 +96,7 @@ def start_handler(client: "Client", message: "types.Message"):
     quota = bot_text.remaining_quota_caption(from_id)
     custom_text = bot_text.custom_text
     text = f"{greeting}{bot_text.start}\n\n{quota}\n{custom_text}"
-    client.send_message(message.chat.id, text)
+    client.send_message(message.chat.id, text, disable_web_page_preview=True)
     try:
         user_info = "@{} ({}) - {}".format(
             message.from_user.username or "",
