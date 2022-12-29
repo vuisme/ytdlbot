@@ -1,4 +1,4 @@
-pyrogram==1.4.16
+pyrogram==2.0.87
 tgcrypto==1.2.5
 git+https://github.com/dlcvietnam/yt-dlp#egg=yt-dlp
 APScheduler==3.9.1.post1
