@@ -7,6 +7,7 @@
 
 __author__ = "Benny <benny.think@gmail.com>"
 
+# import requests
 import contextlib
 import inspect as pyinspect
 import logging
@@ -17,15 +18,59 @@ import subprocess
 import tempfile
 import time
 import uuid
-
+import re
 import ffmpeg
 import psutil
 
-from config import ENABLE_CELERY
+# from config import ENABLE_CELERY
 from db import MySQL
 from flower_tasks import app
-
+from bs4 import BeautifulSoup
+from urllib.request import urlopen, Request
+from config import (URL_ARRAY)
 inspect = app.control.inspect()
+
+
+def tbcn(tbcnurl):
+    # logger.info(tbcnurl)
+    uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
+    headers = {'User-Agent': uagent}
+    openpage = urlopen(Request(tbcnurl, headers=headers))
+    # print(openpage)
+    search_page_soup = BeautifulSoup(openpage, 'html5lib')
+    # print(search_page_soup)
+    # logger.info(search_page_soup)
+    head = search_page_soup.find_all('head')
+    # logger.info(head)
+    pattern = re.compile(r"var url = '(.*?)';$", re.MULTILINE | re.DOTALL)
+    # logger.info(head.text)
+    # logger.info(pattern.search(head[0].text))
+    # logger.info(pattern.search(head[0].text).group(1))
+    tblink = pattern.search(head[0].text).group(1)
+    # logger.info(tblink)
+    return tblink
+
+
+def qr1688(url1688):
+    # logger.info(tbcnurl)
+    uagent = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92 ChannelId(3) Nebula PSDType(1) AlipayDefined(nt:WIFI,ws:375|647|2.0) AliApp(AP/10.0.1.123008) AlipayClient/10.0.1.123008 Alipay Language/zh-Hans"
+    headers = {'User-Agent': uagent}
+    openpage = urlopen(Request(url1688, headers=headers))
+    # print(openpage)
+    search_page_soup = BeautifulSoup(openpage, 'html.parser')
+    # print(search_page_soup)
+    # logger.info(search_page_soup)
+    script = search_page_soup.find_all('script')
+    # print(script[1])
+    # logger.info(head)
+    pattern = re.compile(r"var shareUrl = '(.*?)';$", re.MULTILINE | re.DOTALL)
+    # logger.info(head.text)
+    # logger.info(pattern.search(head[0].text))
+    # logger.info(pattern.search(head[0].text).group(1))
+    alibabalink = pattern.search(script[1].text).group(1)
+    # print(alibabalink)
+    # logger.info(tblink)
+    return alibabalink
 
 
 def apply_log_formatter():
@@ -74,6 +119,35 @@ def set_user_settings(user_id: int, field: "str", value: "str"):
 def is_youtube(url: "str"):
     if url.startswith("https://www.youtube.com/") or url.startswith("https://youtu.be/"):
         return True
+
+
+def add_cookies(url: "str", opt: "dict"):
+    for link in URL_ARRAY:
+        if link in url:
+            opt['cookiefile'] = '/ytdlbot/ytdlbot/cookies/%s.txt' % link
+            logging.info("add %s cookies" % link)
+
+
+def add_retries(url: "str", opt: "dict"):
+    if "amazon.com" in url:
+        opt['extractor_retries'] = 20
+        opt['retry_sleep'] = 'extractor:10'
+        logging.info("add 20 times retries")
+
+
+def add_proxies(url: "str", opt: "dict"):
+    linkTaobao = "taobao.com"
+    link1688 = "1688.com"
+    if (linkTaobao in url) or (link1688 in url):
+        opt['proxy'] = os.getenv("TAOBAO_PROXY")
+        logging.info("add %s proxy" % linkTaobao)
+
+
+def add_image_download(url: "str", opt: "dict"):
+    for link in URL_ARRAY:
+        if link in url:
+            opt['write_all_thumbnails'] = True
+            logging.info("add image download")
 
 
 def adjust_formats(user_id: "str", url: "str", formats: "list", hijack=None):

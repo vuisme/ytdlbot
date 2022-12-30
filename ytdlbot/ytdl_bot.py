@@ -21,21 +21,22 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pyrogram import Client, filters, types
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot_ping import get_runtime
+# from tgbot_ping import get_runtime
 from token_bucket import Limiter, MemoryStorage
-from youtubesearchpython import VideosSearch
-
+# from youtubesearchpython import VideosSearch
+from urllib.parse import parse_qs, urlparse, unquote
+from os.path import splitext, basename
 from client_init import create_app
-from config import (AUTHORIZED_USER, BURST, ENABLE_CELERY, ENABLE_FFMPEG,
-                    ENABLE_VIP, OWNER, RATE, REQUIRED_MEMBERSHIP)
+from config import (ARCHIVE_ID, AUTHORIZED_USER, BURST, ENABLE_CELERY, ENABLE_FFMPEG,
+                    ENABLE_VIP, OWNER, RATE, REQUIRED_MEMBERSHIP, URL_ARRAY)
 from constant import BotText
 from db import InfluxDB, MySQL, Redis
-from limit import VIP, verify_payment
+from limit import VIP, verify_payment, admin_add_vip
 from tasks import app as celery_app
 from tasks import (audio_entrance, direct_download_entrance, hot_patch,
-                   ytdl_download_entrance)
+                   ytdl_download_entrance, image_entrance)
 from utils import (auto_restart, customize_logger, get_revision,
-                   get_user_settings, set_user_settings)
+                   get_user_settings, set_user_settings, tbcn, qr1688)
 
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 logging.getLogger('apscheduler.executors.default').propagate = False
@@ -88,14 +89,24 @@ def private_use(func):
 @app.on_message(filters.command(["start"]))
 def start_handler(client: "Client", message: "types.Message"):
     from_id = message.from_user.id
+    # from_user = message.from_user.username
     logging.info("Welcome to youtube-dl bot!")
     client.send_chat_action(from_id, "typing")
     greeting = bot_text.get_vip_greeting(from_id)
     quota = bot_text.remaining_quota_caption(from_id)
     custom_text = bot_text.custom_text
     text = f"{greeting}{bot_text.start}\n\n{quota}\n{custom_text}"
-
-    client.send_message(message.chat.id, text)
+    client.send_message(message.chat.id, text, disable_web_page_preview=True)
+    try:
+        user_info = "@{} ({}) - {}".format(
+            message.from_user.username or "",
+            message.from_user.first_name or "" + message.from_user.last_name or "",
+            message.from_user.id
+        )
+    except Exception:
+        user_info = ""
+    newuser = f"Thành viên mới \n{user_info}"
+    client.send_message(ARCHIVE_ID, newuser)
 
 
 @app.on_message(filters.command(["help"]))
@@ -163,15 +174,15 @@ def uncache_handler(client: "Client", message: "types.Message"):
 def ping_handler(client: "Client", message: "types.Message"):
     chat_id = message.chat.id
     client.send_chat_action(chat_id, "typing")
-    if os.uname().sysname == "Darwin" or ".heroku" in os.getenv("PYTHONHOME", ""):
-        bot_info = "ping unavailable."
-    else:
-        bot_info = get_runtime("ytdlbot_ytdl_1", "YouTube-dl")
+    stats = bot_text.ping_worker()[:1000]
+    # if os.uname().sysname == "Darwin" or ".heroku" in os.getenv("PYTHONHOME", ""):
+    #     bot_info = "ping unavailable."
+    # else:
+    #     bot_info = get_runtime("ytdlbot-ytdl-1", "Taobao Bot")
     if message.chat.username == OWNER:
-        stats = bot_text.ping_worker()[:1000]
-        client.send_document(chat_id, Redis().generate_file(), caption=f"{bot_info}\n\n{stats}")
+        client.send_document(chat_id, Redis().generate_file(), caption=f"{stats}")
     else:
-        client.send_message(chat_id, f"{bot_info}")
+        client.send_message(chat_id, f"{stats}")
 
 
 @app.on_message(filters.command(["about"]))
@@ -262,6 +273,24 @@ def vip_handler(client: "Client", message: "types.Message"):
         bm.edit_text(msg)
 
 
+@app.on_message(filters.command(["addvip"]))
+def add_vip_handler(client: "Client", message: "types.Message"):
+    # process as chat.id, not from_user.id
+    chat_id = message.chat.id
+    text = message.text.strip()
+    if message.chat.username == OWNER:
+        client.send_chat_action(chat_id, "typing")
+        if text == "/addvip":
+            client.send_message(chat_id, bot_text.vip, disable_web_page_preview=True)
+        else:
+            bm: typing.Union["types.Message", "typing.Any"] = message.reply_text(bot_text.vip_pay, quote=True)
+            user_id = text.replace("/addvip", "").strip()
+            msg = admin_add_vip(user_id)
+            bm.edit_text(msg)
+    else:
+        client.send_message(chat_id, "You are not Admin")
+
+
 @app.on_message(filters.incoming & filters.text)
 @private_use
 def download_handler(client: "Client", message: "types.Message"):
@@ -270,11 +299,8 @@ def download_handler(client: "Client", message: "types.Message"):
     chat_id = message.from_user.id
     client.send_chat_action(chat_id, 'typing')
     red.user_count(chat_id)
-
-    url = re.sub(r'/ytdl\s*', '', message.text)
-    logging.info("start %s", url)
-
-    if not re.findall(r"^https?://", url.lower()):
+    # url = re.sub(r'/ytdl\s*', '', message.text)
+    if not re.findall(r"(?P<linkrm>https?://[^\s]+)", message.text):
         red.update_metrics("bad_request")
         message.reply_text("I think you should send me a link.", quote=True)
         return
@@ -297,7 +323,44 @@ def download_handler(client: "Client", message: "types.Message"):
         # markup = InlineKeyboardMarkup([buttons])
         # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
         # return
-
+    url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+    # url = VIP.extract_canonical_link(rawurl)
+    if "item.taobao.com" in url:
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+    if "offerId" in url:
+        vid = parse_qs(urlparse(url).query).get('offerId')
+        url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
+    if "intl.taobao.com" in url:
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+    if "tmall.com" in url:
+        vid = parse_qs(urlparse(url).query).get('id')
+        url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+    if "1688.com/offer/" in url:
+        vid = os.path.basename(urlparse(url).path)
+        url = "https://m.1688.com/offer/" + vid
+        logging.info("link sau khi convert")
+        logging.info(url)
+    if "qr.1688.com" in url:
+        oklink = qr1688(url)
+        logging.info("link 1688 sau khi convert")
+        logging.info(url)
+        url = unquote(unquote(oklink))
+    if "tb.cn" in url:
+        linktb = tbcn(url)
+        vid = parse_qs(urlparse(linktb).query).get('id')
+        if "a.m.taobao.com" in linktb:
+            disassembled = urlparse(linktb)
+            videoid, file_ext = splitext(basename(disassembled.path))
+            videoid = re.sub(r"\D", "", videoid)
+        else:
+            videoid = str(vid[0])
+        url = "https://world.taobao.com/item/" + videoid + ".htm"
+        logging.info("tb.cn convert xong")
+        logging.info(linktb)
+        logging.info(url)
+    logging.info("start get %s", url)
     if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)) or "list" in url:
         message.reply_text("Channel/list download is disabled now. Please send me individual video link.", quote=True)
         red.update_metrics("reject_channel")
@@ -349,15 +412,35 @@ def download_resolution_callback(client: "Client", callback_query: types.Callbac
 
 @app.on_callback_query(filters.regex(r"convert"))
 def audio_callback(client: "Client", callback_query: types.CallbackQuery):
+    vmsg = callback_query.message
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
     if not ENABLE_FFMPEG:
         callback_query.answer("Audio conversion is disabled now.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-
-    callback_query.answer(f"Converting to audio...please wait patiently")
+    for link in URL_ARRAY:
+        if link in url:
+            callback_query.answer("Không hỗ trợ convert audio từ Shop")
+            callback_query.message.reply_text("Không hỗ trợ convert audio từ Shop")
+            return
+    callback_query.answer("Converting to audio...please wait patiently")
     Redis().update_metrics("audio_request")
+    audio_entrance(vmsg, client, url)
+
+
+@app.on_callback_query(filters.regex(r"getimg"))
+def getimg_callback(client: "Client", callback_query: types.CallbackQuery):
     vmsg = callback_query.message
-    audio_entrance(vmsg, client)
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
+    for link in URL_ARRAY:
+        if link in url:
+            callback_query.answer("Đang lấy ảnh...")
+            Redis().update_metrics("images_request")
+            image_entrance(vmsg, client, url)
+        else:
+            callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            return
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))
@@ -378,11 +461,12 @@ def periodic_sub_check():
                 try:
                     bot_msg = app.send_message(uid, f"{video_url} is downloading...", disable_web_page_preview=True)
                     ytdl_download_entrance(bot_msg, app, video_url)
-                except(exceptions.bad_request_400.PeerIdInvalid, exceptions.bad_request_400.UserIsBlocked) as e:
+                except (exceptions.bad_request_400.PeerIdInvalid, exceptions.bad_request_400.UserIsBlocked) as e:
                     logging.warning("User is blocked or deleted. %s", e)
                     vip.deactivate_user_subscription(uid)
                 except Exception as e:
                     logging.error("Unknown error when sending message to user. %s", traceback.format_exc())
+                    logging.error(e)
                 finally:
                     time.sleep(random.random() * 3)
 
@@ -395,6 +479,7 @@ if __name__ == '__main__':
     scheduler.add_job(InfluxDB().collect_data, 'interval', seconds=60)
     #  default quota allocation of 10,000 units per day,
     scheduler.add_job(periodic_sub_check, 'interval', seconds=60 * 30)
+    logging.info(URL_ARRAY)
     scheduler.start()
     banner = f"""
 ▌ ▌         ▀▛▘     ▌       ▛▀▖              ▜            ▌
