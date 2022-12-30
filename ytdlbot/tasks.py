@@ -54,7 +54,7 @@ logging.getLogger('apscheduler.executors.default').propagate = False
 # app = Celery('celery', broker=BROKER, accept_content=['pickle'], task_serializer='pickle')
 app = Celery('tasks', broker=BROKER)
 
-celery_client = create_app("celery")
+celery_client = create_app("session/celery")
 
 
 def get_messages(chat_id, message_id):
