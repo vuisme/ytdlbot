@@ -86,7 +86,7 @@ class BotText:
         # return text
 
     start = """
-🕹 Taobao Media - Version: 1.1.6 🕹
+🕹 Taobao Media - Version: 1.1.8 🕹
 Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn
 \n
 ***Sàn TMĐT:***
