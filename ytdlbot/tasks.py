@@ -564,9 +564,11 @@ def run_celery():
         argv.extend(["-Q", worker_name])
     app.worker_main(argv)
 
+
 def purge_tasks():
     count = app.control.purge()
     return f"purged {count} tasks."
+
 
 def split_list(the_list, chunk_size):
     result_list = []
