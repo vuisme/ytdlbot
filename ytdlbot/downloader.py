@@ -28,8 +28,8 @@ from config import (AUDIO_FORMAT, ENABLE_FFMPEG, ENABLE_VIP, MAX_DURATION,
                     TG_MAX_SIZE, IPv6)
 from db import Redis
 from limit import VIP
-from utils import (adjust_formats, apply_log_formatter, current_time,
-                   get_user_settings)
+from utils import (adjust_formats, apply_log_formatter, current_time, add_retries,
+                   get_user_settings, add_cookies, add_proxies, add_image_download)
 
 r = fakeredis.FakeStrictRedis()
 apply_log_formatter()
@@ -87,7 +87,9 @@ def download_hook(d: dict, bot_msg):
     # since we're using celery, server location may be located in different continent.
     # Therefore, we can't trigger the hook very often.
     # the key is user_id + download_link
+    logging.info(d["info_dict"]["original_url"])
     original_url = d["info_dict"]["original_url"]
+    logging.info(original_url)
     key = f"{bot_msg.chat.id}-{original_url}"
 
     if d['status'] == 'downloading':
@@ -127,16 +129,17 @@ def check_quota(file_size, chat_id) -> ("bool", "str"):
 
 
 def convert_to_mp4(resp: dict, bot_msg):
-    default_type = ["video/x-flv", "video/webm"]
+    default_type = ["video/x-flv", "video/webm", "video/x-matroska"]
     if resp["status"]:
         # all_converted = []
         for path in resp["filepath"]:
+            logging.info(filetype.guess(path))
             # if we can't guess file type, we assume it's video/mp4
             mime = getattr(filetype.guess(path), "mime", "video/mp4")
             if mime in default_type:
                 if not can_convert_mp4(path, bot_msg.chat.id):
                     logging.warning("Conversion abort for %s", bot_msg.chat.id)
-                    bot_msg._client.send_message(bot_msg.chat.id, "Can't convert your video to streaming format.")
+                    bot_msg._client.send_message(bot_msg.chat.id, "Can't convert your video to MP4 streaming format. Need VIP for convert videos longer than 5 minuts.")
                     break
                 edit_text(bot_msg, f"{current_time()}: Converting {path.name} to mp4. Please wait.")
                 new_file_path = path.with_suffix(".mp4")
@@ -194,23 +197,21 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         'outtmpl': output,
         'restrictfilenames': False,
         'quiet': True,
-        "proxy": os.getenv("YTDL_PROXY")
+        'proxy': os.getenv("YTDL_PROXY")
     }
     formats = [
+        "bv*[ext=mp4]+ba/bv*+ba/b",
+        "bv*[vcodec~='^((he|a)vc|h26[45])']+ba/bv*+ba/b",
+        "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
         "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
         "bestvideo[vcodec^=avc]+bestaudio[acodec^=mp4a]/best[vcodec^=avc]/best",
         None
     ]
     adjust_formats(chat_id, url, formats, hijack)
-    add_instagram_cookies(url, ydl_opts)
-    # check quota before download
-    if ENABLE_VIP:
-        # check quota after download
-        remain, _, ttl = VIP().check_remaining_quota(chat_id)
-        result, err_msg = check_quota(detect_filesize(url), chat_id)
-        if not result:
-            return {"status": False, "error": err_msg, "filepath": []}
-
+    add_cookies(url, ydl_opts)
+    add_proxies(url, ydl_opts)
+    add_image_download(url, ydl_opts)
+    add_retries(url, ydl_opts)
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
         ydl_opts["format"] = format_
@@ -260,7 +261,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         convert_to_mp4(response, bm)
     if settings[2] == "audio" or hijack == "bestaudio[ext=m4a]":
         convert_audio_format(response, bm)
-    # enable it for now
+    # disable it for now
     split_large_video(response)
     return response
 
@@ -273,9 +274,7 @@ def convert_audio_format(resp: "dict", bm):
         path: "pathlib.Path"
         for path in resp["filepath"]:
             streams = ffmpeg.probe(path)["streams"]
-            if (AUDIO_FORMAT is None and
-                    len(streams) == 1 and
-                    streams[0]["codec_type"] == "audio"):
+            if ((AUDIO_FORMAT is None) and (len(streams) == 1) and (streams[0]["codec_type"] == "audio")):
                 logging.info("%s is audio, default format, no need to convert", path)
             elif AUDIO_FORMAT is None and len(streams) >= 2:
                 logging.info("%s is video, default format, need to extract audio", path)
@@ -297,11 +296,6 @@ def convert_audio_format(resp: "dict", bm):
                 path.unlink()
                 index = resp["filepath"].index(path)
                 resp["filepath"][index] = new_path
-
-
-def add_instagram_cookies(url: "str", opt: "dict"):
-    if url.startswith("https://www.instagram.com"):
-        opt["cookiefi22"] = pathlib.Path(__file__).parent.joinpath("instagram.com_cookies.txt").as_posix()
 
 
 def run_splitter(video_path: "str"):
