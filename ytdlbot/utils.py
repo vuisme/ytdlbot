@@ -22,7 +22,6 @@ import re
 import ffmpeg
 import psutil
 
-# from config import ENABLE_CELERY
 from db import MySQL
 from flower_tasks import app
 from bs4 import BeautifulSoup
@@ -300,6 +299,12 @@ def auto_restart():
                 shutil.rmtree(item, ignore_errors=True)
 
             psutil.Process().kill()
+
+
+def clean_tempfile():
+    for item in pathlib.Path(tempfile.gettempdir()).glob("ytdl-*"):
+        if time.time() - item.stat().st_ctime > 3600:
+            shutil.rmtree(item, ignore_errors=True)
 
 
 if __name__ == '__main__':
