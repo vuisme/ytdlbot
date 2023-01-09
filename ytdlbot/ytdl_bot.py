@@ -20,21 +20,24 @@ import pyrogram.errors
 from apscheduler.schedulers.background import BackgroundScheduler
 from pyrogram import Client, filters, types
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
+from pyrogram.raw import functions
+from pyrogram.raw import types as raw_types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from token_bucket import Limiter, MemoryStorage
 from urllib.parse import parse_qs, urlparse, unquote
 from os.path import splitext, basename
 from client_init import create_app
-from config import (ARCHIVE_ID, AUTHORIZED_USER, BURST, ENABLE_CELERY, ENABLE_FFMPEG,
-                    ENABLE_VIP, OWNER, RATE, REQUIRED_MEMBERSHIP, URL_ARRAY)
+from config import (AUTHORIZED_USER, BURST, ENABLE_CELERY, ENABLE_FFMPEG,
+                    ENABLE_VIP, MULTIPLY, OWNER, PROVIDER_TOKEN, QUOTA, RATE,
+                    REQUIRED_MEMBERSHIP, ARCHIVE_ID, URL_ARRAY)
 from constant import BotText
 from db import InfluxDB, MySQL, Redis
 from limit import VIP, verify_payment, admin_add_vip
 from tasks import app as celery_app
-from tasks import (audio_entrance, direct_download_entrance, hot_patch, purge_tasks,
-                   ytdl_download_entrance, image_entrance)
-from utils import (auto_restart, customize_logger, get_revision, clean_tempfile,
-                   get_user_settings, set_user_settings, tbcn, qr1688)
+from tasks import (audio_entrance, direct_download_entrance, hot_patch,
+                   purge_tasks, ytdl_download_entrance, image_entrance)
+from utils import (auto_restart, clean_tempfile, customize_logger,
+                   get_revision, get_user_settings, set_user_settings, tbcn, qr1688)
 
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 logging.getLogger('apscheduler.executors.default').propagate = False
@@ -197,13 +200,6 @@ def about_handler(client: "Client", message: "types.Message"):
     client.send_message(chat_id, bot_text.about)
 
 
-@app.on_message(filters.command(["terms"]))
-def terms_handler(client: "Client", message: "types.Message"):
-    chat_id = message.chat.id
-    client.send_chat_action(chat_id, "typing")
-    client.send_message(chat_id, bot_text.terms)
-
-
 @app.on_message(filters.command(["sub_count"]))
 def sub_count_handler(client: "Client", message: "types.Message"):
     username = message.from_user.username
@@ -278,6 +274,54 @@ def vip_handler(client: "Client", message: "types.Message"):
         bm.edit_text(msg)
 
 
+def generate_invoice(amount: "int", title: "str", description: "str", payload: "str"):
+    invoice = raw_types.input_media_invoice.InputMediaInvoice(
+        invoice=(
+            raw_types.invoice.Invoice(currency="USD", prices=[raw_types.LabeledPrice(label="price", amount=amount)])),
+        title=title,
+        description=description,
+        provider=PROVIDER_TOKEN,
+        provider_data=raw_types.DataJSON(data="{}"),
+        payload=payload.encode(),
+        start_param=payload
+    )
+    return invoice
+
+
+# payment related
+@app.on_message(filters.command(["topup"]))
+def topup_handler(client: "Client", message: "types.Message"):
+    chat_id = message.chat.id
+    client.send_chat_action(chat_id, "typing")
+    invoice = generate_invoice(100, bot_text.topup_title, bot_text.topup_description,
+                               f"{message.chat.id}-topup")
+
+    app.send(
+        functions.messages.SendMedia(
+            peer=(raw_types.InputPeerUser(user_id=chat_id, access_hash=0)),
+            media=invoice,
+            random_id=app.rnd_id(),
+            message="Please use your card to pay for more traffic"
+        )
+    )
+
+
+@app.on_message(filters.command(["tgvip"]))
+def tgvip_handler(client: "Client", message: "types.Message"):
+    chat_id = message.chat.id
+    client.send_chat_action(chat_id, "typing")
+    invoice = generate_invoice(1000, f"VIP1", f"pay USD${MULTIPLY} for VIP1", f"{message.chat.id}-vip1".encode())
+
+    app.send(
+        functions.messages.SendMedia(
+            peer=(raw_types.InputPeerUser(user_id=chat_id, access_hash=0)),
+            media=invoice,
+            random_id=app.rnd_id(),
+            message="Please use your card to pay for more traffic"
+        )
+    )
+
+
 @app.on_message(filters.command(["addvip"]))
 def add_vip_handler(client: "Client", message: "types.Message"):
     # process as chat.id, not from_user.id
@@ -309,25 +353,6 @@ def download_handler(client: "Client", message: "types.Message"):
         red.update_metrics("bad_request")
         message.reply_text("I think you should send me a link.", quote=True)
         return
-        # TODO
-        # red.update_metrics("search_request")
-        # result = VideosSearch(url, limit=5).result().get("result", [])
-        # text = ""
-        # count = 1
-        # buttons = []
-        # for item in result:
-        #     text += f"{count}. {item['title']} - {item['link']}\n\n"
-        #     buttons.append(
-        #         InlineKeyboardButton(
-        #             f"{count}",
-        #             callback_data=f"search_{item['id']}"
-        #         )
-        #     )
-        #     count += 1
-        #
-        # markup = InlineKeyboardMarkup([buttons])
-        # client.send_message(chat_id, text, disable_web_page_preview=True, reply_markup=markup)
-        # return
     url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     # url = VIP.extract_canonical_link(rawurl)
     if "item.taobao.com" in url:
@@ -474,6 +499,38 @@ def periodic_sub_check():
                     logging.error(e)
                 finally:
                     time.sleep(random.random() * 3)
+
+
+@app.on_raw_update()
+def raw_update(client: "Client", update, users, chats):
+    action = getattr(getattr(update, "message", None), "action", None)
+    if update.QUALNAME == 'types.UpdateBotPrecheckoutQuery':
+        client.send(
+            functions.messages.SetBotPrecheckoutResults(
+                query_id=update.query_id,
+                success=True,
+            )
+        )
+    elif action and action.QUALNAME == 'types.MessageActionPaymentSentMe':
+        logging.info("Payment received. %s", action)
+        uid = update.message.peer_id.user_id
+        vip = VIP()
+        amount = f"{action.total_amount / 100} {action.currency}"
+        if "vip" in action.payload.decode():
+            ud = {
+                "user_id": uid,
+                "username": users.get(uid).username,
+                "payment_amount": 10,
+                "payment_id": 0,
+                "level": 1,
+                "quota": QUOTA * 2
+            }
+            vip.direct_add_vip(ud)
+            client.send_message(uid, f"Thank you {uid}. VIP payment received: {amount}")
+
+        else:
+            vip.set_topup(uid)
+            client.send_message(uid, f"Thank you {uid}. Top up payment received: {amount}")
 
 
 if __name__ == '__main__':

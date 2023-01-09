@@ -143,16 +143,21 @@ Và nhiều trang khác.\n
 2. VIP1: ${MULTIPLY} or ¥{MULTIPLY * USD2CNY}, {sizeof_fmt(QUOTA * 5)} per {int(EX / 3600)} hours
 3. VIP2: ${MULTIPLY * 2} or ¥{MULTIPLY * USD2CNY * 2}, {sizeof_fmt(QUOTA * 5 * 2)} per {int(EX / 3600)} hours
 4. VIP4....VIPn.
-5. Unlimited streaming conversion support.
-Note: If you pay $9, you'll become VIP1 instead of VIP2.
+
+**Temporary top up**
+Just want more traffic for a short period of time? Don't worry, you can use /topup command to top up your quota. 
+It's valid permanently, until you use it up.
 
 **Payment method:**
 1. (afdian) Mainland China: {AFD_LINK}
 2. (buy me a coffee) Other countries or regions: {COFFEE_LINK}
+3. Telegram Payment(stripe), please directly using /tgvip command.
 
 **After payment:**
+
 1. afdian: with your order number `/vip 123456`
 2. buy me a coffee: with your email `/vip someone@else.com`
+3. Telegram Payment: automatically activated
     """ if ENABLE_VIP else "VIP is not enabled."
     vip_pay = "Processing your payments...If it's not responding after one minute, please contact @BennyThink."
 
@@ -170,5 +175,7 @@ Video quality: **{0}**
 Sending format: **{1}**
 """
     custom_text = os.getenv("CUSTOM_TEXT", "")
+    topup_description = f"US$1 will give you {sizeof_fmt(QUOTA)} traffic permanently"
+    topup_title = "Pay US$1 for more traffic!"
 
     too_fast = f"Bạn đã vượt quá giới hạn cho phép. Chỉ được gửi {BURST - 1} yêu cầu mỗi {RATE} giây. Nâng cấp lên VIP để không bị giới hạn"
