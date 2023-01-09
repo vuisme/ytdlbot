@@ -310,7 +310,7 @@ def topup_handler(client: "Client", message: "types.Message"):
 def tgvip_handler(client: "Client", message: "types.Message"):
     chat_id = message.chat.id
     client.send_chat_action(chat_id, "typing")
-    invoice = generate_invoice(1000, f"VIP1", f"pay USD${MULTIPLY} for VIP1", f"{message.chat.id}-vip1".encode())
+    invoice = generate_invoice(1000, "VIP1", f"pay USD${MULTIPLY} for VIP1", f"{message.chat.id}-vip1".encode())
 
     app.send(
         functions.messages.SendMedia(
