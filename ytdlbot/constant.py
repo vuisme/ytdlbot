@@ -145,7 +145,7 @@ Và nhiều trang khác.\n
 4. VIP4....VIPn.
 
 **Temporary top up**
-Just want more traffic for a short period of time? Don't worry, you can use /topup command to top up your quota. 
+Just want more traffic for a short period of time? Don't worry, you can use /topup command to top up your quota.
 It's valid permanently, until you use it up.
 
 **Payment method:**
