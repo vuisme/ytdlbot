@@ -76,7 +76,7 @@ def private_use(func):
         if REQUIRED_MEMBERSHIP:
             try:
                 mship = app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status
-                if mship != "member" or mship != "creator" or mship != "administrator" or mship != "owner":
+                if mship != "member" and mship != "creator" and mship != "administrator" and mship != "owner":
                     logging.info(mship)
                     raise UserNotParticipant()
                 else:
