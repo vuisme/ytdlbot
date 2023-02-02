@@ -76,6 +76,7 @@ def private_use(func):
         if REQUIRED_MEMBERSHIP:
             try:
                 if app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status != ("member" or "creator" or "administrator" or "owner"):
+                    logging.info(app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status)
                     raise UserNotParticipant()
                 else:
                     logging.info(app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status)
