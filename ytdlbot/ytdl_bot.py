@@ -75,11 +75,12 @@ def private_use(func):
         # membership check
         if REQUIRED_MEMBERSHIP:
             try:
-                if app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status != ("member" or "creator" or "administrator" or "owner"):
-                    logging.info(app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status)
+                app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status = mship
+                if mship != "member" or mship != "creator" or mship != "administrator" or mship != "owner":
+                    logging.info(mship)
                     raise UserNotParticipant()
                 else:
-                    logging.info(app.get_chat_member(REQUIRED_MEMBERSHIP, chat_id).status)
+                    logging.info(mship)
                     logging.info("user %s check passed for group/channel %s.", chat_id, REQUIRED_MEMBERSHIP)
             except UserNotParticipant:
                 logging.warning("user %s is not a member of group/channel %s", chat_id, REQUIRED_MEMBERSHIP)
