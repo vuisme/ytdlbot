@@ -29,7 +29,7 @@ from os.path import splitext, basename
 from client_init import create_app
 from config import (AUTHORIZED_USER, BURST, ENABLE_CELERY, ENABLE_FFMPEG,
                     ENABLE_VIP, MULTIPLY, OWNER, PROVIDER_TOKEN, QUOTA, RATE,
-                    REQUIRED_MEMBERSHIP, ARCHIVE_ID, URL_ARRAY)
+                    REQUIRED_MEMBERSHIP, ARCHIVE_ID, URL_ARRAY, PLAYLIST_SUPPORT)
 from constant import BotText
 from db import InfluxDB, MySQL, Redis
 from limit import VIP, verify_payment, admin_add_vip
@@ -357,6 +357,11 @@ def download_handler(client: "Client", message: "types.Message"):
         red.update_metrics("bad_request")
         message.reply_text("I think you should send me a link.", quote=True)
         return
+    if not PLAYLIST_SUPPORT:
+        if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)) or "list" in url:
+            message.reply_text("Channel/list download is disabled now. Please send me individual video link.", quote=True)
+            red.update_metrics("reject_channel")
+            return
     url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
     # url = VIP.extract_canonical_link(rawurl)
     if "item.taobao.com" in url:
