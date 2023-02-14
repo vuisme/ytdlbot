@@ -202,8 +202,7 @@ class MySQL:
 
     def __init__(self):
         if MYSQL_HOST:
-            self.con = pymysql.connect(host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl",
-                                       charset="utf8mb4")
+            self.con = pymysql.connect(host=MYSQL_HOST, port=3307, user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl", charset="utf8mb4")
         else:
             self.con = FakeMySQL()
 
@@ -223,7 +222,7 @@ class MySQL:
 
 class InfluxDB:
     def __init__(self):
-        self.client = InfluxDBClient(host=os.getenv("INFLUX_HOST", "192.168.7.233"), database="celery")
+        self.client = InfluxDBClient(host=os.getenv("INFLUX_HOST", "192.168.7.233"), port=os.getenv("INFLUX_PORT", "admin"), username=os.getenv("INFLUX_USER", "admin"), password=os.getenv("INFLUX_PASS", "admin"), database="celery")
         self.data = None
 
     def __del__(self):
@@ -231,11 +230,12 @@ class InfluxDB:
 
     @staticmethod
     def get_worker_data():
-        password = os.getenv("FLOWER_PASSWORD", "123456abc")
+        flowerurl = os.getenv("FLOWER_LINK", "")
+        password = os.getenv("FLOWER_PASSWORD", "123456")
         username = os.getenv("FLOWER_USERNAME", "benny")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-        r = requests.get("https://celery.dmesg.app/dashboard?json=1", headers=headers)
+        r = requests.get(f"{flowerurl}/dashboard?json=1", headers=headers)
         if r.status_code != 200:
             return dict(data=[])
         return r.json()

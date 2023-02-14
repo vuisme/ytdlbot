@@ -19,7 +19,7 @@ TOKEN = os.getenv("TOKEN", "3703WLI")
 REDIS = os.getenv("REDIS")
 
 # quota settings
-QUOTA = int(os.getenv("QUOTA", 5 * 1024 * 1024 * 1024))  # 5G
+QUOTA = int(os.getenv("QUOTA", 5 * 1024 * 1024 * 1024))  # 10G
 if os.uname().sysname == "Darwin":
     QUOTA = 10 * 1024 * 1024  # 10M
 
@@ -38,7 +38,7 @@ COFFEE_TOKEN = os.getenv("COFFEE_TOKEN")
 AFD_TOKEN = os.getenv("AFD_TOKEN")
 AFD_USER_ID = os.getenv("AFD_USER_ID")
 OWNER = os.getenv("OWNER", "BennyThink")
-
+TAOBAO_PROXY = os.environ.get("TAOBAO_PROXY", "")
 # limitation settings
 AUTHORIZED_USER: "str" = os.getenv("AUTHORIZED_USER", "")
 # membership requires: the format could be username/chat_id of channel or group
@@ -63,3 +63,7 @@ RATE = float(os.getenv("RATE", 0.01))
 BURST = int(os.getenv("BURST", 3))
 PROVIDER_TOKEN = os.getenv("PROVIDER_TOKEN") or "1234"
 PLAYLIST_SUPPORT = os.getenv("PLAYLIST_SUPPORT", False)
+
+# URL WHITELIST
+URL_LIST = os.getenv("URL_LIST", "")
+URL_ARRAY = URL_LIST.split(',')
