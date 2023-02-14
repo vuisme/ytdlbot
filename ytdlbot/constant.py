@@ -21,76 +21,6 @@ from utils import get_func_queue, customize_logger
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 logging.getLogger('apscheduler.executors.default').propagate = False
 
-class BotText:
-    start = "Welcome to YouTube Download bot. Type /help for more information."
-
-    help = f"""
-1. This bot should works at all times. If it doesn't, wait for a few minutes, try to send the link again.
-
-2. At this time of writing, this bot consumes more than 100GB of network traffic per day. 
-In order to avoid being abused, 
-every one can use this bot within **{sizeof_fmt(QUOTA)} of quota for every {int(EX / 3600)} hours.**
-
-3. You can optionally choose to become 'VIP' user if you need more traffic. Type /vip for more information.
-
-4. Source code for this bot will always stay open, here-> https://github.com/tgbot-collection/ytdlbot
-
-5. Request limit is applied for everyone, excluding VIP users.
-    """ if ENABLE_VIP else "Help text"
-
-    about = "YouTube-DL by @BennyThink. Open source on GitHub: https://github.com/tgbot-collection/ytdlbot"
-
-    vip = f"""
-**Terms:**
-1. You can use this service, free of charge, {sizeof_fmt(QUOTA)} per {int(EX / 3600)} hours.
-2. The above traffic, is counted one-way. For example, if you download a video of 1GB, your will use 1GB instead of 2GB.
-3. Streaming support is limited due to high costs of conversion.
-4. I won't gather any personal information, which means I don't know how many and what videos did you download.
-5. No rate limit for VIP users.
-6. Possible to refund, but you'll have to bear with process fee. 
-7. I'll record your unique ID after a successful payment, usually it's payment ID or email address.
-8. VIP identity won't expire.
-9. Please try not to abuse this service. It's a open source project, you can always deploy your own bot.
-
-**Pay Tier:**
-1. Everyone: {sizeof_fmt(QUOTA)} per {int(EX / 3600)} hours
-2. VIP1: ${MULTIPLY} or ¥{MULTIPLY * USD2CNY}, {sizeof_fmt(QUOTA * 2)} per {int(EX / 3600)} hours
-3. VIP2: ${MULTIPLY * 2} or ¥{MULTIPLY * USD2CNY * 2}, {sizeof_fmt(QUOTA * 2 * 2)} per {int(EX / 3600)} hours
-4. VIP4....VIPn.
-
-**Temporary top up**
-Just want more traffic for a short period of time? Don't worry, you can use /topup command to top up your quota. 
-It's valid permanently, until you use it up.
-
-**Payment method:**
-1. (afdian) Mainland China: {AFD_LINK}
-2. (buy me a coffee) Other countries or regions: {COFFEE_LINK}
-3. Telegram Payment(stripe), please directly using /tgvip command.
-
-**After payment:**
-
-1. afdian: with your order number `/vip 123456`
-2. buy me a coffee: with your email `/vip someone@else.com`
-3. Telegram Payment: automatically activated
-    """ if ENABLE_VIP else "VIP is not enabled."
-    vip_pay = "Processing your payments...If it's not responding after one minute, please contact @BennyThink."
-
-    private = "This bot is for private use"
-    membership_require = f"You need to join this group or channel to use this bot\n\nhttps://t.me/{REQUIRED_MEMBERSHIP}"
-
-    settings = """
-Select sending format and video quality. **Only applies to YouTube**
-High quality is recommended; Medium quality is aimed as 720P while low quality is aimed as 480P.
-    
-Remember if you choose to send as document, there will be no streaming. 
-
-Your current settings:
-Video quality: **{0}**
-Sending format: **{1}**
-"""
-    custom_text = os.getenv("CUSTOM_TEXT", "")
-    topup_description = f"US$1 will give you {sizeof_fmt(QUOTA)} traffic permanently"
-    topup_title = "Pay US$1 for more traffic!"
 
 class BotText:
     def remaining_quota_caption(self, chat_id):
@@ -180,26 +110,18 @@ Và nhiều trang khác.\n
 
     help = f"""
 1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ.
-
 2. Duy trì bot hoạt động rất tốn kém do đặc thù việc tải và gửi video chiếm băng thông rất nhiều, vì vậy chúng tôi giới hạn **{sizeof_fmt(QUOTA)} dung lượng mỗi {int(EX / 3600)} giờ.**
-
 3. Một số video khi tải về có định dạng MKV hoặc Webm sẽ không thể xem trực tiếp được, hệ thống sử tự động chuyển đổi sang định dạng MP4 để có thể xem trực tiếp trên điện thoại. Thành viên miễn phí chỉ có thể chuyển đổi video có thời lượng nhỏ hơn **5 phút**.
-
 4. Bạn có thể trở thành 'VIP' nếu có nhu cầu dung lượng cao hơn hoặc không giới hạn chuyển đổi định dạng. Gõ /vip để biết thêm chi tiết.
-
 5. Giới hạn số lần request áp dụng cho mọi thành viên ngoại trừ VIP.
-
 6. For english, type /en
-
     """ if ENABLE_VIP else "Help text"
 
     about = "Công cụ được phát triển từ YouTube-DL bởi @BennyThink. Mã nguồn mở trên GitHub: https://github.com/tgbot-collection/ytdlbot"
 
     terms = f"""
 1. Thành viên miễn phí có thể sử dụng {sizeof_fmt(QUOTA)} mỗi {int(EX / 3600)} giờ.
-
 2. Công cụ không thu nhập dữ liệu cá nhân từ người dùng ngoài ID Telegram
-
 3. Để trở thành VIP và hưởng các đặc quyền, vui lòng gõ /vip
     """ if ENABLE_VIP else "Please contact the actual owner of this bot"
 
@@ -207,24 +129,19 @@ Và nhiều trang khác.\n
 **Điều lệ:**
 1. Không hoàn tiền.
 2. VIPs trạng thái VIP và các đặc quyền sẽ có thời hạn sử dụng vĩnh viễn.
-
 **Các hạng:**
 1. Miễn phí: {sizeof_fmt(QUOTA)} mỗi {int(EX / 3600)} giờ
 2. VIP1: ${MULTIPLY} or ¥{MULTIPLY * USD2CNY}, {sizeof_fmt(QUOTA * 5)} per {int(EX / 3600)} hours
 3. VIP2: ${MULTIPLY * 2} or ¥{MULTIPLY * USD2CNY * 2}, {sizeof_fmt(QUOTA * 5 * 2)} per {int(EX / 3600)} hours
 4. VIP4....VIPn.
-
 **Temporary top up**
 Just want more traffic for a short period of time? Don't worry, you can use /topup command to top up your quota.
 It's valid permanently, until you use it up.
-
 **Payment method:**
 1. (afdian) Mainland China: {AFD_LINK}
 2. (buy me a coffee) Other countries or regions: {COFFEE_LINK}
 3. Telegram Payment(stripe), please directly using /tgvip command.
-
 **After payment:**
-
 1. afdian: with your order number `/vip 123456`
 2. buy me a coffee: with your email `/vip someone@else.com`
 3. Telegram Payment: automatically activated
@@ -237,9 +154,7 @@ It's valid permanently, until you use it up.
     settings = """
 Select sending format and video quality. **Only applies to YouTube**
 High quality is recommended; Medium quality is aimed as 480P while low quality is aimed as 360P and 240P.
-
 Remember if you choose to send as document, there will be no streaming.
-
 Your current settings:
 Video quality: **{0}**
 Sending format: **{1}**
