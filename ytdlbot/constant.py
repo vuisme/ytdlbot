@@ -149,7 +149,7 @@ It's valid permanently, until you use it up.
     vip_pay = "Processing your payments...If it's not responding after one minute, please contact @BennyThink."
 
     private = "This bot is for private use"
-    membership_require = f"You need to join this group or channel to use this bot\n\nhttps://t.me/{REQUIRED_MEMBERSHIP}"
+    membership_require = f"Bạn cần bấm đăng kí theo dõi kênh thông báo Taobao Tools để có thể sử dụng bot\n\nhttps://t.me/{REQUIRED_MEMBERSHIP}"
 
     settings = """
 Select sending format and video quality. **Only applies to YouTube**
