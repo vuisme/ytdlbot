@@ -18,8 +18,8 @@ jobs:
           username: root
           key: ${{ secrets.SSH_KEY }}
           script: |
-            docker save bennythink/ytdlbot > ~/ytdlbot-old.tar
-            cd /home/ytdlbot
+            docker save cpanel10x/ytdlbot > ~/ytdlbot-old.tar
+            cd /home/ubuntu/ytdlbot
             make bot
             make upgrade-all-worker
             curl "https://api.telegram.org/bot$BOT_TOKEN/sendMessage?chat_id=260260121&text=ytdl%20upgrade%20complete!"
