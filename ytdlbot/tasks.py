@@ -137,6 +137,8 @@ def forward_video(url, client, bot_msg):
 
 def ytdl_download_entrance(bot_msg, client, url):
     chat_id = bot_msg.chat.id
+    if ".mp4" in url:
+        direct_normal_download(bot_msg, client, url)
     if forward_video(url, client, bot_msg):
         return
     mode = get_user_settings(str(chat_id))[-1]
