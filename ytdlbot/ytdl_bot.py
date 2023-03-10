@@ -402,36 +402,39 @@ def download_handler(client: "Client", message: "types.Message"):
         logging.info(linktb)
         logging.info(url)
     logging.info("start get %s", url)
-    if not PLAYLIST_SUPPORT:
-        if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)) or "list" in url:
-            message.reply_text("Channel/list download is disabled now. Please send me individual video link.", quote=True)
-            red.update_metrics("reject_channel")
-            return
-    # non vip user, consume too many token
-    if (not VIP().check_vip(chat_id)) and (not lim.consume(str(chat_id).encode(), 1)):
-        red.update_metrics("rate_limit")
-        message.reply_text(bot_text.too_fast, quote=True)
-        return
-
-    red.update_metrics("video_request")
-    text = bot_text.get_receive_link_text()
-    try:
-        # raise pyrogram.errors.exceptions.FloodWait(10)
-        bot_msg: typing.Union["types.Message", "typing.Any"] = message.reply_text(text, quote=True)
-    except pyrogram.errors.Flood as e:
-        f = BytesIO()
-        f.write(str(e).encode())
-        f.write(b"Your job will be done soon. Just wait! Don't rush.")
-        f.name = "Please don't flood me.txt"
-        bot_msg = message.reply_document(f, caption=f"Flood wait! Please wait {e.x} seconds...."
-                                                    f"Your job will start automatically", quote=True)
-        f.close()
-        client.send_message(OWNER, f"Flood wait! 🙁 {e.x} seconds....")
-        time.sleep(e.x)
-
-    client.send_chat_action(chat_id, 'upload_video')
     bot_msg.chat = message.chat
-    ytdl_download_entrance(bot_msg, client, url)
+    if ".mp4" in url:
+        direct_download_entrance(bot_msg, client, url)
+    else:
+        if not PLAYLIST_SUPPORT:
+            if re.findall(r"^https://www\.youtube\.com/channel/", VIP.extract_canonical_link(url)) or "list" in url:
+                message.reply_text("Channel/list download is disabled now. Please send me individual video link.", quote=True)
+                red.update_metrics("reject_channel")
+                return
+        # non vip user, consume too many token
+        if (not VIP().check_vip(chat_id)) and (not lim.consume(str(chat_id).encode(), 1)):
+            red.update_metrics("rate_limit")
+            message.reply_text(bot_text.too_fast, quote=True)
+            return
+
+        red.update_metrics("video_request")
+        text = bot_text.get_receive_link_text()
+        try:
+            # raise pyrogram.errors.exceptions.FloodWait(10)
+            bot_msg: typing.Union["types.Message", "typing.Any"] = message.reply_text(text, quote=True)
+        except pyrogram.errors.Flood as e:
+            f = BytesIO()
+            f.write(str(e).encode())
+            f.write(b"Your job will be done soon. Just wait! Don't rush.")
+            f.name = "Please don't flood me.txt"
+            bot_msg = message.reply_document(f, caption=f"Flood wait! Please wait {e.x} seconds...."
+                                                        f"Your job will start automatically", quote=True)
+            f.close()
+            client.send_message(OWNER, f"Flood wait! 🙁 {e.x} seconds....")
+            time.sleep(e.x)
+
+        client.send_chat_action(chat_id, 'upload_video')
+        ytdl_download_entrance(bot_msg, client, url)
 
 
 @app.on_callback_query(filters.regex(r"document|video|audio"))
