@@ -395,8 +395,6 @@ def download_handler(client: "Client", message: "types.Message"):
             url = videolink
             logging.info("here")
             logging.info(videolink)
-            Redis().update_metrics("direct_request")
-            direct_download_entrance(bot_msg, client, url)
         else:
             videoid = str(vid[0])
             url = "https://world.taobao.com/item/" + videoid + ".htm"
