@@ -197,7 +197,6 @@ def direct_normal_download(bot_msg, client, url):
         req = requests.get(url, headers=headers, stream=True)
         length = int(req.headers.get("content-length"))
         filename = re.findall("filename=(.+)", req.headers.get("content-disposition"))[0]
-        filename = filename + "mp4"
     except TypeError:
         filename = getattr(req, "url", "").rsplit("/")[-1]
     except Exception as e:
@@ -208,7 +207,7 @@ def direct_normal_download(bot_msg, client, url):
         filename = quote_plus(url)
 
     with tempfile.TemporaryDirectory(prefix="ytdl-") as f:
-        filepath = f"{f}/{filename}"
+        filepath = f"{f}/{filename}.mp4"
         # consume the req.content
         downloaded = 0
         for chunk in req.iter_content(1024 * 1024):
