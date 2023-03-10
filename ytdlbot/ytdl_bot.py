@@ -389,7 +389,7 @@ def download_handler(client: "Client", message: "types.Message"):
             videoid, file_ext = splitext(basename(disassembled.path))
             videoid = re.sub(r"\D", "", videoid)
             url = "https://world.taobao.com/item/" + videoid + ".htm"
-        elif "market.m.taobao.com" in linktb:
+        elif "video-fullpage" in linktb:
             plink = urlparse(linktb)
             videolink = parse_qs(plink.query)['videoUrl'][0]
             url = videolink
