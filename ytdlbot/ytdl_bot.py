@@ -393,6 +393,8 @@ def download_handler(client: "Client", message: "types.Message"):
             plink = urlparse(linktb)
             videolink = parse_qs(plink.query)['videoUrl'][0]
             url = videolink
+            logging.info("here")
+            logging.info(videolink)
         else:
             videoid = str(vid[0])
             url = "https://world.taobao.com/item/" + videoid + ".htm"
