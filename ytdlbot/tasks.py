@@ -139,14 +139,15 @@ def ytdl_download_entrance(bot_msg, client, url):
     chat_id = bot_msg.chat.id
     if ".mp4" in url:
         direct_normal_download(bot_msg, client, url)
-    if forward_video(url, client, bot_msg):
-        return
-    mode = get_user_settings(str(chat_id))[-1]
-    if ENABLE_CELERY and mode in [None, "Celery"]:
-        async_task(ytdl_download_task, chat_id, bot_msg.message_id, url)
-        # ytdl_download_task.delay(chat_id, bot_msg.message_id, url)
     else:
-        ytdl_normal_download(bot_msg, client, url)
+        if forward_video(url, client, bot_msg):
+            return
+        mode = get_user_settings(str(chat_id))[-1]
+        if ENABLE_CELERY and mode in [None, "Celery"]:
+            async_task(ytdl_download_task, chat_id, bot_msg.message_id, url)
+            # ytdl_download_task.delay(chat_id, bot_msg.message_id, url)
+        else:
+            ytdl_normal_download(bot_msg, client, url)
 
 
 def direct_download_entrance(bot_msg, client, url):
