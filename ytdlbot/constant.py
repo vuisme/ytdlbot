@@ -33,6 +33,8 @@ To prevent abuse, each user is limited to 5 downloads per 24 hours.
 3. You have the option to buy more tokens. Type /buy for more information.
 
 4. The source code for this bot will always remain open and can be found here: https://github.com/tgbot-collection/ytdlbot
+
+5. Need help with deployment or exclusive features? I offer paid service - contact me at @BennyThink
     """
 
     about = "YouTube Downloader by @BennyThink.\n\nOpen source on GitHub: https://github.com/tgbot-collection/ytdlbot"
@@ -85,7 +87,7 @@ Sending format: **{1}**
     custom_text = os.getenv("CUSTOM_TEXT", "")
 
     @staticmethod
-    def get_receive_link_text():
+    def get_receive_link_text() -> str:
         reserved = get_func_queue("reserved")
         if ENABLE_CELERY and reserved:
             text = f"Too many tasks. Your tasks was added to the reserved queue {reserved}."
@@ -95,7 +97,7 @@ Sending format: **{1}**
         return text
 
     @staticmethod
-    def ping_worker():
+    def ping_worker() -> str:
         from tasks import app as celery_app
 
         workers = InfluxDB().extract_dashboard_data()

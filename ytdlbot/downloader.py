@@ -21,6 +21,7 @@ import fakeredis
 import ffmpeg
 import ffpb
 import filetype
+import requests
 import yt_dlp as ytdl
 from tqdm import tqdm
 
@@ -32,7 +33,7 @@ r = fakeredis.FakeStrictRedis()
 apply_log_formatter()
 
 
-def edit_text(bot_msg, text):
+def edit_text(bot_msg, text: str):
     key = f"{bot_msg.chat.id}-{bot_msg.message_id}"
     # if the key exists, we shouldn't send edit message
     if not r.exists(key):
@@ -121,7 +122,7 @@ def convert_to_mp4(resp: dict, bot_msg):
                 edit_text(bot_msg, f"{current_time()}: Converting {path.name} to mp4. Please wait.")
                 new_file_path = path.with_suffix(".mp4")
                 logging.info("Detected %s, converting to mp4...", mime)
-                run_ffmpeg(["ffmpeg", "-y", "-i", path, new_file_path], bot_msg)
+                run_ffmpeg_progressbar(["ffmpeg", "-y", "-i", path, new_file_path], bot_msg)
                 index = resp["filepath"].index(path)
                 resp["filepath"][index] = new_file_path
 
@@ -141,7 +142,7 @@ class ProgressBar(tqdm):
         edit_text(self.bot_msg, t)
 
 
-def run_ffmpeg(cmd_list, bm):
+def run_ffmpeg_progressbar(cmd_list: list, bm):
     cmd_list = cmd_list.copy()[1:]
     ProgressBar.b = bm
     ffpb.main(cmd_list, tqdm=ProgressBar)
@@ -153,7 +154,7 @@ def can_convert_mp4(video_path, uid):
     return True
 
 
-def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
+def ytdl_download(url: str, tempdir: str, bm, **kwargs) -> dict:
     payment = Payment()
     chat_id = bm.chat.id
     hijack = kwargs.get("hijack")
@@ -180,7 +181,8 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         None,
     ]
     adjust_formats(chat_id, url, formats, hijack)
-    add_instagram_cookies(url, ydl_opts)
+    if download_instagram(url, tempdir):
+        return {"status": True, "error": "", "filepath": list(pathlib.Path(tempdir).glob("*"))}
 
     address = ["::", "0.0.0.0"] if IPv6 else [None]
     for format_ in formats:
@@ -209,7 +211,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
         return response
 
     # convert format if necessary
-    settings = payment.get_user_settings(str(chat_id))
+    settings = payment.get_user_settings(chat_id)
     if settings[2] == "video" or isinstance(settings[2], MagicMock):
         # only convert if send type is video
         convert_to_mp4(response, bm)
@@ -220,7 +222,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
     return response
 
 
-def convert_audio_format(resp: "dict", bm):
+def convert_audio_format(resp: dict, bm):
     # 1. file is audio, default format
     # 2. file is video, default format
     # 3. non default format
@@ -239,25 +241,42 @@ def convert_audio_format(resp: "dict", bm):
                         break
                 ext = audio_stream["codec_name"]
                 new_path = path.with_suffix(f".{ext}")
-                run_ffmpeg(["ffmpeg", "-y", "-i", path, "-vn", "-acodec", "copy", new_path], bm)
+                run_ffmpeg_progressbar(["ffmpeg", "-y", "-i", path, "-vn", "-acodec", "copy", new_path], bm)
                 path.unlink()
                 index = resp["filepath"].index(path)
                 resp["filepath"][index] = new_path
             else:
                 logging.info("Not default format, converting %s to %s", path, AUDIO_FORMAT)
                 new_path = path.with_suffix(f".{AUDIO_FORMAT}")
-                run_ffmpeg(["ffmpeg", "-y", "-i", path, new_path], bm)
+                run_ffmpeg_progressbar(["ffmpeg", "-y", "-i", path, new_path], bm)
                 path.unlink()
                 index = resp["filepath"].index(path)
                 resp["filepath"][index] = new_path
 
 
-def add_instagram_cookies(url: "str", opt: "dict"):
+def download_instagram(url: str, tempdir: str):
     if url.startswith("https://www.instagram.com"):
-        opt["cookiefile"] = pathlib.Path(__file__).parent.joinpath("instagram.com_cookies.txt").as_posix()
+        api = f"https://ssmstore.store/rami/index.php?url={url}"
+        res = requests.get(api).json()
+        if isinstance(res, dict):
+            downloadable = {i["url"]: i["ext"] for i in res["url"]}
+        else:
+            downloadable = {i["url"]: i["ext"] for item in res for i in item["url"]}
+
+        for link, ext in downloadable.items():
+            save_path = pathlib.Path(tempdir, f"{id(link)}.{ext}")
+            with open(save_path, "wb") as f:
+                f.write(requests.get(link, stream=True).content)
+        # telegram send webp as sticker, so we'll convert it to png
+        for path in pathlib.Path(tempdir).glob("*.webp"):
+            logging.info("Converting %s to png", path)
+            new_path = path.with_suffix(".jpg")
+            ffmpeg.input(path).output(new_path.as_posix()).run()
+            path.unlink()
+        return True
 
 
-def split_large_video(response: "dict"):
+def split_large_video(response: dict):
     original_video = None
     split = False
     for original_video in response.get("filepath", []):
@@ -270,3 +289,8 @@ def split_large_video(response: "dict"):
 
     if split and original_video:
         response["filepath"] = [i.as_posix() for i in pathlib.Path(original_video).parent.glob("*")]
+
+
+if __name__ == "__main__":
+    a = download_instagram("https://www.instagram.com/p/CrEAz-AI99Y/", "tmp")
+    print(a)

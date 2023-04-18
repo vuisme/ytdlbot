@@ -22,13 +22,16 @@ import typing
 from hashlib import md5
 from urllib.parse import quote_plus
 
+import filetype
 import psutil
 import pyrogram.errors
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
+from pyrogram import Client
 from pyrogram import idle
+from pyrogram import types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
@@ -41,7 +44,7 @@ from config import (
     ENABLE_QUEUE,
     ENABLE_VIP,
     OWNER,
-    TG_MAX_SIZE,
+    RATE_LIMIT,
     WORKERS,
 )
 from constant import BotText
@@ -67,7 +70,9 @@ logging.getLogger("apscheduler.executors.default").propagate = False
 app = Celery("tasks", broker=BROKER)
 redis = Redis()
 channel = Channel()
-celery_client = create_app(":memory:")
+
+session = "ytdl-celery"
+celery_client = create_app(session)
 
 
 def get_messages(chat_id, message_id):
@@ -79,11 +84,11 @@ def get_messages(chat_id, message_id):
         return celery_client.get_messages(chat_id, message_id)
 
 
-@app.task()
-def ytdl_download_task(chat_id, message_id, url):
+@app.task(rate_limit=f"{RATE_LIMIT}/m")
+def ytdl_download_task(chat_id, message_id, url: str):
     logging.info("YouTube celery tasks started for %s", url)
     bot_msg = get_messages(chat_id, message_id)
-    ytdl_normal_download(bot_msg, celery_client, url)
+    ytdl_normal_download(celery_client, bot_msg, url)
     logging.info("YouTube celery tasks ended.")
 
 
@@ -91,13 +96,13 @@ def ytdl_download_task(chat_id, message_id, url):
 def audio_task(chat_id, message_id):
     logging.info("Audio celery tasks started for %s-%s", chat_id, message_id)
     bot_msg = get_messages(chat_id, message_id)
-    normal_audio(bot_msg, celery_client)
+    normal_audio(celery_client, bot_msg)
     logging.info("Audio celery tasks ended.")
 
 
-def get_unique_clink(original_url, user_id):
+def get_unique_clink(original_url: str, user_id: int):
     payment = Payment()
-    settings = payment.get_user_settings(str(user_id))
+    settings = payment.get_user_settings(user_id)
     clink = channel.extract_canonical_link(original_url)
     try:
         # different user may have different resolution settings
@@ -111,11 +116,11 @@ def get_unique_clink(original_url, user_id):
 def direct_download_task(chat_id, message_id, url):
     logging.info("Direct download celery tasks started for %s", url)
     bot_msg = get_messages(chat_id, message_id)
-    direct_normal_download(bot_msg, celery_client, url)
+    direct_normal_download(celery_client, bot_msg, url)
     logging.info("Direct download celery tasks ended.")
 
 
-def forward_video(client, bot_msg, url):
+def forward_video(client, bot_msg, url: str):
     chat_id = bot_msg.chat.id
     unique = get_unique_clink(url, chat_id)
     cached_fid = redis.get_send_cache(unique)
@@ -124,7 +129,7 @@ def forward_video(client, bot_msg, url):
 
     try:
         res_msg: "Message" = upload_processor(client, bot_msg, url, cached_fid)
-        obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation
+        obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation or res_msg.photo
 
         caption, _ = gen_cap(bot_msg, url, obj)
         res_msg.edit_text(caption, reply_markup=gen_video_markup())
@@ -138,26 +143,26 @@ def forward_video(client, bot_msg, url):
         redis.update_metrics("cache_miss")
 
 
-def ytdl_download_entrance(client, bot_msg, url):
+def ytdl_download_entrance(client: Client, bot_msg: types.Message, url: str):
     payment = Payment()
     chat_id = bot_msg.chat.id
     if forward_video(client, bot_msg, url):
         return
-    mode = payment.get_user_settings(str(chat_id))[-1]
+    mode = payment.get_user_settings(chat_id)[-1]
     if ENABLE_CELERY and mode in [None, "Celery"]:
         async_task(ytdl_download_task, chat_id, bot_msg.message_id, url)
         # ytdl_download_task.delay(chat_id, bot_msg.message_id, url)
     else:
-        ytdl_normal_download(bot_msg, client, url)
+        ytdl_normal_download(client, bot_msg, url)
 
 
-def direct_download_entrance(bot_msg, client, url):
+def direct_download_entrance(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
     if ENABLE_CELERY:
         # TODO disable it for now
-        direct_normal_download(bot_msg, client, url)
+        direct_normal_download(client, bot_msg, url)
         # direct_download_task.delay(bot_msg.chat.id, bot_msg.message_id, url)
     else:
-        direct_normal_download(bot_msg, client, url)
+        direct_normal_download(client, bot_msg, url)
 
 
 def audio_entrance(bot_msg, client):
@@ -168,12 +173,11 @@ def audio_entrance(bot_msg, client):
         normal_audio(bot_msg, client)
 
 
-def direct_normal_download(bot_msg, client, url):
+def direct_normal_download(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
     chat_id = bot_msg.chat.id
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"
     }
-    vip = Payment()
     length = 0
 
     req = None
@@ -214,11 +218,13 @@ def direct_normal_download(bot_msg, client, url):
         bot_msg.edit_text("Download success!✅")
 
 
-def normal_audio(bot_msg, client):
+def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine]):
     chat_id = bot_msg.chat.id
     # fn = getattr(bot_msg.video, "file_name", None) or getattr(bot_msg.document, "file_name", None)
-    status_msg = bot_msg.reply_text("Converting to audio...please wait patiently", quote=True)
-    orig_url: "str" = re.findall(r"https?://.*", bot_msg.caption)[0]
+    status_msg: typing.Union[types.Message, typing.Coroutine] = bot_msg.reply_text(
+        "Converting to audio...please wait patiently", quote=True
+    )
+    orig_url: str = re.findall(r"https?://.*", bot_msg.caption)[0]
     with tempfile.TemporaryDirectory(prefix="ytdl-") as tmp:
         client.send_chat_action(chat_id, "record_audio")
         # just try to download the audio using yt-dlp
@@ -238,7 +244,7 @@ def get_dl_source():
     return ""
 
 
-def upload_transfer_sh(bm, paths: list) -> "str":
+def upload_transfer_sh(bm, paths: list) -> str:
     d = {p.name: (md5(p.name.encode("utf8")).hexdigest() + p.suffix, p.open("rb")) for p in paths}
     monitor = MultipartEncoderMonitor(MultipartEncoder(fields=d), lambda x: upload_hook(x.bytes_read, x.len, bm))
     headers = {"Content-Type": monitor.content_type}
@@ -254,7 +260,7 @@ def flood_owner_message(client, ex):
     client.send_message(OWNER, f"CRITICAL INFO: {ex}")
 
 
-def ytdl_normal_download(bot_msg, client, url):
+def ytdl_normal_download(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-")
 
@@ -262,27 +268,19 @@ def ytdl_normal_download(bot_msg, client, url):
     logging.info("Download complete.")
     if result["status"]:
         client.send_chat_action(chat_id, "upload_document")
-        video_paths = result["filepath"]
+        video_paths: list = result["filepath"]
         bot_msg.edit_text("Download complete. Sending now...")
-        for video_path in video_paths:
-            # normally there's only one video in that path...
-            st_size = os.stat(video_path).st_size
-            if st_size > TG_MAX_SIZE:
-                bot_msg.edit_text(f"Your video({sizeof_fmt(st_size)}) is too large for Telegram.")
-                # client.send_chat_action(chat_id, 'upload_document')
-                # client.send_message(chat_id, upload_transfer_sh(bot_msg, video_paths))
-                continue
-            try:
-                upload_processor(client, bot_msg, url, video_path)
-            except pyrogram.errors.Flood as e:
-                logging.critical("FloodWait from Telegram: %s", e)
-                client.send_message(
-                    chat_id,
-                    f"I'm being rate limited by Telegram. Your video will come after {e.x} seconds. Please wait patiently.",
-                )
-                flood_owner_message(client, e)
-                time.sleep(e.x)
-                upload_processor(client, bot_msg, url, video_path)
+        try:
+            upload_processor(client, bot_msg, url, video_paths)
+        except pyrogram.errors.Flood as e:
+            logging.critical("FloodWait from Telegram: %s", e)
+            client.send_message(
+                chat_id,
+                f"I'm being rate limited by Telegram. Your video will come after {e.x} seconds. Please wait patiently.",
+            )
+            flood_owner_message(client, e)
+            time.sleep(e.x)
+            upload_processor(client, bot_msg, url, video_paths)
 
         bot_msg.edit_text("Download success!✅")
     else:
@@ -293,14 +291,44 @@ def ytdl_normal_download(bot_msg, client, url):
     temp_dir.cleanup()
 
 
-def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.Path]"):
-    time.sleep(random.random() * 10)
+def generate_input_media(file_paths: list, cap: str) -> list:
+    input_media = []
+    for path in file_paths:
+        mime = filetype.guess_mime(path)
+        if "video" in mime:
+            input_media.append(pyrogram.types.InputMediaVideo(media=path))
+        elif "image" in mime:
+            input_media.append(pyrogram.types.InputMediaPhoto(media=path))
+        elif "audio" in mime:
+            input_media.append(pyrogram.types.InputMediaAudio(media=path))
+        else:
+            input_media.append(pyrogram.types.InputMediaDocument(media=path))
+
+    input_media[0].caption = cap
+    return input_media
+
+
+def upload_processor(client, bot_msg, url, vp_or_fid: typing.Union[str, list]):
     # raise pyrogram.errors.exceptions.FloodWait(13)
+    # if is str, it's a file id; else it's a list of paths
     payment = Payment()
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
-    cap, meta = gen_cap(bot_msg, url, vp_or_fid)
-    settings = payment.get_user_settings(str(chat_id))
+    if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
+        # just generate the first for simplicity, send as media group(2-20)
+        cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
+        res_msg = client.send_media_group(chat_id, generate_input_media(vp_or_fid, cap))
+        # TODO no cache for now
+        return res_msg[0]
+    elif isinstance(vp_or_fid, list) and len(vp_or_fid) == 1:
+        # normal download, just contains one file in video_paths
+        vp_or_fid = vp_or_fid[0]
+        cap, meta = gen_cap(bot_msg, url, vp_or_fid)
+    else:
+        # just a file id as string
+        cap, meta = gen_cap(bot_msg, url, vp_or_fid)
+
+    settings = payment.get_user_settings(chat_id)
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
     if settings[2] == "document":
@@ -362,9 +390,19 @@ def upload_processor(client, bot_msg, url, vp_or_fid: "typing.Any[str, pathlib.P
                 reply_markup=markup,
                 **meta,
             )
+        except FileNotFoundError:
+            # this is likely a photo
+            logging.info("Retry to send as photo")
+            res_msg = client.send_photo(
+                chat_id,
+                vp_or_fid,
+                caption=cap,
+                progress=upload_hook,
+                progress_args=(bot_msg,),
+            )
 
     unique = get_unique_clink(url, bot_msg.chat.id)
-    obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation
+    obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation or res_msg.photo
     redis.add_send_cache(unique, getattr(obj, "file_id", None))
     redis.update_metrics("video_success")
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
@@ -481,7 +519,7 @@ def purge_tasks():
 
 
 if __name__ == "__main__":
-    celery_client.start()
+    # celery_client.start()
     print("Bootstrapping Celery worker now.....")
     time.sleep(5)
     threading.Thread(target=run_celery, daemon=True).start()

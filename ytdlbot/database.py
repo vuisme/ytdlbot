@@ -26,7 +26,6 @@ from beautifultable import BeautifulTable
 from influxdb import InfluxDBClient
 
 from config import MYSQL_HOST, MYSQL_PASS, MYSQL_USER, REDIS
-from utils import sizeof_fmt
 
 init_con = sqlite3.connect(":memory:", check_same_thread=False)
 
@@ -74,7 +73,7 @@ class Redis:
             self.r = fakeredis.FakeStrictRedis(host=REDIS, db=0, decode_responses=True)
 
         db_banner = "=" * 20 + "DB data" + "=" * 20
-        quota_banner = "=" * 20 + "Quota" + "=" * 20
+        quota_banner = "=" * 20 + "Celery" + "=" * 20
         metrics_banner = "=" * 20 + "Metrics" + "=" * 20
         usage_banner = "=" * 20 + "Usage" + "=" * 20
         vnstat_banner = "=" * 20 + "vnstat" + "=" * 20
@@ -103,7 +102,7 @@ class Redis:
     def __del__(self):
         self.r.close()
 
-    def update_metrics(self, metrics):
+    def update_metrics(self, metrics: str):
         logging.info(f"Setting metrics: {metrics}")
         all_ = f"all_{metrics}"
         today = f"today_{metrics}"
@@ -111,7 +110,7 @@ class Redis:
         self.r.hincrby("metrics", today)
 
     @staticmethod
-    def generate_table(header, all_data: "list"):
+    def generate_table(header, all_data: list):
         table = BeautifulTable()
         for data in all_data:
             table.rows.append(data)
@@ -143,14 +142,24 @@ class Redis:
         fd.sort(key=lambda x: int(x[-1]), reverse=True)
         usage_text = self.generate_table(["UserID", "count"], fd)
 
+        worker_data = InfluxDB.get_worker_data()
         fd = []
-        for key in self.r.keys("*"):
-            if re.findall(r"^\d+$", key):
-                value = self.r.get(key)
-                date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.r.ttl(key) + time.time()))
-                fd.append([key, value, sizeof_fmt(int(value)), date])
-        fd.sort(key=lambda x: int(x[1]))
-        quota_text = self.generate_table(["UserID", "bytes", "human readable", "refresh time"], fd)
+        for item in worker_data["data"]:
+            fd.append(
+                [
+                    item.get("hostname", 0),
+                    item.get("status", 0),
+                    item.get("active", 0),
+                    item.get("processed", 0),
+                    item.get("task-failed", 0),
+                    item.get("task-succeeded", 0),
+                    ",".join(str(i) for i in item.get("loadavg", [])),
+                ]
+            )
+
+        worker_text = self.generate_table(
+            ["worker name", "status", "active", "processed", "failed", "succeeded", "Load Average"], fd
+        )
 
         # vnstat
         if os.uname().sysname == "Darwin":
@@ -158,7 +167,7 @@ class Redis:
         else:
             cmd = "/usr/bin/vnstat -i eth0".split()
         vnstat_text = subprocess.check_output(cmd).decode("u8")
-        return self.final_text % (db_text, vnstat_text, quota_text, metrics_text, usage_text)
+        return self.final_text % (db_text, vnstat_text, worker_text, metrics_text, usage_text)
 
     def reset_today(self):
         pairs = self.r.hgetall("metrics")
@@ -177,10 +186,10 @@ class Redis:
         file.name = f"{date}.txt"
         return file
 
-    def add_send_cache(self, unique, file_id):
+    def add_send_cache(self, unique: str, file_id: str):
         self.r.hset("cache", unique, file_id)
 
-    def get_send_cache(self, unique) -> "str":
+    def get_send_cache(self, unique) -> str:
         return self.r.hget("cache", unique)
 
     def del_send_cache(self, unique):
@@ -257,7 +266,7 @@ class MySQL:
     def __del__(self):
         self.con.close()
 
-    def get_user_settings(self, user_id: "str") -> "tuple":
+    def get_user_settings(self, user_id: int) -> tuple:
         cur = self.con.cursor()
         cur.execute("SELECT * FROM settings WHERE user_id = %s", (user_id,))
         data = cur.fetchone()
@@ -265,7 +274,7 @@ class MySQL:
             return 100, "high", "video", "Celery"
         return data
 
-    def set_user_settings(self, user_id: int, field: "str", value: "str"):
+    def set_user_settings(self, user_id: int, field: str, value: str):
         cur = self.con.cursor()
         cur.execute("SELECT * FROM settings WHERE user_id = %s", (user_id,))
         data = cur.fetchone()
@@ -292,7 +301,7 @@ class InfluxDB:
         self.client.close()
 
     @staticmethod
-    def get_worker_data():
+    def get_worker_data() -> dict:
         username = os.getenv("FLOWER_USERNAME", "benny")
         password = os.getenv("FLOWER_PASSWORD", "123456abc")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
