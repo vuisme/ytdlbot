@@ -109,7 +109,7 @@ Và nhiều trang khác.\n
 """
 
     help = f"""
-1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ.
+1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ để được hướng dẫn.
 2. Duy trì bot hoạt động rất tốn kém do đặc thù việc tải và gửi video chiếm băng thông rất nhiều, vì vậy chúng tôi giới hạn **{sizeof_fmt(QUOTA)} dung lượng mỗi {int(EX / 3600)} giờ.**
 3. Một số video khi tải về có định dạng MKV hoặc Webm sẽ không thể xem trực tiếp được, hệ thống sử tự động chuyển đổi sang định dạng MP4 để có thể xem trực tiếp trên điện thoại. Thành viên miễn phí chỉ có thể chuyển đổi video có thời lượng nhỏ hơn **5 phút**.
 4. Bạn có thể trở thành 'VIP' nếu có nhu cầu dung lượng cao hơn hoặc không giới hạn chuyển đổi định dạng. Gõ /vip để biết thêm chi tiết.
