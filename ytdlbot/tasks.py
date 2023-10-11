@@ -50,8 +50,9 @@ logging.getLogger('apscheduler.executors.default').propagate = False
 # celery -A tasks worker --loglevel=info --pool=solo
 # app = Celery('celery', broker=BROKER, accept_content=['pickle'], task_serializer='pickle')
 app = Celery('tasks', broker=BROKER)
-
-celery_client = create_app(":memory:")
+session = "ytdl-celery"
+celery_client = create_app(session)
+# celery_client = create_app(":memory:")
 
 
 def get_messages(chat_id, message_id):
@@ -584,7 +585,7 @@ def split_list(the_list, chunk_size):
 
 
 if __name__ == '__main__':
-    celery_client.start()
+    # celery_client.start()
     print("Bootstrapping Celery worker now.....")
     time.sleep(5)
     threading.Thread(target=run_celery, daemon=True).start()
