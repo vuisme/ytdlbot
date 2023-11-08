@@ -9,6 +9,7 @@ __author__ = "Benny <benny.think@gmail.com>"
 
 import logging
 import os
+from pathlib import Path
 import random
 import re
 import time
@@ -545,7 +546,16 @@ def raw_update(client: "Client", update, users, chats):
             client.send_message(uid, f"Thank you {uid}. Top up payment received: {amount}")
 
 
+def temp_fix_The_msg_id_is_too_low():
+    current_dir = Path(__file__).parent
+    s_file_path = current_dir / "ytdl-main.session"
+    if os.path.exists(s_file_path):
+        print(f"Deleting session file :", s_file_path)
+        os.remove(s_file_path)
+
+
 if __name__ == '__main__':
+    temp_fix_The_msg_id_is_too_low()
     MySQL()
     scheduler = BackgroundScheduler(timezone="Europe/Stockholm", job_defaults={'max_instances': 5})
     scheduler.add_job(Redis().reset_today, 'cron', hour=0, minute=0)
