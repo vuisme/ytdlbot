@@ -208,7 +208,7 @@ def get_func_queue(func) -> int:
         return 0
 
 
-def tail(f, lines=1, _buffer=4098):
+def tail_log(f, lines=1, _buffer=4098):
     """Tail a file and get X lines from the end"""
     # place holder for the lines found
     lines_found = []
