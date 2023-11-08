@@ -554,6 +554,7 @@ def temp_fix_The_msg_id_is_too_low():
 
 
 if __name__ == '__main__':
+    temp_fix_The_msg_id_is_too_low()
     MySQL()
     scheduler = BackgroundScheduler(timezone="Europe/Stockholm", job_defaults={'max_instances': 5})
     scheduler.add_job(Redis().reset_today, 'cron', hour=0, minute=0)
