@@ -547,7 +547,7 @@ def raw_update(client: "Client", update, users, chats):
 
 def temp_fix_The_msg_id_is_too_low():
     current_dir = Path(__file__).parent
-    s_file_path = current_dir / "ytdl-main.session"
+    s_file_path = current_dir / "session/ytdl.session"
     if os.path.exists(s_file_path):
         print(f"Deleting session file :", s_file_path)
         os.remove(s_file_path)
