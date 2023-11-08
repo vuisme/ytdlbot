@@ -95,7 +95,7 @@ def private_use(func):
 def start_handler(client: "Client", message: "types.Message"):
     from_id = message.from_user.id
     # from_user = message.from_user.username
-    logging.info("Welcome to youtube-dl bot!")
+    logging.info("%s welcome to youtube-dl bot!", message.from_user.id)
     client.send_chat_action(from_id, "typing")
     greeting = bot_text.get_vip_greeting(from_id)
     quota = bot_text.remaining_quota_caption(from_id)
