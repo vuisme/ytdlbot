@@ -590,7 +590,7 @@ if __name__ == '__main__':
     time.sleep(5)
     threading.Thread(target=run_celery, daemon=True).start()
 
-    scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
+    scheduler = BackgroundScheduler(timezone="Asia/Shanghai",job_defaults={"max_instances": 5})
     scheduler.add_job(auto_restart, 'interval', seconds=5)
     scheduler.start()
 
