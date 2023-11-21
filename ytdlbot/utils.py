@@ -161,8 +161,9 @@ def adjust_formats(user_id: "str", url: "str", formats: "list", hijack=None):
     settings = get_user_settings(user_id)
     if settings and is_youtube(url):
         for m in mapping.get(settings[1], []):
-            formats.insert(0, f"bestvideo[ext=mp4][height={m}]+bestaudio[ext=m4a]")
-            formats.insert(1, f"bestvideo[vcodec^=avc][height={m}]+bestaudio[acodec^=mp4a]/best[vcodec^=avc]/best")
+            formats.insert(0, f"bestvideo[vcodec^=h264][ext=mp4][height={m}]+bestaudio[ext=m4a]")
+            formats.insert(1, f"bestvideo[ext=mp4][height={m}]+bestaudio[ext=m4a]")
+            formats.insert(2, f"bestvideo[vcodec^=avc][height={m}]+bestaudio[acodec^=mp4a]/best[vcodec^=avc]/best")
 
     if settings[2] == "audio":
         formats.insert(0, "bestaudio[ext=m4a]")
