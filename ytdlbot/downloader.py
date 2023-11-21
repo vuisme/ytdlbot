@@ -207,6 +207,7 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
                                                 '--split=16'
                                                 ]
     formats = [
+        "bestvideo[vcodec^=h264][ext=mp4]+bestaudio[ext=m4a]",
         "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
         "bestvideo[vcodec^=avc]+bestaudio[acodec^=mp4a]/best[vcodec^=avc]/best",
         None
