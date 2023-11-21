@@ -207,9 +207,8 @@ def ytdl_download(url, tempdir, bm, **kwargs) -> dict:
                                                 '--split=16'
                                                 ]
     formats = [
+        "bestvideo[ext=mp4][vcodec!*=av01][vcodec!*=vp09]+bestaudio[ext=m4a]/bestvideo+bestaudio",
         "bestvideo[vcodec^=avc]+bestaudio[acodec^=mp4a]/best[vcodec^=avc]/best",
-        "bestvideo[vcodec^=h264][ext=mp4]+bestaudio[ext=m4a]",
-        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio",
         None
     ]
     adjust_formats(chat_id, url, formats, hijack)
