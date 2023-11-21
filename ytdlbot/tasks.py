@@ -584,9 +584,18 @@ def split_list(the_list, chunk_size):
     return result_list
 
 
+def temp_fix_The_msg_id_is_too_low():
+    current_dir = Path(__file__).parent
+    s_file_path = current_dir / "session/ytdl.session"
+    if os.path.exists(s_file_path):
+        print(f"Deleting session file :", s_file_path)
+        os.remove(s_file_path)
+
+
 if __name__ == '__main__':
     # celery_client.start()
     print("Bootstrapping Celery worker now.....")
+    temp_fix_The_msg_id_is_too_low()
     time.sleep(5)
     threading.Thread(target=run_celery, daemon=True).start()
 
