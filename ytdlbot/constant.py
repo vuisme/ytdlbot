@@ -53,7 +53,7 @@ class BotText:
         if ENABLE_CELERY and reserved:
             text = f"Too many tasks. Your tasks was added to the reserved queue {reserved}."
         else:
-            text = "Đang phân tích liên kết, vui lòng chờ...\nKhông gửi liên tiếp nhiều lần, vi phạm sẽ bị cấm sử dụng Tool...\n\n"
+            text = "Đang phân tích liên kết, vui lòng chờ...\nNếu thời gian chờ quá lâu (Hơn 3 phút), vui lòng gửi lại một lần nữa...\n\n"
 
         return text
 
