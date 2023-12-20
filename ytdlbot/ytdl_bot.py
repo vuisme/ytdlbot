@@ -471,11 +471,12 @@ def download_handler(client: Client, message: types.Message):
 
     for url in urls:
         # check url
-        if not re.findall(r"^https?://", url.lower()):
-            redis.update_metrics("bad_request")
-            text = search_ytb(url)
-            message.reply_text(text, quote=True, disable_web_page_preview=True)
-            return
+        # if not re.findall(r"^https?://", url.lower()):
+            # redis.update_metrics("bad_request")
+            # text = search_ytb(url)
+            # message.reply_text(text, quote=True, disable_web_page_preview=True)
+            # return
+
 
         if text := link_checker(url):
             message.reply_text(text, quote=True)
