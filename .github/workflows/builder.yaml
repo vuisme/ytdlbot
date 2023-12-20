@@ -36,7 +36,7 @@ jobs:
         id: dh_string
         uses: ASzc/change-string-case-action@v5
         with:
-          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+          string: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}_tb:${{ github.ref_name }}
 
 
       - name: Build and push

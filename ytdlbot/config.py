@@ -77,3 +77,7 @@ TRONGRID_KEY = os.getenv("TRONGRID_KEY", "").split(",")
 # the default mnemonic is for nile testnet
 TRON_MNEMONIC = os.getenv("TRON_MNEMONIC", "cram floor today legend service drill pitch leaf car govern harvest soda")
 TRX_SIGNAL = signal("trx_received")
+# URL WHITELIST
+URL_LIST = os.getenv("URL_LIST", "")
+URL_ARRAY = URL_LIST.split(',')
+TAOBAO_PROXY = os.environ.get("TAOBAO_PROXY", "")
