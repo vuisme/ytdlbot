@@ -476,11 +476,10 @@ def download_handler(client: Client, message: types.Message):
             # return
 
         
-    logging.info("url is: %s", url)
-    if text := link_checker(url):
+    logging.info("url is: %s", urls)
+    if text := link_checker(urls):
         message.reply_text(text, quote=True)
         redis.update_metrics("reject_link_checker")
-        logging.info("url is: %s", url)
         return
 
     # old user is not limited by token
@@ -513,7 +512,7 @@ def download_handler(client: Client, message: types.Message):
 
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
     bot_msg.chat = message.chat
-    ytdl_download_entrance(client, bot_msg, url)
+    ytdl_download_entrance(client, bot_msg, urls)
 
 
 @app.on_callback_query(filters.regex(r"document|video|audio"))
