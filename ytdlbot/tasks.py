@@ -454,6 +454,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
 
     unique = get_unique_clink(url, bot_msg.chat.id)
     obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation or res_msg.photo
+    logging.info(obj)
     redis.add_send_cache(unique, getattr(obj, "file_id", None))
     redis.update_metrics("video_success")
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
