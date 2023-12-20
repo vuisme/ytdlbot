@@ -423,50 +423,50 @@ def download_handler(client: Client, message: types.Message):
             red.update_metrics("bad_request")
             message.reply_text("I think you should send me a link.", quote=True)
             return
-        url = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
         # url = VIP.extract_canonical_link(rawurl)
-        if "item.taobao.com" in url:
+        if "item.taobao.com" in urls:
             vid = parse_qs(urlparse(url).query).get('id')
-            url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+            urls = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
         if "offerId" in url:
-            vid = parse_qs(urlparse(url).query).get('offerId')
-            url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
+            vid = parse_qs(urlparse(urls).query).get('offerId')
+            urls = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
         if "intl.taobao.com" in url:
-            vid = parse_qs(urlparse(url).query).get('id')
+            vid = parse_qs(urlparse(urls).query).get('id')
             url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
-        if "tmall.com" in url:
+        if "tmall.com" in urls:
             vid = parse_qs(urlparse(url).query).get('id')
-            url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
-        if "1688.com/offer/" in url:
+            urls = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        if "1688.com/offer/" in urls:
             vid = os.path.basename(urlparse(url).path)
-            url = "https://m.1688.com/offer/" + vid
+            urls = "https://m.1688.com/offer/" + vid
             logging.info("link sau khi convert")
-            logging.info(url)
-        if "qr.1688.com" in url:
-            oklink = qr1688(url)
+            logging.info(urls)
+        if "qr.1688.com" in urls:
+            oklink = qr1688(urls)
             logging.info("link 1688 sau khi convert")
             logging.info(url)
-            url = unquote(unquote(oklink))
-        if "tb.cn" in url:
-            linktb = tbcn(url)
+            urls = unquote(unquote(oklink))
+        if "tb.cn" in urls:
+            linktb = tbcn(urls)
             vid = parse_qs(urlparse(linktb).query).get('id')
             if "a.m.taobao.com" in linktb:
                 disassembled = urlparse(linktb)
                 videoid, file_ext = splitext(basename(disassembled.path))
                 videoid = re.sub(r"\D", "", videoid)
-                url = "https://world.taobao.com/item/" + videoid + ".htm"
+                urls = "https://world.taobao.com/item/" + videoid + ".htm"
             elif "video-fullpage" in linktb:
                 plink = urlparse(linktb)
                 videolink = parse_qs(plink.query)['videoUrl'][0]
-                url = videolink
+                urls = videolink
                 logging.info("here")
                 logging.info(videolink)
             else:
                 videoid = str(vid[0])
-                url = "https://world.taobao.com/item/" + videoid + ".htm"
+                urls = "https://world.taobao.com/item/" + videoid + ".htm"
             logging.info("tb.cn convert xong")
             logging.info(linktb)
-            logging.info(url)
+            logging.info(urls)
         logging.info("start %s", urls)
 
     for url in urls:
