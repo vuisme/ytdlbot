@@ -488,7 +488,7 @@ def gen_cap(bm, url, video_path):
         remain = ""
 
     if worker_name := os.getenv("WORKER_NAME"):
-        worker = f"Downloaded by  {worker_name}"
+        worker = f"Downloaded by {worker_name}"
     else:
         worker = ""
     cap = (
@@ -544,8 +544,12 @@ def purge_tasks():
 def run_celery():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(6))
+    worker_name_env = os.getenv("WORKER_NAME", "")
+    worker_name = worker_name_env + "-" + result_str
     worker_name = os.getenv("WORKER_NAME", "")
-    argv = ["-A", "tasks", "worker", "--loglevel=info", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name]
+    argv = ["-A", "tasks", "worker", "--loglevel=info", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name, "-Q", worker_name]
     app.worker_main(argv)
 
 
