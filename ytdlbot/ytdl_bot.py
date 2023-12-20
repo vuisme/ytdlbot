@@ -426,26 +426,26 @@ def download_handler(client: Client, message: types.Message):
         urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
         # url = VIP.extract_canonical_link(rawurl)
         if "item.taobao.com" in urls:
-            vid = parse_qs(urlparse(url).query).get('id')
+            vid = parse_qs(urlparse(urls).query).get('id')
             urls = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
-        if "offerId" in url:
+        if "offerId" in urls:
             vid = parse_qs(urlparse(urls).query).get('offerId')
             urls = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
-        if "intl.taobao.com" in url:
+        if "intl.taobao.com" in urls:
             vid = parse_qs(urlparse(urls).query).get('id')
             url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
         if "tmall.com" in urls:
-            vid = parse_qs(urlparse(url).query).get('id')
+            vid = parse_qs(urlparse(urls).query).get('id')
             urls = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
         if "1688.com/offer/" in urls:
-            vid = os.path.basename(urlparse(url).path)
+            vid = os.path.basename(urlparse(urls).path)
             urls = "https://m.1688.com/offer/" + vid
             logging.info("link sau khi convert")
             logging.info(urls)
         if "qr.1688.com" in urls:
             oklink = qr1688(urls)
             logging.info("link 1688 sau khi convert")
-            logging.info(url)
+            logging.info(urls)
             urls = unquote(unquote(oklink))
         if "tb.cn" in urls:
             linktb = tbcn(urls)
