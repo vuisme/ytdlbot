@@ -380,7 +380,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
 
     logging.info(chat_id)
     logging.info(vp_or_fid)
-    logging.iìno(ARCHIVE_ID)
+    logging.info(ARCHIVE_ID)
 
     if settings[2] == "document":
         logging.info("Sending as document")
