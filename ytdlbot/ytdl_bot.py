@@ -468,8 +468,6 @@ def download_handler(client: Client, message: types.Message):
             logging.info(linktb)
             logging.info(urls)
         logging.info("start %s", urls)
-
-    for url in urls:
         # check url
         # if not re.findall(r"^https?://", url.lower()):
             # redis.update_metrics("bad_request")
@@ -478,44 +476,44 @@ def download_handler(client: Client, message: types.Message):
             # return
 
         
+    logging.info("url is: %s", url)
+    if text := link_checker(url):
+        message.reply_text(text, quote=True)
+        redis.update_metrics("reject_link_checker")
         logging.info("url is: %s", url)
-        if text := link_checker(url):
-            message.reply_text(text, quote=True)
-            redis.update_metrics("reject_link_checker")
-            logging.info("url is: %s", url)
+        return
+
+    # old user is not limited by token
+    if ENABLE_VIP and not payment.check_old_user(chat_id):
+        free, pay, reset = payment.get_token(chat_id)
+        if free + pay <= 0:
+            message.reply_text(f"You don't have enough token. Please wait until {reset} or /buy .", quote=True)
+            redis.update_metrics("reject_token")
             return
+        else:
+            payment.use_token(chat_id)
 
-        # old user is not limited by token
-        if ENABLE_VIP and not payment.check_old_user(chat_id):
-            free, pay, reset = payment.get_token(chat_id)
-            if free + pay <= 0:
-                message.reply_text(f"You don't have enough token. Please wait until {reset} or /buy .", quote=True)
-                redis.update_metrics("reject_token")
-                return
-            else:
-                payment.use_token(chat_id)
+    redis.update_metrics("video_request")
 
-        redis.update_metrics("video_request")
+    text = BotText.get_receive_link_text()
+    try:
+        # raise pyrogram.errors.exceptions.FloodWait(10)
+        bot_msg: types.Message | Any = message.reply_text(text, quote=True)
+    except pyrogram.errors.Flood as e:
+        f = BytesIO()
+        f.write(str(e).encode())
+        f.write(b"Your job will be done soon. Just wait! Don't rush.")
+        f.name = "Please don't flood me.txt"
+        bot_msg = message.reply_document(
+            f, caption=f"Flood wait! Please wait {e} seconds...." f"Your job will start automatically", quote=True
+        )
+        f.close()
+        client.send_message(OWNER, f"Flood wait! 🙁 {e} seconds....")
+        time.sleep(e.value)
 
-        text = BotText.get_receive_link_text()
-        try:
-            # raise pyrogram.errors.exceptions.FloodWait(10)
-            bot_msg: types.Message | Any = message.reply_text(text, quote=True)
-        except pyrogram.errors.Flood as e:
-            f = BytesIO()
-            f.write(str(e).encode())
-            f.write(b"Your job will be done soon. Just wait! Don't rush.")
-            f.name = "Please don't flood me.txt"
-            bot_msg = message.reply_document(
-                f, caption=f"Flood wait! Please wait {e} seconds...." f"Your job will start automatically", quote=True
-            )
-            f.close()
-            client.send_message(OWNER, f"Flood wait! 🙁 {e} seconds....")
-            time.sleep(e.value)
-
-        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
-        bot_msg.chat = message.chat
-        ytdl_download_entrance(client, bot_msg, url)
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
+    bot_msg.chat = message.chat
+    ytdl_download_entrance(client, bot_msg, url)
 
 
 @app.on_callback_query(filters.regex(r"document|video|audio"))
