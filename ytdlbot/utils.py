@@ -23,7 +23,7 @@ import ffmpeg
 import psutil
 
 from pathlib import Path
-from db import MySQL
+from database import MySQL
 from flower_tasks import app
 from bs4 import BeautifulSoup
 from urllib.request import urlopen, Request
