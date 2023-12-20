@@ -27,9 +27,25 @@ import yt_dlp as ytdl
 from pyrogram import types
 from tqdm import tqdm
 
-from config import AUDIO_FORMAT, ENABLE_ARIA2, ENABLE_FFMPEG, TG_MAX_SIZE, IPv6
+from config import (
+    AUDIO_FORMAT,
+    ENABLE_ARIA2,
+    ENABLE_FFMPEG,
+    TG_MAX_SIZE,
+    IPv6,
+)
 from limit import Payment
-from utils import adjust_formats, apply_log_formatter, current_time, sizeof_fmt
+from utils import (
+    adjust_formats,
+    apply_log_formatter,
+    current_time,
+    sizeof_fmt,
+    add_retries,
+    add_cookies,
+    add_proxies,
+    add_image_download
+)
+
 
 r = fakeredis.FakeStrictRedis()
 apply_log_formatter()
@@ -161,6 +177,7 @@ def ytdl_download(url: str, tempdir: str, bm, **kwargs) -> list:
         "outtmpl": output,
         "restrictfilenames": False,
         "quiet": True,
+        "proxy": os.getenv('YTDL_PROXY')
     }
     if ENABLE_ARIA2:
         ydl_opts["external_downloader"] = "aria2c"
@@ -182,6 +199,10 @@ def ytdl_download(url: str, tempdir: str, bm, **kwargs) -> list:
             None,
         ]
     adjust_formats(chat_id, url, formats, hijack)
+    add_cookies(url, ydl_opts)
+    add_proxies(url, ydl_opts)
+    add_image_download(url, ydl_opts)
+    add_retries(url, ydl_opts)
     if download_instagram(url, tempdir):
         return list(pathlib.Path(tempdir).glob("*"))
 
