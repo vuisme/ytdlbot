@@ -477,7 +477,8 @@ def download_handler(client: Client, message: types.Message):
             # message.reply_text(text, quote=True, disable_web_page_preview=True)
             # return
 
-
+        
+        logging.info("url is: %s", url)
         if text := link_checker(url):
             message.reply_text(text, quote=True)
             redis.update_metrics("reject_link_checker")
