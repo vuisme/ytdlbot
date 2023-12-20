@@ -177,7 +177,6 @@ def ytdl_download(url: str, tempdir: str, bm, **kwargs) -> list:
         "outtmpl": output,
         "restrictfilenames": False,
         "quiet": True,
-        "proxy": os.getenv('YTDL_PROXY')
     }
     if ENABLE_ARIA2:
         ydl_opts["external_downloader"] = "aria2c"
