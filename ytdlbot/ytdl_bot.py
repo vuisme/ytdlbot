@@ -481,6 +481,7 @@ def download_handler(client: Client, message: types.Message):
         if text := link_checker(url):
             message.reply_text(text, quote=True)
             redis.update_metrics("reject_link_checker")
+            logging.info("url is: %s", url)
             return
 
         # old user is not limited by token
