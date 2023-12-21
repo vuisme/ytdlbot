@@ -341,6 +341,19 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     logging.info(mp4_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     bot_msg.edit_text("Download complete. Sending now...")
+    min_size_kb = 20
+    image_lists = filter_images(lst_paths, min_size_kb)
+    if image_lists:
+        img_lists = []
+        max_images_per_list = 9
+        split_lists = split_image_lists(img_lists, max_images_per_list)
+        logging.info(split_lists)
+        for i, image_paths in enumerate(split_lists, start=1):
+            logging.info(image_paths)
+            # upload_processor(client, bot_msg, url, image_paths)
+    else:
+        logging.info("Không có ảnh")
+    
     try:
         upload_processor(client, bot_msg, url, mp4_paths)
     except pyrogram.errors.Flood as e:
@@ -488,7 +501,8 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
                 reply_markup=markup,
                 **meta,
             )
-        except Exception:
+        except Exception as e:
+            logging.info(e)
             # try to send as annimation, photo
             try:
                 logging.warning("Retry to send as animation")
