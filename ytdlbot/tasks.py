@@ -45,7 +45,7 @@ from config import (
     RCLONE_PATH,
     TMPFILE_PATH,
     WORKERS,
-    ENABLE_QUEUE,
+    FileTooBig,
 )
 from constant import BotText
 from database import Redis
@@ -86,11 +86,30 @@ def retrieve_message(chat_id: int, message_id: int) -> types.Message | Any:
         return bot.get_messages(chat_id, message_id)
 
 
+def premium_button():
+    markup = types.InlineKeyboardMarkup(
+        [
+            [
+                types.InlineKeyboardButton("Yes", callback_data="premium-yes"),
+                types.InlineKeyboardButton("No", callback_data="premium-no"),
+            ]
+        ]
+    )
+    return markup
+
+
 @app.task(rate_limit=f"{RATE_LIMIT}/m")
 def ytdl_download_task(chat_id: int, message_id: int, url: str):
     logging.info("YouTube celery tasks started for %s", url)
     bot_msg = retrieve_message(chat_id, message_id)
-    ytdl_normal_download(bot, bot_msg, url)
+    try:
+        ytdl_normal_download(bot, bot_msg, url)
+    except FileTooBig as e:
+        # if you can go there, that means you have premium users set up
+        logging.warning("Seeking for help from premium user...")
+        bot_msg.edit_text(f"{e}\n\n{bot_text.premium_warning}", reply_markup=premium_button())
+    except Exception:
+        bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
     logging.info("YouTube celery tasks ended.")
 
 
@@ -157,12 +176,17 @@ def ytdl_download_entrance(client: Client, bot_msg: types.Message, url: str, mod
         redis.update_metrics("cache_miss")
         mode = mode or payment.get_user_settings(chat_id)[-1]
         if ENABLE_CELERY and mode in [None, "Celery"]:
+            # in celery mode, producer has lost control of this task.
             ytdl_download_task.delay(chat_id, bot_msg.id, url)
         else:
             ytdl_normal_download(client, bot_msg, url)
+    except FileTooBig as e:
+        logging.warning("Seeking for help from premium user...")
+        # this is only for normal node. Celery node will need to do it in celery tasks
+        bot_msg.edit_text(f"{e}\n\n{bot_text.premium_warning}", reply_markup=premium_button())
     except Exception as e:
         logging.error("Failed to download %s, error: %s", url, e)
-        bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[0:4000]}`", disable_web_page_preview=True)
+        bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
 
 
 def direct_download_entrance(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):

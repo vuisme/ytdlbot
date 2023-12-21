@@ -31,7 +31,9 @@ from config import (
     AUDIO_FORMAT,
     ENABLE_ARIA2,
     ENABLE_FFMPEG,
+    PREMIUM_USER,
     TG_MAX_SIZE,
+    FileTooBig,
     IPv6,
 )
 from limit import Payment
@@ -108,7 +110,11 @@ def download_hook(d: dict, bot_msg):
         downloaded = d.get("downloaded_bytes", 0)
         total = d.get("total_bytes") or d.get("total_bytes_estimate", 0)
         if total > TG_MAX_SIZE:
-            raise Exception(f"Your download file size {sizeof_fmt(total)} is too large for Telegram.")
+            msg = f"Your download file size {sizeof_fmt(total)} is too large for Telegram."
+            if PREMIUM_USER:
+                raise FileTooBig(msg)
+            else:
+                raise Exception(msg)
 
         # percent = remove_bash_color(d.get("_percent_str", "N/A"))
         speed = remove_bash_color(d.get("_speed_str", "N/A"))
@@ -219,6 +225,8 @@ def ytdl_download(url: str, tempdir: str, bm, **kwargs) -> list:
                     ydl.download([url])
                 video_paths = list(pathlib.Path(tempdir).glob("*"))
                 break
+            except FileTooBig as e:
+                raise e
             except Exception:
                 error = traceback.format_exc()
                 logging.error("Download failed for %s - %s, try another way", format_, url)
