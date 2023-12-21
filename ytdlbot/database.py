@@ -259,7 +259,7 @@ class MySQL:
             logging.info(MYSQL_PASS)
             logging.info(MYSQL_PORT)
             self.con = pymysql.connect(
-                host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER, password=MYSQL_PASS, database="ytdl", charset="utf8mb4"
+                host=MYSQL_HOST, port=int(MYSQL_PORT), user=MYSQL_USER, password=MYSQL_PASS, database="ytdl", charset="utf8mb4"
             )
         except Exception as e:
             logging.info(e.message)
