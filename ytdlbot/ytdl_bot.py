@@ -40,6 +40,7 @@ from config import (
     M3U8_SUPPORT,
     OWNER,
     PLAYLIST_SUPPORT,
+    PREMIUM_USER,
     PROVIDER_TOKEN,
     REQUIRED_MEMBERSHIP,
     TOKEN_PRICE,
@@ -315,6 +316,18 @@ def tronpayment_btn_calback(client: Client, callback_query: types.CallbackQuery)
         client.send_photo(chat_id, bio, caption=f"Send any amount of TRX to `{addr}`")
 
 
+@app.on_callback_query(filters.regex(r"premium.*"))
+def premium_click(client: Client, callback_query: types.CallbackQuery):
+    data = callback_query.data
+    if data == "premium-yes":
+        callback_query.answer("developing....please wait for next release")
+        # replied = callback_query.message.reply_to_message
+        # data = {"url": replied.text, "user_id": callback_query.message.chat.id}
+        # client.send_message(PREMIUM_USER, json.dumps(data), disable_notification=True, disable_web_page_preview=True)
+    else:
+        callback_query.answer("Cancelled.")
+
+
 @app.on_callback_query(filters.regex(r"bot-payments-.*"))
 def bot_payment_btn_calback(client: Client, callback_query: types.CallbackQuery):
     callback_query.answer("Generating invoice...")
@@ -343,6 +356,13 @@ def redeem_handler(client: Client, message: types.Message):
     unique = text.replace("/redeem", "").strip()
     msg = payment.verify_payment(chat_id, unique)
     message.reply_text(msg, quote=True)
+
+
+@app.on_message(filters.user(PREMIUM_USER) & filters.incoming & filters.caption)
+def premium_forward(client: Client, message: types.Message):
+    media = message.video or message.audio or message.document
+    target_user = media.file_name.split(".")[0]
+    client.forward_messages(target_user, message.chat.id, message.id)
 
 
 def generate_invoice(amount: int, title: str, description: str, payload: str):
