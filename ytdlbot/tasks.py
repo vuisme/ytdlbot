@@ -334,28 +334,24 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-", dir=TMPFILE_PATH)
 
-    video_paths = ytdl_download(url, temp_dir.name, bot_msg)
+    lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
-    logging.info(video_paths)
-    file_paths = video_paths["filepath"]
-    for v_path in file_paths:
-        extPath = pathlib.Path(v_path).suffix
-        st_size = os.stat(v_path).st_size
-        if (extPath == '.mp4' or extPath == '.mkv' or extPath == '.webm' or extPath == '.mov'):
-            client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
-            bot_msg.edit_text("Download complete. Sending now...")
-            try:
-                upload_processor(client, bot_msg, url, v_path)
-            except pyrogram.errors.Flood as e:
-                logging.critical("FloodWait from Telegram: %s", e)
-                client.send_message(
-                    chat_id,
-                    f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
-                )
-                client.send_message(OWNER, f"CRITICAL INFO: {e}")
-                time.sleep(e.value)
-                upload_processor(client, bot_msg, url, v_path)
-
+    logging.info(lst_paths)
+    mp4_paths = [path for path in lst_paths if path.suffix.lower() == '.mp4']
+    logging.info(mp4_paths)
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    bot_msg.edit_text("Download complete. Sending now...")
+    try:
+        upload_processor(client, bot_msg, url, v_path)
+    except pyrogram.errors.Flood as e:
+        logging.critical("FloodWait from Telegram: %s", e)
+        client.send_message(
+            chat_id,
+            f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+        )
+        client.send_message(OWNER, f"CRITICAL INFO: {e}")
+        time.sleep(e.value)
+        upload_processor(client, bot_msg, url, v_path)
     bot_msg.edit_text("Download success!✅")
 
     # setup rclone environment var to back up the downloaded file
