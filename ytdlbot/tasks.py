@@ -352,6 +352,16 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         client.send_message(OWNER, f"CRITICAL INFO: {e}")
         time.sleep(e.value)
         upload_processor(client, bot_msg, url, mp4_paths)
+    min_size_kb = 20
+    image_lists = filter_images(lst_paths, min_size_kb)
+    if image_lists:
+        img_lists = []
+        max_images_per_list = 9
+        split_lists = split_image_lists(img_lists, max_images_per_list)
+        for i, image_paths in enumerate(split_lists, start=1):
+            upload_processor(client, bot_msg, url, image_paths)
+    else:
+        logging.info("Không có ảnh")
     bot_msg.edit_text("Download success!✅")
 
     # setup rclone environment var to back up the downloaded file
@@ -360,6 +370,34 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
             logging.info("Copying %s to %s", item, RCLONE_PATH)
             shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
     temp_dir.cleanup()
+
+
+def filter_images(posix_paths, min_size_kb):
+    image_paths = []
+
+    for posix_path in posix_paths:
+        filepath = str(posix_path)
+
+        try:
+            # Kiểm tra định dạng ảnh và kích thước
+            if filepath.lower().endswith(('.jpeg', '.jpg', '.png')) and os.path.getsize(filepath) > min_size_kb * 1024:
+                image_paths.append(filepath)
+        except Exception as e:
+            pass  # Bỏ qua nếu không phải là ảnh hoặc có lỗi khi đọc kích thước
+
+    return image_paths
+
+def split_image_lists(image_paths, max_images_per_list):
+    if not image_paths:
+        print("Không có hình ảnh phù hợp.")
+        return []
+
+    split_lists = []
+
+    for i in range(0, len(image_paths), max_images_per_list):
+        split_lists.append(image_paths[i:i + max_images_per_list])
+
+    return split_lists
 
 
 def generate_input_media(file_paths: list, cap: str) -> list:
