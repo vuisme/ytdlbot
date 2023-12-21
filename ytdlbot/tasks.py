@@ -388,7 +388,7 @@ def filter_images(posix_paths, min_size_kb):
                 image_paths.append(filepath)
         except Exception as e:
             pass  # Bỏ qua nếu không phải là ảnh hoặc có lỗi khi đọc kích thước
-
+        logging.info(image_paths)
     return image_paths
 
 def split_image_lists(image_paths, max_images_per_list):
