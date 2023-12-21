@@ -377,10 +377,11 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
 
 def filter_images(posix_paths, min_size_kb):
     image_paths = []
-
+    logging.info(posix_paths)
     for posix_path in posix_paths:
         filepath = str(posix_path)
-
+        logging.info(filepath)
+        logging.info(os.path.getsize(filepath)
         try:
             # Kiểm tra định dạng ảnh và kích thước
             if filepath.lower().endswith(('.jpeg', '.jpg', '.png')) and os.path.getsize(filepath) > min_size_kb * 1024:
@@ -427,8 +428,8 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     payment = Payment()
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
-    logging.info(chat_id)
     logging.info(markup)
+    logging.info(chat_id)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
