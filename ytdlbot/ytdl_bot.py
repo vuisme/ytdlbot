@@ -29,6 +29,8 @@ from pyrogram.raw import types as raw_types
 from tgbot_ping import get_runtime
 from youtubesearchpython import VideosSearch
 
+from urllib.parse import parse_qs, urlparse, unquote
+from os.path import splitext, basename
 from channel import Channel
 from client_init import create_app
 from config import (
@@ -45,6 +47,7 @@ from config import (
     REQUIRED_MEMBERSHIP,
     TOKEN_PRICE,
     TRX_SIGNAL,
+    ARCHIVE_ID,
 )
 from constant import BotText
 from database import InfluxDB, MySQL, Redis
@@ -56,8 +59,17 @@ from tasks import (
     hot_patch,
     purge_tasks,
     ytdl_download_entrance,
+    image_entrance,
 )
-from utils import auto_restart, clean_tempfile, customize_logger, get_revision
+from utils import (
+    auto_restart,
+    clean_tempfile,
+    customize_logger,
+    get_revision,
+    tbcn,
+    qr1688,
+)
+
 
 logging.info("Authorized users are %s", AUTHORIZED_USER)
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
@@ -123,7 +135,8 @@ def start_handler(client: Client, message: types.Message):
         info = ""
     text = f"{BotText.start}\n\n{info}\n{BotText.custom_text}"
     client.send_message(message.chat.id, text, disable_web_page_preview=True)
-
+    newuser = f"Thành viên mới \n{info}"
+    client.send_message(ARCHIVE_ID, newuser)
 
 @app.on_message(filters.command(["help"]))
 def help_handler(client: Client, message: types.Message):
@@ -425,53 +438,101 @@ def download_handler(client: Client, message: types.Message):
             contents = open(tf.name, "r").read()  # don't know why
         urls = contents.split()
     else:
-        urls = [re.sub(r"/ytdl\s*", "", message.text)]
-        logging.info("start %s", urls)
-
-    for url in urls:
-        # check url
-        if not re.findall(r"^https?://", url.lower()):
-            redis.update_metrics("bad_request")
-            text = search_ytb(url)
-            message.reply_text(text, quote=True, disable_web_page_preview=True)
+        # urls = [re.sub(r"/ytdl\s*", "", message.text)]
+        if not re.findall(r"(?P<linkrm>https?://[^\s]+)", message.text):
+            red.update_metrics("bad_request")
+            message.reply_text("I think you should send me a link.", quote=True)
             return
-
-        if text := link_checker(url):
-            message.reply_text(text, quote=True)
-            redis.update_metrics("reject_link_checker")
-            return
-
-        # old user is not limited by token
-        if ENABLE_VIP and not payment.check_old_user(chat_id):
-            free, pay, reset = payment.get_token(chat_id)
-            if free + pay <= 0:
-                message.reply_text(f"You don't have enough token. Please wait until {reset} or /buy .", quote=True)
-                redis.update_metrics("reject_token")
-                return
+        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+        # url = VIP.extract_canonical_link(rawurl)
+        if "item.taobao.com" in urls:
+            vid = parse_qs(urlparse(urls).query).get('id')
+            urls = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        if "offerId" in urls:
+            vid = parse_qs(urlparse(urls).query).get('offerId')
+            urls = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
+        if "intl.taobao.com" in urls:
+            vid = parse_qs(urlparse(urls).query).get('id')
+            url = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        if "tmall.com" in urls:
+            vid = parse_qs(urlparse(urls).query).get('id')
+            urls = "https://world.taobao.com/item/" + str(vid[0]) + ".htm"
+        if "1688.com/offer/" in urls:
+            vid = os.path.basename(urlparse(urls).path)
+            urls = "https://m.1688.com/offer/" + vid
+            logging.info("link sau khi convert")
+            logging.info(urls)
+        if "qr.1688.com" in urls:
+            oklink = qr1688(urls)
+            logging.info("link 1688 sau khi convert")
+            logging.info(urls)
+            urls = unquote(unquote(oklink))
+        if "tb.cn" in urls:
+            linktb = tbcn(urls)
+            vid = parse_qs(urlparse(linktb).query).get('id')
+            if "a.m.taobao.com" in linktb:
+                disassembled = urlparse(linktb)
+                videoid, file_ext = splitext(basename(disassembled.path))
+                videoid = re.sub(r"\D", "", videoid)
+                urls = "https://world.taobao.com/item/" + videoid + ".htm"
+            elif "video-fullpage" in linktb:
+                plink = urlparse(linktb)
+                videolink = parse_qs(plink.query)['videoUrl'][0]
+                urls = videolink
+                logging.info("here")
+                logging.info(videolink)
             else:
-                payment.use_token(chat_id)
+                videoid = str(vid[0])
+                urls = "https://world.taobao.com/item/" + videoid + ".htm"
+            logging.info("tb.cn convert xong")
+            logging.info(linktb)
+            logging.info(urls)
+        logging.info("start %s", urls)
+        # check url
+        # if not re.findall(r"^https?://", url.lower()):
+            # redis.update_metrics("bad_request")
+            # text = search_ytb(url)
+            # message.reply_text(text, quote=True, disable_web_page_preview=True)
+            # return
 
-        redis.update_metrics("video_request")
+        
+    logging.info("url is: %s", urls)
+    if text := link_checker(urls):
+        message.reply_text(text, quote=True)
+        redis.update_metrics("reject_link_checker")
+        return
 
-        text = BotText.get_receive_link_text()
-        try:
-            # raise pyrogram.errors.exceptions.FloodWait(10)
-            bot_msg: types.Message | Any = message.reply_text(text, quote=True)
-        except pyrogram.errors.Flood as e:
-            f = BytesIO()
-            f.write(str(e).encode())
-            f.write(b"Your job will be done soon. Just wait! Don't rush.")
-            f.name = "Please don't flood me.txt"
-            bot_msg = message.reply_document(
-                f, caption=f"Flood wait! Please wait {e} seconds...." f"Your job will start automatically", quote=True
-            )
-            f.close()
-            client.send_message(OWNER, f"Flood wait! 🙁 {e} seconds....")
-            time.sleep(e.value)
+    # old user is not limited by token
+    if ENABLE_VIP and not payment.check_old_user(chat_id):
+        free, pay, reset = payment.get_token(chat_id)
+        if int(free) + int(pay) <= 0:
+            message.reply_text(f"You don't have enough token. Please wait until {reset} or /buy .", quote=True)
+            redis.update_metrics("reject_token")
+            return
+        else:
+            payment.use_token(chat_id)
 
-        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
-        bot_msg.chat = message.chat
-        ytdl_download_entrance(client, bot_msg, url)
+    redis.update_metrics("video_request")
+
+    text = BotText.get_receive_link_text()
+    try:
+        # raise pyrogram.errors.exceptions.FloodWait(10)
+        bot_msg: types.Message | Any = message.reply_text(text, quote=True)
+    except pyrogram.errors.Flood as e:
+        f = BytesIO()
+        f.write(str(e).encode())
+        f.write(b"Your job will be done soon. Just wait! Don't rush.")
+        f.name = "Please don't flood me.txt"
+        bot_msg = message.reply_document(
+            f, caption=f"Flood wait! Please wait {e} seconds...." f"Your job will start automatically", quote=True
+        )
+        f.close()
+        client.send_message(OWNER, f"Flood wait! 🙁 {e} seconds....")
+        time.sleep(e.value)
+
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
+    bot_msg.chat = message.chat
+    ytdl_download_entrance(client, bot_msg, urls)
 
 
 @app.on_callback_query(filters.regex(r"document|video|audio"))
@@ -503,6 +564,14 @@ def audio_callback(client: Client, callback_query: types.CallbackQuery):
     callback_query.answer(f"Converting to audio...please wait patiently")
     redis.update_metrics("audio_request")
     audio_entrance(client, callback_query.message)
+
+
+@app.on_callback_query(filters.regex(r"getimg"))
+def getimg_callback(client: Client, callback_query: types.CallbackQuery):
+    redis = Redis()
+    callback_query.answer(f"Đang lấy ảnh...")
+    redis.update_metrics("images_request")
+    image_entrance(client, callback_query.message)
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))

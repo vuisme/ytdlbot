@@ -19,6 +19,8 @@ import threading
 import time
 import traceback
 import typing
+import string
+import random
 from typing import Any
 from urllib.parse import quote_plus
 
@@ -47,7 +49,13 @@ from config import (
 )
 from constant import BotText
 from database import Redis
-from downloader import edit_text, tqdm_progress, upload_hook, ytdl_download
+from downloader import (
+    edit_text,
+    tqdm_progress,
+    upload_hook,
+    ytdl_download
+
+)
 from limit import Payment
 from utils import (
     apply_log_formatter,
@@ -111,6 +119,14 @@ def audio_task(chat_id: int, message_id: int):
     bot_msg = retrieve_message(chat_id, message_id)
     normal_audio(bot, bot_msg)
     logging.info("Audio celery tasks ended.")
+
+
+@app.task()
+def image_task(chat_id, message_id, url):
+    logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
+    bot_msg = retrieve_message(chat_id, message_id)
+    normal_image(bot, bot_msg, url)
+    logging.info("Image celery tasks ended.")
 
 
 @app.task()
@@ -188,6 +204,13 @@ def audio_entrance(client: Client, bot_msg: types.Message):
         normal_audio(client, bot_msg)
 
 
+def image_entrance(client: Client, bot_msg: types.Message):
+    if ENABLE_CELERY:
+        image_task.delay(bot_msg.chat.id, bot_msg.id)
+    else:
+        normal_image(client, bot_msg, url)
+
+
 def direct_normal_download(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
     chat_id = bot_msg.chat.id
     headers = {
@@ -252,6 +275,55 @@ def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
         Redis().update_metrics("audio_success")
 
 
+def normal_image(bot_msg, client, url):
+    chat_id = bot_msg.chat.id
+    url: "str" = re.findall(r"https?://.*", bot_msg.caption)[0]
+    status_msg = bot_msg.reply_text("Đang lấy ảnh... vui lòng chờ", quote=True)
+    temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-")
+    logging.info("Download image complete.")
+    with tempfile.TemporaryDirectory(prefix="ytdl-") as tmp:
+        result = ytdl_download(url, tmp, status_msg)
+        if result["status"]:
+            status_msg.edit_text("Lấy ảnh thành công! Đang gửi...")
+            video_paths = result["filepath"]
+            lstimg = []
+            for url_path in video_paths:
+                extPathURL = pathlib.Path(url_path).suffix
+                st_size = os.stat(url_path).st_size
+                if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
+                    lstimg.append(
+                        InputMediaPhoto(
+                            media=url_path
+                        )
+                    )
+            if lstimg:
+                newlst = split_list(lstimg, 9)
+                for array in newlst:
+                    client.send_chat_action(chat_id, 'upload_photo')
+                    client.send_media_group(
+                        chat_id,
+                        disable_notification=True,
+                        media=array)
+                status_msg.edit_text("Hoàn tất lấy ảnh! ✅")
+                Redis().update_metrics("image_success")
+        else:
+            client.send_chat_action(chat_id, 'typing')
+            tb = result["error"][0:4000]
+            bot_msg.edit_text(f"Lấy ảnh thất bại!❌\n\n```{tb}```", disable_web_page_preview=True)
+            try:
+                user_info = "@{} ({}) - {}".format(
+                    bot_msg.chat.username or "",
+                    bot_msg.chat.first_name or "" + bot_msg.chat.last_name or "",
+                    bot_msg.chat.id
+                )
+            except Exception:
+                user_info = ""
+            texterror = f"{user_info}\nLấy ảnh thất bại!❌\n\n```{tb}```"
+            client.send_message(ARCHIVE_ID, texterror)
+
+        temp_dir.cleanup()
+
+
 def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, url: str):
     """
     This function is called by celery task or directly by bot
@@ -312,6 +384,8 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     payment = Payment()
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
+    logging.info(chat_id)
+    logging.info(markup)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
@@ -329,6 +403,10 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     settings = payment.get_user_settings(chat_id)
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
+
+    logging.info(chat_id)
+    logging.info(vp_or_fid)
+    logging.info(ARCHIVE_ID)
 
     if settings[2] == "document":
         logging.info("Sending as document")
@@ -368,6 +446,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     else:
         # settings==video
         logging.info("Sending as video")
+        logging.info(cap)
         try:
             res_msg = client.send_video(
                 chat_id,
@@ -405,6 +484,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
 
     unique = get_unique_clink(url, bot_msg.chat.id)
     obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation or res_msg.photo
+    logging.info(obj)
     redis.add_send_cache(unique, getattr(obj, "file_id", None))
     redis.update_metrics("video_success")
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
@@ -442,7 +522,7 @@ def gen_cap(bm, url, video_path):
         remain = ""
 
     if worker_name := os.getenv("WORKER_NAME"):
-        worker = f"Downloaded by  {worker_name}"
+        worker = f"Downloaded by {worker_name}"
     else:
         worker = ""
     cap = (
@@ -498,7 +578,10 @@ def purge_tasks():
 def run_celery():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+    # letters = string.ascii_lowercase
+    # result_str = ''.join(random.choice(letters) for i in range(6))
     worker_name = os.getenv("WORKER_NAME", "")
+    #worker_name = worker_name_env + "-" + result_str
     argv = ["-A", "tasks", "worker", "--loglevel=info", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name]
     app.worker_main(argv)
 

@@ -42,9 +42,10 @@ if IS_BACKUP_BOT:
 else:
     BROKER = os.getenv("BROKER", f"redis://{REDIS}:6379/0")
 
-MYSQL_HOST = os.getenv("MYSQL_HOST", "mysql")
-MYSQL_USER = os.getenv("MYSQL_USER", "root")
-MYSQL_PASS = os.getenv("MYSQL_PASS", "root")
+MYSQL_HOST = os.getenv("MYSQL_HOST", "")
+MYSQL_USER = os.getenv("MYSQL_USER", "")
+MYSQL_PASS = os.getenv("MYSQL_PASS", "")
+MYSQL_PORT = os.getenv("MYSQL_PORT", "")
 
 AUDIO_FORMAT = os.getenv("AUDIO_FORMAT")
 ARCHIVE_ID = os.getenv("ARCHIVE_ID")
@@ -77,9 +78,11 @@ TRONGRID_KEY = os.getenv("TRONGRID_KEY", "").split(",")
 # the default mnemonic is for nile testnet
 TRON_MNEMONIC = os.getenv("TRON_MNEMONIC", "cram floor today legend service drill pitch leaf car govern harvest soda")
 TRX_SIGNAL = signal("trx_received")
-
+# URL WHITELIST
+URL_LIST = os.getenv("URL_LIST", "")
+URL_ARRAY = URL_LIST.split(',')
+TAOBAO_PROXY = os.environ.get("TAOBAO_PROXY", "")
+ENABLE_QUEUE = os.getenv("ENABLE_QUEUE", False)
 PREMIUM_USER = int(os.getenv("PREMIUM_USER", "0"))
-
-
 class FileTooBig(Exception):
     pass
