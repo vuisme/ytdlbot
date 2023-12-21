@@ -358,7 +358,9 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         img_lists = []
         max_images_per_list = 9
         split_lists = split_image_lists(img_lists, max_images_per_list)
+        logging.info(split_lists)
         for i, image_paths in enumerate(split_lists, start=1):
+            logging.info(image_paths)
             upload_processor(client, bot_msg, url, image_paths)
     else:
         logging.info("Không có ảnh")
