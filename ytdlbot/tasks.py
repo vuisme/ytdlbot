@@ -341,7 +341,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     for v_path in file_paths:
         extPath = pathlib.Path(v_path).suffix
         st_size = os.stat(v_path).st_size
-         if (extPath == '.mp4' or extPath == '.mkv' or extPath == '.webm' or extPath == '.mov'):
+        if (extPath == '.mp4' or extPath == '.mkv' or extPath == '.webm' or extPath == '.mov'):
             client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
             bot_msg.edit_text("Download complete. Sending now...")
             try:
