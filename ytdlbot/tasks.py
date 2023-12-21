@@ -496,11 +496,6 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
             res_msg = client.send_video(
                 chat_id,
                 vp_or_fid,
-                supports_streaming=True,
-                caption=cap,
-                progress=upload_hook,
-                progress_args=(bot_msg,),
-                reply_markup=markup,
                 **meta,
             )
             logging.info(res_msg)
