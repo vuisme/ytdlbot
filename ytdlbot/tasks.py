@@ -381,7 +381,7 @@ def filter_images(posix_paths, min_size_kb):
     for posix_path in posix_paths:
         filepath = str(posix_path)
         logging.info(filepath)
-        logging.info(os.path.getsize(filepath)
+        logging.info(os.path.getsize(filepath))
         try:
             # Kiểm tra định dạng ảnh và kích thước
             if filepath.lower().endswith(('.jpeg', '.jpg', '.png')) and os.path.getsize(filepath) > min_size_kb * 1024:
