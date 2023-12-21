@@ -343,10 +343,11 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     bot_msg.edit_text("Download complete. Sending now...")
     min_size_kb = 20
     image_lists = filter_images(lst_paths, min_size_kb)
+    logging.info(image_lists)
     if image_lists:
         img_lists = []
         max_images_per_list = 9
-        split_lists = split_image_lists(img_lists, max_images_per_list)
+        split_lists = split_image_lists(imgage_lists, max_images_per_list)
         logging.info(split_lists)
         for i, image_paths in enumerate(split_lists, start=1):
             logging.info(image_paths)
@@ -377,18 +378,14 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
 
 def filter_images(posix_paths, min_size_kb):
     image_paths = []
-    logging.info(posix_paths)
     for posix_path in posix_paths:
         filepath = str(posix_path)
-        logging.info(filepath)
-        logging.info(os.path.getsize(filepath))
         try:
             # Kiểm tra định dạng ảnh và kích thước
             if filepath.lower().endswith(('.jpeg', '.jpg', '.png')) and os.path.getsize(filepath) > min_size_kb * 1024:
                 image_paths.append(filepath)
         except Exception as e:
             pass  # Bỏ qua nếu không phải là ảnh hoặc có lỗi khi đọc kích thước
-        logging.info(image_paths)
     return image_paths
 
 def split_image_lists(image_paths, max_images_per_list):
