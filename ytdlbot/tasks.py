@@ -344,7 +344,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     image_lists = filter_images(lst_paths, min_size_kb)
     if image_lists:
         img_lists = []
-        max_images_per_list = 20
+        max_images_per_list = 9
         split_lists = split_image_lists(image_lists, max_images_per_list)
         for i, image_paths in enumerate(split_lists, start=1):
             logging.info(image_paths)
