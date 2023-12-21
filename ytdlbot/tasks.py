@@ -582,7 +582,7 @@ def run_celery():
     asyncio.set_event_loop(loop)
     letters = string.ascii_lowercase
     result_str = ''.join(random.choice(letters) for i in range(6))
-    worker_name = os.getenv("WORKER_NAME", "")
+    worker_name_env = os.getenv("WORKER_NAME", "")
     worker_name = worker_name_env + "-" + result_str
     argv = ["-A", "tasks", "worker", "--loglevel=info", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name]
     app.worker_main(argv)
