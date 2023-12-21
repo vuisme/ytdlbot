@@ -28,3 +28,4 @@ qrcode==7.4.2
 blinker==1.7.0
 flask===3.0.0
 cryptography==38.0.3
+html5lib==1.1
