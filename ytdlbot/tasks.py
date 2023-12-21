@@ -342,7 +342,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     bot_msg.edit_text("Download complete. Sending now...")
     try:
-        upload_processor(client, bot_msg, url, v_path)
+        upload_processor(client, bot_msg, url, mp4_paths)
     except pyrogram.errors.Flood as e:
         logging.critical("FloodWait from Telegram: %s", e)
         client.send_message(
@@ -351,7 +351,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         )
         client.send_message(OWNER, f"CRITICAL INFO: {e}")
         time.sleep(e.value)
-        upload_processor(client, bot_msg, url, v_path)
+        upload_processor(client, bot_msg, url, mp4_paths)
     bot_msg.edit_text("Download success!✅")
 
     # setup rclone environment var to back up the downloaded file
