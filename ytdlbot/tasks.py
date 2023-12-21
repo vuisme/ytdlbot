@@ -495,7 +495,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
             logging.info(vp_or_fid)     
             res_msg = client.send_video(
                 chat_id,
-                'a.mp4',
+                '/a.mp4',
                 **meta,
             )
             logging.info(res_msg)
