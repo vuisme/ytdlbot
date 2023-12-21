@@ -130,7 +130,7 @@ def start_handler(client: Client, message: types.Message):
         info = ""
     if ENABLE_VIP:
         free_token, pay_token, reset = payment.get_token(from_id)
-        info = f"Free token: {free_token}, Pay token: {pay_token}, Reset: {reset}"
+        info = f"ID: {from_id}, Free token: {free_token}, Pay token: {pay_token}, Reset: {reset}"
     else:
         info = ""
     text = f"{BotText.start}\n\n{info}\n{BotText.custom_text}"
@@ -440,7 +440,7 @@ def download_handler(client: Client, message: types.Message):
     else:
         # urls = [re.sub(r"/ytdl\s*", "", message.text)]
         if not re.findall(r"(?P<linkrm>https?://[^\s]+)", message.text):
-            red.update_metrics("bad_request")
+            redis.update_metrics("bad_request")
             message.reply_text("I think you should send me a link.", quote=True)
             return
         urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")

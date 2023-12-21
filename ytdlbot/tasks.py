@@ -335,6 +335,8 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-", dir=TMPFILE_PATH)
 
     video_paths = ytdl_download(url, temp_dir.name, bot_msg)
+    logging.info(video_paths)
+    logging.info(video_paths["filepath"])
     logging.info("Download complete.")
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     bot_msg.edit_text("Download complete. Sending now...")
@@ -578,10 +580,10 @@ def purge_tasks():
 def run_celery():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    # letters = string.ascii_lowercase
-    # result_str = ''.join(random.choice(letters) for i in range(6))
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(6))
     worker_name = os.getenv("WORKER_NAME", "")
-    #worker_name = worker_name_env + "-" + result_str
+    worker_name = worker_name_env + "-" + result_str
     argv = ["-A", "tasks", "worker", "--loglevel=info", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name]
     app.worker_main(argv)
 

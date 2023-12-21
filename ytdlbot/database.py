@@ -254,17 +254,12 @@ class MySQL:
 
     def __init__(self):
         try:
-            logging.info(MYSQL_HOST)
-            logging.info(MYSQL_USER)
-            logging.info(MYSQL_PASS)
-            logging.info(MYSQL_PORT)
+
             self.con = pymysql.connect(
                 host=MYSQL_HOST, port=int(MYSQL_PORT), user=MYSQL_USER, password=MYSQL_PASS, database="ytdl", charset="utf8mb4"
             )
         except Exception as e:
-            logging.info(e.message)
-            logging.info(e.args)
-            logging.info(Exception)
+            logging.info(e)
             logging.warning("MySQL connection failed, using fake mysql instead.")
             self.con = FakeMySQL()
 

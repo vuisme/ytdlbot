@@ -4,7 +4,7 @@ git+https://github.com/vuisme/yt-dlp@tbb#egg=yt-dlp
 APScheduler==3.10.4
 beautifultable==1.1.0
 ffmpeg-python==0.2.0
-PyMySQL
+PyMySQL==1.1.0
 celery==5.3.6
 filetype==1.2.0
 flower==2.0.1
