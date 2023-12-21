@@ -488,19 +488,20 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
         )
     else:
         # settings==video
+        logging.info("Sending as video")
+        logging.info(cap)
         try:
-            logging.info("Sending as video")
-            logging.info(cap)
-            logging.info(chat_id)
-            logging.info(vp_or_fid)     
             res_msg = client.send_video(
                 chat_id,
-                '/a.mp4',
+                vp_or_fid,
+                supports_streaming=True,
+                caption=cap,
+                progress=upload_hook,
+                progress_args=(bot_msg,),
+                reply_markup=markup,
                 **meta,
             )
-            logging.info(res_msg)
-        except Exception as e:
-            logging.info(e)
+        except Exception:
             # try to send as annimation, photo
             try:
                 logging.warning("Retry to send as animation")
