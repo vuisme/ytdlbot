@@ -446,8 +446,6 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     payment = Payment()
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
-    logging.info(markup)
-    logging.info(chat_id)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
@@ -465,11 +463,9 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     settings = payment.get_user_settings(chat_id)
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
-
-    logging.info(chat_id)
-    logging.info(vp_or_fid)
-    logging.info(ARCHIVE_ID)
-
+    logging.info("Chat ID: %s", chat_id)
+    logging.info("Cache ID: %s", vp_or_fid)
+    logging.info("Group ID: %s", ARCHIVE_ID)
     if settings[2] == "document":
         logging.info("Sending as document")
         try:
