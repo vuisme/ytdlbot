@@ -32,7 +32,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
 from pyrogram import Client, enums, idle, types
-
+from pyrogram.errors import RPCError
 from channel import Channel
 from client_init import create_app
 from config import (
@@ -515,7 +515,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
                 reply_markup=markup,
                 **meta,
             )
-        except Exception as e:
+        except pyrogram.errors as e:
             logging.info(e)
             # try to send as annimation, photo
             try:
