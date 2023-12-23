@@ -307,7 +307,7 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
         split_lists = split_image_lists(image_lists, max_images_per_list)
         for i, image_paths in enumerate(split_lists, start=1):
             try:
-                client.send_media_group(chat_id, generate_input_media(image_paths))
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 client.send_message(
@@ -316,7 +316,7 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
                 )
                 client.send_message(OWNER, f"CRITICAL INFO: {e}")
                 time.sleep(e.value)
-                client.send_media_group(chat_id, generate_input_media(image_paths))
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
             # upload_processor(client, bot_msg, url, image_paths)
     else:
         status_msg.edit_text("✅ Không có ảnh để lấy")
