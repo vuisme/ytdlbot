@@ -291,6 +291,9 @@ def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
 def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine]):
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-", dir=TMPFILE_PATH)
+    status_msg: typing.Union[types.Message, typing.Coroutine] = bot_msg.reply_text(
+        "Đang lấy ảnh, vui lòng chờ...", quote=True
+    )
     url: str = re.findall(r"https?://.*", bot_msg.caption)[0]
     lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
@@ -302,7 +305,7 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
         img_lists = []
         max_images_per_list = 9
         split_lists = split_image_lists(image_lists, max_images_per_list)
-        for image_paths in enumerate(split_lists, start=1):
+        for i, image_paths in enumerate(split_lists, start=1):
             try:
                 client.send_media_group(chat_id, image_paths)
             except pyrogram.errors.Flood as e:
@@ -316,11 +319,10 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
                 client.send_media_group(chat_id, image_paths)
             # upload_processor(client, bot_msg, url, image_paths)
     else:
-        client.send_message(
-                    chat_id,
-                    f"Không có ảnh để lấy",
-                )
-    bot_msg.edit_text("Download success!✅")
+        status_msg.edit_text("✅ Không có ảnh để lấy")
+
+    status_msg.edit_text("✅ Tải ảnh hoàn tất.")
+    Redis().update_metrics("image_success")
     temp_dir.cleanup()
 
 
