@@ -344,13 +344,30 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     bot_msg.edit_text("Download complete. Sending now...")
     min_size_kb = 20
     image_lists = filter_images(lst_paths, min_size_kb)
+    # if image_lists:
+        # img_lists = []
+        # max_images_per_list = 9
+        # split_lists = split_image_lists(image_lists, max_images_per_list)
+        # for i, image_paths in enumerate(split_lists, start=1):
+            # try:
+                # upload_processor(client, bot_msg, url, image_paths)
+            # except pyrogram.errors.Flood as e:
+                # logging.critical("FloodWait from Telegram: %s", e)
+                # client.send_message(
+                    # chat_id,
+                    # f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+                # )
+                # client.send_message(OWNER, f"CRITICAL INFO: {e}")
+                # time.sleep(e.value)
+                # upload_processor(client, bot_msg, url, image_paths)
+            # # upload_processor(client, bot_msg, url, image_paths)
     if image_lists:
         img_lists = []
         max_images_per_list = 9
         split_lists = split_image_lists(image_lists, max_images_per_list)
         for i, image_paths in enumerate(split_lists, start=1):
             try:
-                upload_processor(client, bot_msg, url, image_paths)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 client.send_message(
@@ -359,11 +376,10 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
                 )
                 client.send_message(OWNER, f"CRITICAL INFO: {e}")
                 time.sleep(e.value)
-                upload_processor(client, bot_msg, url, image_paths)
-            # upload_processor(client, bot_msg, url, image_paths)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+
     else:
-        logging.info("Không có ảnh")
-    
+        logging.info("Không có ảnh")    
     try:
         upload_processor(client, bot_msg, url, mp4_paths)
     except pyrogram.errors.Flood as e:
