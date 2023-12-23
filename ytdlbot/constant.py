@@ -64,6 +64,8 @@ Và nhiều trang khác.\n
 
 4. Đối với các lượt tải trả phí sẽ không bị xếp vào hàng đợi và sẽ nhanh hơn rất nhiều.
 
+5. Thành viên mua vip có thể tải file lớn hơn 2GB.
+
 **Giá bán:**
 Có hiệu lực ngay lập tức
 1. 1 USD == {TOKEN_PRICE} tokens
