@@ -133,7 +133,7 @@ def audio_task(chat_id: int, message_id: int):
 @app.task()
 def image_task(chat_id: int, message_id: int):
     logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
-    bot_msg = retrieve_message(chat_id, message_id, url)
+    bot_msg = retrieve_message(chat_id, message_id)
     normal_image(bot, bot_msg)
     logging.info("Image celery tasks ended.")
 
@@ -221,7 +221,7 @@ def image_entrance(client: Client, bot_msg: types.Message):
     if ENABLE_CELERY:
         image_task.delay(bot_msg.chat.id, bot_msg.id)
     else:
-        normal_image(client, bot_msg, url)
+        normal_image(client, bot_msg)
 
 
 def direct_normal_download(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
