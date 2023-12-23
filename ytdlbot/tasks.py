@@ -131,10 +131,10 @@ def audio_task(chat_id: int, message_id: int):
 
 
 @app.task()
-def image_task(chat_id, message_id, url):
+def image_task(chat_id: int, message_id: int):
     logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
-    bot_msg = retrieve_message(chat_id, message_id)
-    normal_image(bot, bot_msg, url)
+    bot_msg = retrieve_message(chat_id, message_id, url)
+    normal_image(bot, bot_msg)
     logging.info("Image celery tasks ended.")
 
 
@@ -288,10 +288,10 @@ def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
         Redis().update_metrics("audio_success")
 
 
-def normal_image(bot_msg, client, url):
+def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine]):
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-", dir=TMPFILE_PATH)
-
+    url: str = re.findall(r"https?://.*", bot_msg.caption)[0]
     lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
@@ -302,9 +302,9 @@ def normal_image(bot_msg, client, url):
         img_lists = []
         max_images_per_list = 9
         split_lists = split_image_lists(image_lists, max_images_per_list)
-        for i, image_paths in enumerate(split_lists, start=1):
+        for image_paths in enumerate(split_lists, start=1):
             try:
-                upload_processor(client, bot_msg, url, image_paths)
+                client.send_media_group(chat_id, image_paths)
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 client.send_message(
@@ -313,7 +313,7 @@ def normal_image(bot_msg, client, url):
                 )
                 client.send_message(OWNER, f"CRITICAL INFO: {e}")
                 time.sleep(e.value)
-                upload_processor(client, bot_msg, url, image_paths)
+                client.send_media_group(chat_id, image_paths)
             # upload_processor(client, bot_msg, url, image_paths)
     else:
         client.send_message(
