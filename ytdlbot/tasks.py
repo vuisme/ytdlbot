@@ -350,7 +350,6 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     mp4_paths = [path for path in lst_paths if path.suffix.lower() == '.mp4']
-    logging.info(mp4_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     bot_msg.edit_text("Download complete. Sending now...")
     min_size_kb = 20
@@ -360,7 +359,6 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         max_images_per_list = 9
         split_lists = split_image_lists(image_lists, max_images_per_list)
         for i, image_paths in enumerate(split_lists, start=1):
-            logging.info(image_paths)
             try:
                 upload_processor(client, bot_msg, url, image_paths)
             except pyrogram.errors.Flood as e:
@@ -463,9 +461,6 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     settings = payment.get_user_settings(chat_id)
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
-    logging.info("Chat ID: %s", chat_id)
-    logging.info("Cache ID: %s", vp_or_fid)
-    logging.info("Group ID: %s", ARCHIVE_ID)
     if settings[2] == "document":
         logging.info("Sending as document")
         try:
@@ -510,10 +505,6 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
                 vp_or_fid,
                 supports_streaming=True,
                 caption=cap,
-                progress=upload_hook,
-                progress_args=(bot_msg,),
-                reply_markup=markup,
-                **meta,
             )
         except pyrogram.errors as e:
             logging.info(e)
