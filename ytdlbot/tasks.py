@@ -290,51 +290,39 @@ def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
 
 def normal_image(bot_msg, client, url):
     chat_id = bot_msg.chat.id
-    url: "str" = re.findall(r"https?://.*", bot_msg.caption)[0]
-    status_msg = bot_msg.reply_text("Đang lấy ảnh... vui lòng chờ", quote=True)
-    temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-")
-    logging.info("Download image complete.")
-    with tempfile.TemporaryDirectory(prefix="ytdl-") as tmp:
-        result = ytdl_download(url, tmp, status_msg)
-        if result["status"]:
-            status_msg.edit_text("Lấy ảnh thành công! Đang gửi...")
-            video_paths = result["filepath"]
-            lstimg = []
-            for url_path in video_paths:
-                extPathURL = pathlib.Path(url_path).suffix
-                st_size = os.stat(url_path).st_size
-                if (extPathURL == '.jpg' or extPathURL == '.png') and st_size > 30000:
-                    lstimg.append(
-                        InputMediaPhoto(
-                            media=url_path
-                        )
-                    )
-            if lstimg:
-                newlst = split_list(lstimg, 9)
-                for array in newlst:
-                    client.send_chat_action(chat_id, 'upload_photo')
-                    client.send_media_group(
-                        chat_id,
-                        disable_notification=True,
-                        media=array)
-                status_msg.edit_text("Hoàn tất lấy ảnh! ✅")
-                Redis().update_metrics("image_success")
-        else:
-            client.send_chat_action(chat_id, 'typing')
-            tb = result["error"][0:4000]
-            bot_msg.edit_text(f"Lấy ảnh thất bại!❌\n\n```{tb}```", disable_web_page_preview=True)
-            try:
-                user_info = "@{} ({}) - {}".format(
-                    bot_msg.chat.username or "",
-                    bot_msg.chat.first_name or "" + bot_msg.chat.last_name or "",
-                    bot_msg.chat.id
-                )
-            except Exception:
-                user_info = ""
-            texterror = f"{user_info}\nLấy ảnh thất bại!❌\n\n```{tb}```"
-            client.send_message(ARCHIVE_ID, texterror)
+    temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-", dir=TMPFILE_PATH)
 
-        temp_dir.cleanup()
+    lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
+    logging.info("Download complete.")
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    bot_msg.edit_text("Đang lấy ảnh...")
+    min_size_kb = 20
+    image_lists = filter_images(lst_paths, min_size_kb)
+    if image_lists:
+        img_lists = []
+        max_images_per_list = 9
+        split_lists = split_image_lists(image_lists, max_images_per_list)
+        for i, image_paths in enumerate(split_lists, start=1):
+            try:
+                upload_processor(client, bot_msg, url, image_paths)
+            except pyrogram.errors.Flood as e:
+                logging.critical("FloodWait from Telegram: %s", e)
+                client.send_message(
+                    chat_id,
+                    f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+                )
+                client.send_message(OWNER, f"CRITICAL INFO: {e}")
+                time.sleep(e.value)
+                upload_processor(client, bot_msg, url, image_paths)
+            # upload_processor(client, bot_msg, url, image_paths)
+    else:
+        client.send_message(
+                    chat_id,
+                    f"Không có ảnh để lấy",
+                )
+    bot_msg.edit_text("Download success!✅")
+    temp_dir.cleanup()
+
 
 
 def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, url: str):
@@ -591,7 +579,11 @@ def gen_video_markup():
         [
             [  # First row
                 types.InlineKeyboardButton(  # Generates a callback query when pressed
-                    "convert to audio", callback_data="convert"
+                    "📥 Image (Taobao/1688)",
+                    callback_data="getimg"
+                ),
+                types.InlineKeyboardButton(  # Generates a callback query when pressed
+                    "🎧 Audio", callback_data="convert"
                 )
             ]
         ]

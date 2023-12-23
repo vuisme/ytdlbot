@@ -49,6 +49,7 @@ from config import (
     TOKEN_PRICE,
     TRX_SIGNAL,
     ARCHIVE_ID,
+    URL_ARRAY,
 )
 from constant import BotText
 from database import InfluxDB, MySQL, Redis
@@ -568,12 +569,18 @@ def download_resolution_callback(client: Client, callback_query: types.CallbackQ
 
 @app.on_callback_query(filters.regex(r"convert"))
 def audio_callback(client: Client, callback_query: types.CallbackQuery):
+    vmsg = callback_query.message
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
     redis = Redis()
     if not ENABLE_FFMPEG:
         callback_query.answer("Request rejected.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-
+    for link in URL_ARRAY:
+        if link in url:
+            callback_query.answer("Request rejected")
+            callback_query.message.reply_text("Không hỗ trợ convert audio từ Shop")
+            return    
     callback_query.answer(f"Converting to audio...please wait patiently")
     redis.update_metrics("audio_request")
     audio_entrance(client, callback_query.message)
@@ -581,10 +588,19 @@ def audio_callback(client: Client, callback_query: types.CallbackQuery):
 
 @app.on_callback_query(filters.regex(r"getimg"))
 def getimg_callback(client: Client, callback_query: types.CallbackQuery):
+    vmsg = callback_query.message
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
     redis = Redis()
-    callback_query.answer(f"Đang lấy ảnh...")
-    redis.update_metrics("images_request")
-    image_entrance(client, callback_query.message)
+    for link in URL_ARRAY:
+        if link in url:
+            callback_query.answer("Đang lấy ảnh...")
+            redis.update_metrics("images_request")
+            image_entrance(client, callback_query.message)
+        else:
+            callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            return
+
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))
