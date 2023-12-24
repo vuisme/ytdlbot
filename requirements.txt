@@ -1,4 +1,4 @@
-git+https://github.com/tgbot-collection/pyrogram#egg=pyrogram
+pyrogram==2.0.106
 tgcrypto==1.2.5
 git+https://github.com/vuisme/yt-dlp@tbb#egg=yt-dlp
 APScheduler==3.10.4
