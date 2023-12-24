@@ -31,7 +31,7 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
-from pyrogram import Client, enums, idle, types
+from pyrogram import Client, enums, idle, types, errors
 from pyrogram.errors import RPCError
 from channel import Channel
 from client_init import create_app
@@ -315,7 +315,7 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
-            except pyrogram.errors.Flood as e:
+            except pyrogram.errors as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 client.send_message(
                     chat_id,
