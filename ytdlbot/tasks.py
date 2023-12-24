@@ -21,6 +21,7 @@ import traceback
 import typing
 import string
 import random
+import pyrogram
 from typing import Any
 from urllib.parse import quote_plus
 
