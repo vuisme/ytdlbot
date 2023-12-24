@@ -512,19 +512,16 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     else:
         # settings==video
         logging.info("Sending as video")
-        logging.info("upload hook: %s", upload_hook)
-        logging.info("args: %s", bot_msg)
-        logging.info("markup: %s", markup)
         try:
             res_msg = client.send_video(
                 chat_id,
                 vp_or_fid,
                 supports_streaming=True,
                 caption=cap,
-                # progress=upload_hook,
-                # progress_args=(bot_msg,),
-                # reply_markup=markup,
-                **meta,
+                progress=upload_hook,
+                progress_args=(bot_msg,),
+                reply_markup=markup,
+                # **meta,
             )
         except pyrogram.errors as e:
             logging.info(e)
@@ -605,7 +602,7 @@ def gen_cap(bm, url, video_path):
 def gen_video_markup():
     markup = types.InlineKeyboardMarkup(
         [
-            [  # First row
+            [
                 types.InlineKeyboardButton(  # Generates a callback query when pressed
                     "📥 Image (Taobao/1688)",
                     callback_data="getimg"
