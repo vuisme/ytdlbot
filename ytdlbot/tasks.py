@@ -509,48 +509,6 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
             progress=upload_hook,
             progress_args=(bot_msg,),
         )
-    else:
-        # settings==video
-        logging.info("Sending as video")
-        logging.info("upload hook: %s", upload_hook)
-        logging.info("args: %s", bot_msg)
-        logging.info("markup: %s", markup)
-        try:
-            res_msg = client.send_video(
-                chat_id,
-                vp_or_fid,
-                supports_streaming=True,
-                caption=cap,
-                # progress=upload_hook,
-                # progress_args=(bot_msg,),
-                # reply_markup=markup,
-                **meta,
-            )
-        except pyrogram.errors as e:
-            logging.info(e)
-            # try to send as annimation, photo
-            try:
-                logging.warning("Retry to send as animation")
-                res_msg = client.send_animation(
-                    chat_id,
-                    vp_or_fid,
-                    caption=cap,
-                    progress=upload_hook,
-                    progress_args=(bot_msg,),
-                    reply_markup=markup,
-                    **meta,
-                )
-            except Exception:
-                # this is likely a photo
-                logging.warning("Retry to send as photo")
-                res_msg = client.send_photo(
-                    chat_id,
-                    vp_or_fid,
-                    caption=cap,
-                    progress=upload_hook,
-                    progress_args=(bot_msg,),
-                )
-
     unique = get_unique_clink(url, bot_msg.chat.id)
     logging.info("Unique: %s",unique)
     obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation or res_msg.photo
