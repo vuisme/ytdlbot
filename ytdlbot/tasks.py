@@ -347,6 +347,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     mp4_paths = [path for path in lst_paths if path.suffix.lower() == '.mp4']
+    logging.info(mp4_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     bot_msg.edit_text("Download complete. Sending now...")
     min_size_kb = 20
@@ -375,8 +376,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 logging.info("send lan %s", i)
-                rq_msg = client.send_media_group(chat_id, generate_input_media(image_paths,""))
-                logging.info(rq_msg)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 client.send_message(
@@ -549,7 +549,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     unique = get_unique_clink(url, bot_msg.chat.id)
     logging.info("Unique: %s",unique)
     obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation or res_msg.photo
-    logging.info("OBJ: %s",obj)
+    # logging.info("OBJ: %s",obj)
     redis.add_send_cache(unique, getattr(obj, "file_id", None))
     redis.update_metrics("video_success")
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
