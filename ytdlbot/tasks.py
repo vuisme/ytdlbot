@@ -520,6 +520,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
                 vp_or_fid,
                 supports_streaming=True,
                 caption=cap,
+                block=false,
             )
         except pyrogram.errors as e:
             logging.info(e)
