@@ -26,12 +26,11 @@ from urllib.parse import quote_plus
 
 import filetype
 import psutil
-import pyrogram.errors
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
-from pyrogram import Client, enums, idle, types
+from pyrogram import Client, enums, idle, types, errors
 from pyrogram.errors import RPCError
 from channel import Channel
 from client_init import create_app
