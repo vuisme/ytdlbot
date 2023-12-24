@@ -655,7 +655,7 @@ def run_celery():
     result_str = ''.join(random.choice(letters) for i in range(6))
     worker_name_env = os.getenv("WORKER_NAME", "")
     worker_name = worker_name_env + "-" + result_str
-    argv = ["-A", "tasks", "worker", "--loglevel=info", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name]
+    argv = ["-A", "tasks", "worker", "--loglevel=debug", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name]
     app.worker_main(argv)
 
 
