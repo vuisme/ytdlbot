@@ -521,7 +521,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
                 progress=upload_hook,
                 progress_args=(bot_msg,),
                 reply_markup=markup,
-                # **meta,
+                **meta,
             )
         except pyrogram.errors as e:
             logging.info(e)
