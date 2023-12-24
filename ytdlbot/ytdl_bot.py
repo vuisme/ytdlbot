@@ -411,6 +411,8 @@ def link_checker(url: str) -> str:
     if url.startswith("https://www.instagram.com"):
         return ""
     ytdl = yt_dlp.YoutubeDL()
+    if url.startswith("https://fb.watch"):
+        return "fb.watch link is blocked. Please copy this link to Browser and wait for new link. Copy new link (start by m.facebook.com, facebook.com... and send new link to bot"
 
     if not PLAYLIST_SUPPORT and (
         re.findall(r"^https://www\.youtube\.com/channel/", Channel.extract_canonical_link(url)) or "list" in url
