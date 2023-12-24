@@ -624,7 +624,7 @@ def ping_revision(*args):
 
 @Panel.register
 def hot_patch(*args):
-    bot.logout()
+    bot.log_out()
     app_path = pathlib.Path().cwd().parent
     logging.info("Hot patching on path %s...", app_path)
 
