@@ -64,7 +64,6 @@ class Channel(Payment):
             return url
 
         html_doc = requests.get(url, headers=headers, allow_redirects=True, cookies=cookie, timeout=5).text
-        logging.info(html_doc)
         soup = BeautifulSoup(html_doc, "html.parser")
         for prop in props:
             element = soup.find("link", rel=prop)
