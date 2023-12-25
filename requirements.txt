@@ -1,6 +1,7 @@
 pyrogram==2.0.106
 tgcrypto==1.2.5
-git+https://github.com/vuisme/yt-dlp@tbb#egg=yt-dlp
+yt-dlp==2023.11.16
+git+https://github.com/vuisme/yt-dlp-taobao
 APScheduler==3.10.4
 beautifultable==1.1.0
 ffmpeg-python==0.2.0
