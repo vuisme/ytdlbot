@@ -279,7 +279,7 @@ def auto_restart():
             logging.critical("%s bye bye world!☠️", method)
             for item in pathlib.Path(TMPFILE_PATH or tempfile.gettempdir()).glob("ytdl-*"):
                 shutil.rmtree(item, ignore_errors=True)
-            time.sleep(5)
+            asyncio.sleep(5)
             psutil.Process().kill()
 
 
