@@ -516,10 +516,8 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
         # settings==video
         logging.info("Sending as video")
         try:
-            res_msg = client.send_video(
+            res_msg = client.send_message(
                 chat_id,
-                vp_or_fid,
-                supports_streaming=True,
                 caption=cap,
             )
         except pyrogram.errors as e:
