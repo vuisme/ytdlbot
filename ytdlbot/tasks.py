@@ -125,8 +125,9 @@ def ytdl_download_task(chat_id: int, message_id: int, url: str):
             bot_msg.edit_text(f"{e}\n\n{bot_text.premium_warning}", reply_markup=markup)
         else:
             bot_msg.edit_text(f"{e}\nBig file download is not available now. Please /buy or try again later ")
-    except Exception:
-        bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
+    except Exception as e:
+        bot_msg.edit_text(f"Download failed!❌\n\n`{e}`", disable_web_page_preview=True)
+        logging.info(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`")
     logging.info("YouTube celery tasks ended.")
 
 
