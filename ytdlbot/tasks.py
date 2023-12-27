@@ -72,7 +72,7 @@ bot_text = BotText()
 logging.getLogger("apscheduler.executors.default").propagate = False
 
 app = Celery("tasks", broker=BROKER)
-bot = create_app("tasks")
+bot = create_app(":memory:")
 channel = Channel()
 
 
@@ -470,6 +470,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     payment = Payment()
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
+    redis.update_metrics("video_success")
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
