@@ -132,7 +132,7 @@ def ytdl_download_task(chat_id: int, message_id: int, url: str):
             bot_msg.edit_text(f"Download failed!❌\n\n`{error_msg[-1]}", disable_web_page_preview=True)
         else:
             bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
-            logging.error("Failed to download %s, error: %s", url, e)
+        logging.info(f"Failed to download `{traceback.format_exc()[-2000:]}`")
     logging.info("YouTube celery tasks ended.")
 
 
