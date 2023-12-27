@@ -132,7 +132,7 @@ def ytdl_download_task(chat_id: int, message_id: int, url: str):
             bot_msg.edit_text(f"Download failed!❌\n\n`{error_msg[-1]}", disable_web_page_preview=True)
         else:
             bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
-        logging.error("Failed to download %s, error: %s", url, e)
+            logging.error("Failed to download %s, error: %s", url, e)
     logging.info("YouTube celery tasks ended.")
 
 
@@ -217,6 +217,7 @@ def ytdl_download_entrance(client: Client, bot_msg: types.Message, url: str, mod
         if len(error_msg) > 1:
             bot_msg.edit_text(f"Download failed!❌\n\n`{error_msg[-1]}", disable_web_page_preview=True)
         else:
+            bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
 
 
 def direct_download_entrance(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
