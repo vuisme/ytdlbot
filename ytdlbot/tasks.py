@@ -72,7 +72,7 @@ bot_text = BotText()
 logging.getLogger("apscheduler.executors.default").propagate = False
 
 app = Celery("tasks", broker=BROKER)
-bot = create_app(":memory:")
+bot = create_app("tasks")
 channel = Channel()
 
 
