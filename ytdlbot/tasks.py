@@ -128,11 +128,10 @@ def ytdl_download_task(chat_id: int, message_id: int, url: str):
     except Exception:
         index = traceback.format_exc().find("yt_dlp.utils.DownloadError: ERROR: ")
         if index:
-            
             bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[index + len('yt_dlp.utils.DownloadError: ERROR:'):]}`", disable_web_page_preview=True)
         else:
             bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
-        logging.info(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
+        logging.info(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`")
     logging.info("YouTube celery tasks ended.")
 
 
