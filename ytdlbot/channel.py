@@ -142,6 +142,7 @@ class Channel(Payment):
 
     def group_subscriber(self) -> dict:
         # {"channel_id": [user_id, user_id, ...]}
+        self.con.ping(reconnect = True)
         self.cur.execute("select * from subscribe where is_valid=1")
         data = self.cur.fetchall()
         group = {}
