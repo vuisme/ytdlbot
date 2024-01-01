@@ -317,7 +317,7 @@ class InfluxDB:
         username = os.getenv("FLOWER_USERNAME", "benny")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-        r = requests.get(f"{flowerurl}/dashboard?json=1", headers=headers)
+        r = requests.get(f"{flowerurl}/workers?json=1", headers=headers)
         if r.status_code != 200:
             return dict(data=[])
         return r.json()
