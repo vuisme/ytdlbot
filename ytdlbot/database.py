@@ -258,7 +258,7 @@ class MySQL:
             self.con = pymysql.connect(
                 host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl", charset="utf8mb4"
             )
-            self.con.ping(reconnect = True)
+            self.con.ping(reconnect=True)
         except Exception:
             logging.warning("MySQL connection failed, using fake mysql instead.")
             self.con = FakeMySQL()
@@ -317,7 +317,7 @@ class InfluxDB:
         password = os.getenv("FLOWER_PASSWORD", "123456abc")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-        r = requests.get("https://celery.dmesg.app/dashboard?json=1", headers=headers)
+        r = requests.get("https://celery.dmesg.app/workers?json=1", headers=headers)
         if r.status_code != 200:
             return dict(data=[])
         return r.json()
