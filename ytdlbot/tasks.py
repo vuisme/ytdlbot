@@ -126,7 +126,6 @@ def ytdl_download_task(chat_id: int, message_id: int, url: str):
         else:
             bot_msg.edit_text(f"{e}\nBig file download is not available now. Please /buy or try again later ")
     except Exception:
-    # Lấy phần sau chuỗi "yt_dlp.utils.DownloadError: ERROR:"
         error_msg = traceback.format_exc().split("yt_dlp.utils.DownloadError: ERROR: ")
         if len(error_msg) > 1:
             bot_msg.edit_text(f"Download failed!❌\n\n`{error_msg[-1]}", disable_web_page_preview=True)
