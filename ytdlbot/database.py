@@ -25,7 +25,8 @@ import requests
 from beautifultable import BeautifulTable
 from influxdb import InfluxDBClient
 
-from config import IS_BACKUP_BOT, MYSQL_HOST, MYSQL_PASS, MYSQL_USER, REDIS
+from config import IS_BACKUP_BOT, MYSQL_HOST, MYSQL_PASS, MYSQL_USER, REDIS, MYSQL_PORT
+
 
 init_con = sqlite3.connect(":memory:", check_same_thread=False)
 
@@ -256,14 +257,12 @@ class MySQL:
     def __init__(self):
         try:
             self.con = pymysql.connect(
-                host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl", charset="utf8mb4"
+                host=MYSQL_HOST, port=int(MYSQL_PORT), user=MYSQL_USER, password=MYSQL_PASS, database="ytdl", charset="utf8mb4"
             )
             self.con.ping(reconnect=True)
         except Exception:
             logging.warning("MySQL connection failed, using fake mysql instead.")
             self.con = FakeMySQL()
-
-        self.con.ping(reconnect=True)
         self.cur = self.con.cursor()
         self.init_db()
         super().__init__()
@@ -306,14 +305,12 @@ class MySQL:
 class InfluxDB:
     def __init__(self):
         self.client = InfluxDBClient(
-            host=os.getenv("INFLUX_HOST"),
+            host=os.getenv("INFLUX_HOST", "192.168.7.233"),
             path=os.getenv("INFLUX_PATH"),
-            port=443,
-            username="nova",
-            password=os.getenv("INFLUX_PASS"),
+            port=os.getenv("INFLUX_PORT", "443"),
+            username=os.getenv("INFLUX_USER", "admin"),
+            password=os.getenv("INFLUX_PASS", "admin"),
             database="celery",
-            ssl=True,
-            verify_ssl=True,
         )
         self.data = None
 
@@ -322,11 +319,12 @@ class InfluxDB:
 
     @staticmethod
     def get_worker_data() -> dict:
+        flowerurl = os.getenv("FLOWER_LINK", "")
+        password = os.getenv("FLOWER_PASSWORD", "123456")
         username = os.getenv("FLOWER_USERNAME", "benny")
-        password = os.getenv("FLOWER_PASSWORD", "123456abc")
         token = base64.b64encode(f"{username}:{password}".encode()).decode()
         headers = {"Authorization": f"Basic {token}"}
-        r = requests.get("https://celery.dmesg.app/workers?json=1", headers=headers)
+        r = requests.get(f"{flowerurl}/workers?json=1", headers=headers)
         if r.status_code != 200:
             return dict(data=[])
         return r.json()

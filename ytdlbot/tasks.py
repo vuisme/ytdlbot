@@ -19,18 +19,20 @@ import threading
 import time
 import traceback
 import typing
+import string
+import random
+import pyrogram
 from typing import Any
 from urllib.parse import quote_plus
 
 import filetype
 import psutil
-import pyrogram.errors
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
-from pyrogram import Client, enums, idle, types
-
+from pyrogram import Client, enums, idle, types, errors
+from pyrogram.errors import RPCError
 from channel import Channel
 from client_init import create_app
 from config import (
@@ -47,7 +49,13 @@ from config import (
 )
 from constant import BotText
 from database import Redis
-from downloader import edit_text, tqdm_progress, upload_hook, ytdl_download
+from downloader import (
+    edit_text,
+    tqdm_progress,
+    upload_hook,
+    ytdl_download
+
+)
 from limit import Payment
 from utils import (
     apply_log_formatter,
@@ -123,6 +131,7 @@ def ytdl_download_task(chat_id: int, message_id: int, url: str):
             bot_msg.edit_text(f"Download failed!❌\n\n`{error_msg[-1]}", disable_web_page_preview=True)
         else:
             bot_msg.edit_text(f"Download failed!❌\n\n`{traceback.format_exc()[-2000:]}`", disable_web_page_preview=True)
+        logging.info(f"Failed to download `{traceback.format_exc()[-2000:]}`")
     logging.info("YouTube celery tasks ended.")
 
 
@@ -132,6 +141,14 @@ def audio_task(chat_id: int, message_id: int):
     bot_msg = retrieve_message(chat_id, message_id)
     normal_audio(bot, bot_msg)
     logging.info("Audio celery tasks ended.")
+
+
+@app.task()
+def image_task(chat_id: int, message_id: int):
+    logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
+    bot_msg = retrieve_message(chat_id, message_id)
+    normal_image(bot, bot_msg)
+    logging.info("Image celery tasks ended.")
 
 
 @app.task()
@@ -217,6 +234,13 @@ def audio_entrance(client: Client, bot_msg: types.Message):
         normal_audio(client, bot_msg)
 
 
+def image_entrance(client: Client, bot_msg: types.Message):
+    if ENABLE_CELERY:
+        image_task.delay(bot_msg.chat.id, bot_msg.id)
+    else:
+        normal_image(client, bot_msg)
+
+
 def direct_normal_download(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
     chat_id = bot_msg.chat.id
     headers = {
@@ -281,6 +305,45 @@ def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
         Redis().update_metrics("audio_success")
 
 
+def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine]):
+    chat_id = bot_msg.chat.id
+    temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-", dir=TMPFILE_PATH)
+    status_msg: typing.Union[types.Message, typing.Coroutine] = bot_msg.reply_text(
+        "Đang lấy ảnh, vui lòng chờ...", quote=True
+    )
+    url: str = re.findall(r"https?://.*", bot_msg.caption)[0]
+    lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
+    logging.info("Download complete.")
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    bot_msg.edit_text("Đang lấy ảnh...")
+    min_size_kb = 20
+    image_lists = filter_images(lst_paths, min_size_kb)
+    if image_lists:
+        img_lists = []
+        max_images_per_list = 9
+        split_lists = split_image_lists(image_lists, max_images_per_list)
+        for i, image_paths in enumerate(split_lists, start=1):
+            try:
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+            except pyrogram.errors.Flood as e:
+                logging.critical("FloodWait from Telegram: %s", e)
+                client.send_message(
+                    chat_id,
+                    f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+                )
+                client.send_message(OWNER, f"CRITICAL INFO: {e}")
+                asyncio.sleep(e.value)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+            # upload_processor(client, bot_msg, url, image_paths)
+    else:
+        status_msg.edit_text("✅ Không có ảnh để lấy")
+
+    status_msg.edit_text("✅ Tải ảnh hoàn tất.")
+    Redis().update_metrics("images_success")
+    temp_dir.cleanup()
+
+
+
 def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, url: str):
     """
     This function is called by celery task or directly by bot
@@ -291,12 +354,53 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="ytdl-", dir=TMPFILE_PATH)
 
-    video_paths = ytdl_download(url, temp_dir.name, bot_msg)
+    lst_paths = ytdl_download(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
+    mp4_paths = [path for path in lst_paths if path.suffix.lower() == '.mp4']
+    logging.info(mp4_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     bot_msg.edit_text("Download complete. Sending now...")
+    min_size_kb = 20
+    image_lists = filter_images(lst_paths, min_size_kb)
+    # if image_lists:
+        # img_lists = []
+        # max_images_per_list = 9
+        # split_lists = split_image_lists(image_lists, max_images_per_list)
+        # for i, image_paths in enumerate(split_lists, start=1):
+            # try:
+                # upload_processor(client, bot_msg, url, image_paths)
+            # except pyrogram.errors.Flood as e:
+                # logging.critical("FloodWait from Telegram: %s", e)
+                # client.send_message(
+                    # chat_id,
+                    # f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+                # )
+                # client.send_message(OWNER, f"CRITICAL INFO: {e}")
+                # time.sleep(e.value)
+                # upload_processor(client, bot_msg, url, image_paths)
+            # # upload_processor(client, bot_msg, url, image_paths)
+    if image_lists:
+        img_lists = []
+        max_images_per_list = 9
+        split_lists = split_image_lists(image_lists, max_images_per_list)
+        for i, image_paths in enumerate(split_lists, start=1):
+            try:
+                logging.info("send lan %s", i)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+            except pyrogram.errors.Flood as e:
+                logging.critical("FloodWait from Telegram: %s", e)
+                client.send_message(
+                    chat_id,
+                    f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+                )
+                client.send_message(OWNER, f"CRITICAL INFO: {e}")
+                asyncio.sleep(e.value)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+
+    else:
+        logging.info("Không có ảnh")    
     try:
-        upload_processor(client, bot_msg, url, video_paths)
+        upload_processor(client, bot_msg, url, mp4_paths)
     except pyrogram.errors.Flood as e:
         logging.critical("FloodWait from Telegram: %s", e)
         client.send_message(
@@ -304,9 +408,8 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
             f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
         )
         client.send_message(OWNER, f"CRITICAL INFO: {e}")
-        time.sleep(e.value)
-        upload_processor(client, bot_msg, url, video_paths)
-
+        asyncio.sleep(e.value)
+        upload_processor(client, bot_msg, url, mp4_paths)
     bot_msg.edit_text("Download success!✅")
 
     # setup rclone environment var to back up the downloaded file
@@ -315,6 +418,31 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
             logging.info("Copying %s to %s", item, RCLONE_PATH)
             shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
     temp_dir.cleanup()
+
+
+def filter_images(posix_paths, min_size_kb):
+    image_paths = []
+    for posix_path in posix_paths:
+        filepath = str(posix_path)
+        try:
+            # Kiểm tra định dạng ảnh và kích thước
+            if filepath.lower().endswith(('.jpeg', '.jpg', '.png')) and os.path.getsize(filepath) > min_size_kb * 1024:
+                image_paths.append(filepath)
+        except Exception as e:
+            pass  # Bỏ qua nếu không phải là ảnh hoặc có lỗi khi đọc kích thước
+    return image_paths
+
+def split_image_lists(image_paths, max_images_per_list):
+    if not image_paths:
+        print("Không có hình ảnh phù hợp.")
+        return []
+
+    split_lists = []
+
+    for i in range(0, len(image_paths), max_images_per_list):
+        split_lists.append(image_paths[i:i + max_images_per_list])
+
+    return split_lists
 
 
 def generate_input_media(file_paths: list, cap: str) -> list:
@@ -341,6 +469,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     payment = Payment()
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
+    redis.update_metrics("video_success")
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
@@ -358,7 +487,6 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     settings = payment.get_user_settings(chat_id)
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
         chat_id = ARCHIVE_ID
-
     if settings[2] == "document":
         logging.info("Sending as document")
         try:
@@ -408,7 +536,8 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
                 reply_markup=markup,
                 **meta,
             )
-        except Exception:
+        except pyrogram.errors as e:
+            logging.info(e)
             # try to send as annimation, photo
             try:
                 logging.warning("Retry to send as animation")
@@ -433,7 +562,9 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
                 )
 
     unique = get_unique_clink(url, bot_msg.chat.id)
+    logging.info("Unique: %s",unique)
     obj = res_msg.document or res_msg.video or res_msg.audio or res_msg.animation or res_msg.photo
+    # logging.info("OBJ: %s",obj)
     redis.add_send_cache(unique, getattr(obj, "file_id", None))
     redis.update_metrics("video_success")
     if ARCHIVE_ID and isinstance(vp_or_fid, pathlib.Path):
@@ -471,7 +602,7 @@ def gen_cap(bm, url, video_path):
         remain = ""
 
     if worker_name := os.getenv("WORKER_NAME"):
-        worker = f"Downloaded by  {worker_name}"
+        worker = f"Downloaded by {worker_name}"
     else:
         worker = ""
     cap = (
@@ -484,9 +615,13 @@ def gen_cap(bm, url, video_path):
 def gen_video_markup():
     markup = types.InlineKeyboardMarkup(
         [
-            [  # First row
+            [
                 types.InlineKeyboardButton(  # Generates a callback query when pressed
-                    "convert to audio", callback_data="convert"
+                    "📥 Image (Taobao/1688)",
+                    callback_data="getimg"
+                ),
+                types.InlineKeyboardButton(  # Generates a callback query when pressed
+                    "🎧 Audio", callback_data="convert"
                 )
             ]
         ]
@@ -527,14 +662,17 @@ def purge_tasks():
 def run_celery():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    worker_name = os.getenv("WORKER_NAME", "")
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(6))
+    worker_name_env = os.getenv("WORKER_NAME", "")
+    worker_name = worker_name_env + "-" + result_str
     argv = ["-A", "tasks", "worker", "--loglevel=info", "--pool=threads", f"--concurrency={WORKERS}", "-n", worker_name]
     app.worker_main(argv)
 
 
 if __name__ == "__main__":
     print("Bootstrapping Celery worker now.....")
-    time.sleep(5)
+    asyncio.sleep(5)
     threading.Thread(target=run_celery, daemon=True).start()
 
     scheduler = BackgroundScheduler(timezone="Europe/London")

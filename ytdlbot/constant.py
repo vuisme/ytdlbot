@@ -23,34 +23,53 @@ from utils import get_func_queue
 
 class BotText:
     start = """
-    Welcome to YouTube Download bot. Type /help for more information. 
-    Backup bot: @benny_2ytdlbot
-    Join https://t.me/+OGRC8tp9-U9mZDZl for updates."""
+🕹 Taobao Media - Version: 2.0.0 🕹
+Công cụ hỗ trợ tải ảnh/video từ nhiều nguồn
+\n
+***Sàn TMĐT:***
+```
+🇨🇳 Taobao.com
+🇨🇳 1688.com
+🇺🇸 Ebay.com
+🇺🇸 Amazon.com (Store & Video Review)
+```
+***Và các trang chia sẻ video/mạng xã hội:***
+```
+Tiktok.com
+Facebook.com
+Yotube.com
+Pornhub.com...
+```
+Và nhiều trang khác.\n
+[Xem toàn bộ](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
+\nGõ /help để xem thêm chi tiết!
+"""
 
     help = f"""
-1. If the bot doesn't work, try again or join https://t.me/+OGRC8tp9-U9mZDZl for updates.
+1. Nếu gặp bất kỳ lỗi gì khi tải, vui lòng nhắn tin vào nhóm hỗ trợ để được hướng dẫn.
+2. Mỗi thành viên sẽ có {FREE_DOWNLOAD} lượt tải miễn phí và được reset mỗi 24h.
+3. Một số video khi tải về có định dạng MKV hoặc Webm sẽ không thể xem trực tiếp được, hệ thống sử tự động chuyển đổi sang định dạng MP4 để có thể xem trực tiếp trên điện thoại. Thành viên miễn phí chỉ có thể chuyển đổi video có thời lượng nhỏ hơn **5 phút**.
+4. Bạn có thể mua thêm lượt tải.
+"""
 
-2. Source code: https://github.com/tgbot-collection/ytdlbot
-    """
-
-    about = "YouTube Downloader by @BennyThink.\n\nOpen source on GitHub: https://github.com/tgbot-collection/ytdlbot"
+    about = "Phát triển dựa trên YouTube Downloader by @BennyThink.\n\nLiên hệ @cpanel10x nếu có nhu câu"
 
     buy = f"""
-**Terms:**
-1. You can use this bot to download video for {FREE_DOWNLOAD} times within a 24-hour period.
+**Điều lệ:**
+1. Mỗi thành viên sẽ có {FREE_DOWNLOAD} lượt tải miễn phí và được reset mỗi 24h.
 
-2. You can buy additional download tokens, valid permanently.
+2. Mua thêm lượt tải trong ngày qua @cpanel10x.
 
-3. Refunds are possible, contact me if you need that @BennyThink
+3. Không hoàn tiền dưới mọi hình thức.
 
-4. Download for paid user will be automatically changed to Local mode to avoid queuing.
+4. Đối với các lượt tải trả phí sẽ không bị xếp vào hàng đợi và sẽ nhanh hơn rất nhiều.
 
-5. Paid user can download files larger than 2GB.
+5. Thành viên mua vip có thể tải file lớn hơn 2GB.
 
-**Price:**
-valid permanently
+**Giá bán:**
+Có hiệu lực ngay lập tức
 1. 1 USD == {TOKEN_PRICE} tokens
-2. 7 CNY == {TOKEN_PRICE} tokens
+2. 20K VND == {TOKEN_PRICE} tokens
 3. 10 TRX == {TOKEN_PRICE} tokens
 
 **Payment options:**
@@ -70,7 +89,7 @@ Want to buy more token with Telegram payment? Let's say 100? Here you go! `/buy 
 
     private = "This bot is for private use"
 
-    membership_require = f"You need to join this group or channel to use this bot\n\nhttps://t.me/{REQUIRED_MEMBERSHIP}"
+    membership_require = f"Bạn cần bấm đăng kí theo dõi kênh thông báo Taobao Tools để có thể sử dụng bot\n\nhttps://t.me/{REQUIRED_MEMBERSHIP}"
 
     settings = """
 Please choose the preferred format and video quality for your video. These settings only **apply to YouTube videos**.
@@ -98,7 +117,7 @@ Sending format: **{1}**
         if ENABLE_CELERY and reserved:
             text = f"Your tasks was added to the reserved queue {reserved}. Processing...\n\n"
         else:
-            text = "Your task was added to active queue.\nProcessing...\n\n"
+            text = "Đang phân tích liên kết, vui lòng chờ...\nNếu thời gian chờ quá lâu (Hơn 3 phút), vui lòng gửi lại một lần nữa...\n\n"
 
         return text
 

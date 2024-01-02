@@ -53,7 +53,7 @@ class Channel(Payment):
         # canonic link works for many websites. It will strip out unnecessary stuff
         props = ["canonical", "alternate", "shortlinkUrl"]
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36"
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/117.0'
         }
         cookie = {"CONSENT": "PENDING+197"}
         # send head request first
@@ -63,7 +63,7 @@ class Channel(Payment):
             logging.warning("%s Content-type is not text/html, no need to GET for extract_canonical_link", url)
             return url
 
-        html_doc = requests.get(url, headers=headers, cookies=cookie, timeout=5).text
+        html_doc = requests.get(url, headers=headers, allow_redirects=True, cookies=cookie, timeout=5).text
         soup = BeautifulSoup(html_doc, "html.parser")
         for prop in props:
             element = soup.find("link", rel=prop)
@@ -142,6 +142,7 @@ class Channel(Payment):
 
     def group_subscriber(self) -> dict:
         # {"channel_id": [user_id, user_id, ...]}
+        self.con.ping(reconnect = True)
         self.cur.execute("select * from subscribe where is_valid=1")
         data = self.cur.fetchall()
         group = {}
