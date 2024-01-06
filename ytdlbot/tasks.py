@@ -332,7 +332,7 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
                     f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
                 )
                 client.send_message(OWNER, f"CRITICAL INFO: {e}")
-                asyncio.sleep(e.value)
+                time.sleep(e.value)
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
             # upload_processor(client, bot_msg, url, image_paths)
     else:
@@ -394,7 +394,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
                     f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
                 )
                 client.send_message(OWNER, f"CRITICAL INFO: {e}")
-                asyncio.sleep(e.value)
+                time.sleep(e.value)
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
 
     else:
@@ -408,7 +408,7 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
             f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
         )
         client.send_message(OWNER, f"CRITICAL INFO: {e}")
-        asyncio.sleep(e.value)
+        time.sleep(e.value)
         upload_processor(client, bot_msg, url, mp4_paths)
     bot_msg.edit_text("Download success!✅")
 
@@ -672,7 +672,7 @@ def run_celery():
 
 if __name__ == "__main__":
     print("Bootstrapping Celery worker now.....")
-    asyncio.sleep(5)
+    time.sleep(5)
     threading.Thread(target=run_celery, daemon=True).start()
 
     scheduler = BackgroundScheduler(timezone="Europe/London")
