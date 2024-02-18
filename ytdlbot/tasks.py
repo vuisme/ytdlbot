@@ -48,7 +48,7 @@ from config import (
     FileTooBig,
 )
 from constant import BotText
-from database import Redis
+from database import Redis, MySQL
 from downloader import (
     edit_text,
     tqdm_progress,
@@ -360,6 +360,10 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     logging.info(mp4_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     bot_msg.edit_text("Download complete. Sending now...")
+    data = MySQL().get_user_settings(chat_id)
+    if data[4] == "ON":
+        logging.info("Adding to history...")
+        MySQL().add_history(chat_id, url, pathlib.Path(video_paths[0]).name)
     min_size_kb = 20
     image_lists = filter_images(lst_paths, min_size_kb)
     # if image_lists:
