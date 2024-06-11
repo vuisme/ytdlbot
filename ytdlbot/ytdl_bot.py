@@ -37,7 +37,6 @@ from config import (
     ENABLE_CELERY,
     ENABLE_FFMPEG,
     ENABLE_VIP,
-    IS_BACKUP_BOT,
     M3U8_SUPPORT,
     OWNER,
     PLAYLIST_SUPPORT,
@@ -57,6 +56,7 @@ from tasks import (
     hot_patch,
     purge_tasks,
     ytdl_download_entrance,
+    spdl_download_entrance,
 )
 from utils import auto_restart, clean_tempfile, customize_logger, get_revision
 
@@ -259,6 +259,22 @@ def direct_handler(client: Client, message: types.Message):
     bot_msg = message.reply_text("Request received.", quote=True)
     redis.update_metrics("direct_request")
     direct_download_entrance(client, bot_msg, url)
+
+@app.on_message(filters.command(["spdl"]))
+def spdl_handler(client: Client, message: types.Message):
+    redis = Redis()
+    chat_id = message.from_user.id
+    client.send_chat_action(chat_id, enums.ChatAction.TYPING)
+    url = re.sub(r"/spdl\s*", "", message.text)
+    logging.info("spdl start %s", url)
+    if not re.findall(r"^https?://", url.lower()):
+        redis.update_metrics("bad_request")
+        message.reply_text("Something wrong 🤔.\nCheck your URL and send me again.", quote=True)
+        return
+
+    bot_msg = message.reply_text("Request received.", quote=True)
+    redis.update_metrics("direct_request")
+    spdl_download_entrance(client, bot_msg, url)
 
 
 @app.on_message(filters.command(["settings"]))
@@ -625,12 +641,11 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler(timezone="Europe/London")
     scheduler.add_job(auto_restart, "interval", seconds=600)
     scheduler.add_job(clean_tempfile, "interval", seconds=120)
-    if not IS_BACKUP_BOT:
-        scheduler.add_job(Redis().reset_today, "cron", hour=0, minute=0)
-        scheduler.add_job(InfluxDB().collect_data, "interval", seconds=120)
-        scheduler.add_job(TronTrx().check_payment, "interval", seconds=60, max_instances=1)
-        #  default quota allocation of 10,000 units per day
-        scheduler.add_job(periodic_sub_check, "interval", seconds=3600)
+    scheduler.add_job(Redis().reset_today, "cron", hour=0, minute=0)
+    scheduler.add_job(InfluxDB().collect_data, "interval", seconds=120)
+    # scheduler.add_job(TronTrx().check_payment, "interval", seconds=60, max_instances=1)
+    #  default quota allocation of 10,000 units per day
+    # scheduler.add_job(periodic_sub_check, "interval", seconds=3600)
     scheduler.start()
     banner = f"""
 ▌ ▌         ▀▛▘     ▌       ▛▀▖              ▜            ▌

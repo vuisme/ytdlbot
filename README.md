@@ -2,28 +2,32 @@
 
 [![docker image](https://github.com/tgbot-collection/ytdlbot/actions/workflows/builder.yaml/badge.svg)](https://github.com/tgbot-collection/ytdlbot/actions/workflows/builder.yaml)
 
-YouTube Download Bot🚀🎬⬇️
+**YouTube Download Bot🚀🎬⬇️**
 
-This Telegram bot allows you to download videos from YouTube and other supported websites, including Instagram!
+This Telegram bot allows you to download videos from YouTube and [other supported websites](#supported-websites).
+
+**Celery mode won't work and I don't know why. So I may shutting down this bot soon.**
 
 # Usage
 
-[https://t.me/benny_ytdlbot](https://t.me/benny_ytdlbot)
+* EU(recommended): [https://t.me/benny_2ytdlbot](https://t.me/benny_2ytdlbot)
+* Asia:[https://t.me/benny_ytdlbot](https://t.me/benny_ytdlbot)
 
-Join Telegram Channel https://t.me/+OGRC8tp9-U9mZDZl for updates.
+* Join Telegram Channel https://t.me/+OGRC8tp9-U9mZDZl for updates.
 
-Send link directly to the bot. Any
-Websites [supported by yt-dlp](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) will work too.
+Just send a link directly to the bot.
 
-# Limitations of my bot
+# Supported websites
 
-Due to limitations on servers and bandwidth, there are some restrictions on this free service.
+* YouTube 😅
+* Any websites [supported by yt-dlp](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
 
-* Each user is limited to 10 free downloads per 24-hour period
-* Maximum of three subscriptions allowed for YouTube channels.
-* Files bigger than 2 GiB will require at least 1 download token.
-
-If you need more downloads, you can buy download tokens.
+  ### Specific link downloader (Use /spdl for these links)
+    * Instagram (Videos, Photos, Reels, IGTV & carousel)
+    * Pixeldrain
+    * KrakenFiles
+    * Terabox (file/~~folders~~) (you need to add cookies txt in ytdlbot folder with name) 
+    [terabox.txt](https://github.com/ytdl-org/youtube-dl#how-do-i-pass-cookies-to-youtube-dl).
 
 # Features
 
@@ -35,15 +39,28 @@ If you need more downloads, you can buy download tokens.
 6. payment support: afdian, buy me a coffee, Telegram Payment and Tron(TRX)
 7. different video resolutions
 8. sending as file or streaming as video
-9. celery worker distribution - faster than before.
+9. celery worker distribution - faster than before. **NOT WORKING**
 10. subscriptions to YouTube Channels
 11. cache mechanism - download once for the same video.
 12. instagram posts(only available for my bot)
 13. 4 GiB file size support with Telegram Premium
 14. History and inline mode support
 
-> If you download files larger than 2 GiB, you agreed that this file will be uploaded by me. I know who you are and what
-> you download.
+> [!NOTE]
+> **For users of [my official bot](https://t.me/benny_ytdlbot)**\
+> Files larger than 2 GiB will be automatically uploaded by me(My Premium Account). By utilizing our service for such downloads, you consent to this process. \
+> That means I know who you are and what you download. \
+> Rest assured that we handle your personal information with the utmost care.
+>
+> ## Limitations
+> Due to limitations on servers and bandwidth, there are some restrictions on this free service.
+> * Each user is limited to 10 free downloads per 24-hour period
+> * Maximum of three subscriptions allowed for YouTube channels.
+> * Files bigger than 2 GiB will require at least 1 download token.
+>
+> If you need more downloads, you can buy download tokens.
+>
+> **Thank you for using the [official bot](https://t.me/benny_ytdlbot).**
 
 # Screenshots
 
@@ -55,7 +72,7 @@ If you need more downloads, you can buy download tokens.
 
 ![](assets/instagram.png)
 
-## celery
+## celery **NOT WORKING**
 
 ![](assets/2.jpeg)
 
@@ -148,7 +165,7 @@ vim env/ytdl.env
 
 You can configure all the following environment variables:
 
-* WORKERS: workers count for celery
+* WORKERS: workers count for celery **NOT WORKING**
 * PYRO_WORKERS: number of workers for pyrogram, default is 100
 * APP_ID: **REQUIRED**, get it from https://core.telegram.org/
 * APP_HASH: **REQUIRED**
@@ -159,8 +176,8 @@ You can configure all the following environment variables:
 * OWNER: owner username
 * AUTHORIZED_USER: only authorized users can use the bot
 * REQUIRED_MEMBERSHIP: group or channel username, user must join this group to use the bot
-* ENABLE_CELERY: celery mode, default: disable
-* BROKER: celery broker, should be redis://redis:6379/0
+* ENABLE_CELERY: celery mode, default: disable **NOT WORKING**
+* BROKER: celery broker, should be redis://redis:6379/0 **NOT WORKING**
 * MYSQL_HOST:MySQL host
 * MYSQL_USER: MySQL username
 * MYSQL_PASS: MySQL password
@@ -201,6 +218,7 @@ mysql -u root -p
 ### 3.2.2 Setup flower db in `ytdlbot/ytdlbot/data`
 
 Required if you enable celery and want to monitor the workers.
+**NOT WORKING**
 
 ```shell
 {} ~ python3
@@ -244,6 +262,7 @@ docker-compose up -d mysql redis ytdl
 
 ### 4.3 Celery worker mode
 
+**NOT WORKING**
 Firstly, set `ENABLE_CELERY` to true. And then, on one machine:
 
 ```shell
@@ -277,6 +296,7 @@ start - Let's start
 about - What's this bot?
 ping - Bot running status
 help - Help
+spdl - Use to download specific link downloader links
 ytdl - Download video in group
 settings - Set your preference
 buy - Buy token
@@ -291,6 +311,7 @@ clear_history - Clear download history
 ```
 
 # Test data
+<details><summary>Tap to expand</summary>
 
 ## Test video
 
@@ -312,6 +333,21 @@ https://twitter.com/BennyThinks/status/1475836588542341124
 * reels: https://www.instagram.com/p/C0ozGsjtY0W/
 * image carousel: https://www.instagram.com/p/C0ozPQ5o536/
 * video and image carousel: https://www.instagram.com/p/C0ozhsVo-m8/
+
+## Test Pixeldrain
+
+https://pixeldrain.com/u/765ijw9i
+
+## Test KrakenFiles
+
+https://krakenfiles.com/view/oqmSTF0T5t/file.html
+
+## Test TeraBox
+
+https://terabox.com/s/1mpgNshrZVl6KuH717Hs23Q
+
+</details>
+</br>
 
 # Donation
 
