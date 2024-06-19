@@ -375,7 +375,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         max_images_per_list = 9
         split_lists = split_image_lists(image_lists, max_images_per_list)
         logging.info("splitlist")
-        logging.info(split_list)
+        logging.info(split_lists)
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 logging.info("send lan %s", i)
