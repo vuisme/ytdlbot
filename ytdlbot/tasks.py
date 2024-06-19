@@ -31,6 +31,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from celery.worker.control import Panel
 from pyrogram import Client, enums, idle, types
+from pyrogram.types import InputMediaPhoto, InputMediaVideo
 
 from channel import Channel
 from client_init import create_app
@@ -438,7 +439,7 @@ def generate_input_media2(file_paths: List[Path], cap: str) -> list:
         logging.info(path)
         mime = filetype.guess_mime(path)
         logging.info(mime)
-        input_media.append(pyrogram.types.InputMediaPhoto(media=path))
+        input_media.append(InputMediaPhoto(path))
 
     input_media[0].caption = cap
     logging.info(input_media)
