@@ -14,7 +14,7 @@ import logging
 import pathlib
 import re
 import traceback
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urljoin, unquote
 
 from pyrogram import types
 from tqdm import tqdm
@@ -94,14 +94,21 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     video_paths = []
     for idx, img_url in enumerate(cleaned_urls):
         req = requests.get(img_url, stream=True)
-        filename = f"taobao_{taobao_id}_{idx}.jpg"
+    
+        # Trích xuất tên tệp từ URL mà không có query parameters. 
+        parsed_url = urlparse(img_url)
+        filename = pathlib.Path(parsed_url.path).name  # Chỉ lấy phần tên tệp từ đường dẫn
+
+        # Tạo đường dẫn lưu tệp
         save_path = pathlib.Path(tempdir, filename)
         logging.info(save_path)
+    
         with open(save_path, "wb") as fp:
-            for chunk in req.iter_content(chunk_size=8192):
-                fp.write(chunk)
-        
+             for chunk in req.iter_content(chunk_size=8192):
+                 fp.write(chunk)
+    
         video_paths.append(save_path)
+
     logging.info(video_paths)
     return video_paths
 
