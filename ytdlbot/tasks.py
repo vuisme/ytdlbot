@@ -361,6 +361,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
 
     video_paths = sp_dl(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
+    logging.info(video_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     logging.info("đi đến đây send_chat_action")
     bot_msg.edit_text("Download complete. Sending now...")
