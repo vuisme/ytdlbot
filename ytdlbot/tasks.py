@@ -438,14 +438,7 @@ def generate_input_media2(file_paths: List[Path], cap: str) -> list:
         logging.info(path)
         mime = filetype.guess_mime(path)
         logging.info(mime)
-        if "video" in mime:
-            input_media.append(pyrogram.types.InputMediaVideo(media=path))
-        elif "image" in mime:
-            input_media.append(pyrogram.types.InputMediaPhoto(media=path))
-        elif "audio" in mime:
-            input_media.append(pyrogram.types.InputMediaAudio(media=path))
-        else:
-            input_media.append(pyrogram.types.InputMediaDocument(media=path))
+        input_media.append(pyrogram.types.InputMediaPhoto(media=path))
 
     input_media[0].caption = cap
     logging.info(input_media)
