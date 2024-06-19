@@ -66,6 +66,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     # First API request
     try:
         response = requests.post(API_TB, headers=headers, data=json.dumps(payload))
+        logger.info(response)
     except Exception as e:
         logger.info(e)
     console.log(response)
