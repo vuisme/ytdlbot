@@ -374,6 +374,8 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         img_lists = []
         max_images_per_list = 9
         split_lists = split_image_lists(image_lists, max_images_per_list)
+        logging.info("splitlist")
+        logging.info(split_list)
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 logging.info("send lan %s", i)
@@ -442,6 +444,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
+        logging.info('up load den day')
         res_msg: list["types.Message"] | Any = client.send_media_group(chat_id, generate_input_media(vp_or_fid, cap))
         # TODO no cache for now
         return res_msg[0]
