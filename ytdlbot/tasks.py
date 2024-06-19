@@ -394,6 +394,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 logging.info("send lan %s", i)
+                logging.info(image_paths)
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
