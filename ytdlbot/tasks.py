@@ -363,7 +363,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     logging.info("Download complete.")
     logging.info(video_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
-    mp4_paths = [path for path in lst_paths if path.suffix.lower() == '.mp4']
+    mp4_paths = [path for path in video_paths if path.suffix.lower() == '.mp4']
     logging.info("đi đến đây send_chat_action")
     bot_msg.edit_text("Download complete. Sending now...")
     data = MySQL().get_user_settings(chat_id)
