@@ -57,26 +57,23 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     if not taobao_id:
         raise ValueError("Invalid Taobao link format.")
     logging.info(taobao_id)
-    API_TB = API_TAOBAO  # Replace with actual API endpoint
-    API2_TB = API_TAOBAO2  # Replace with actual API endpoint
-    logging.info(API_TB)
+    logging.info(API_TAOBAO)
     payload = {'id': taobao_id}
     headers = {'Content-Type': 'application/json'}
     
     # First API request
     try:
-        response = requests.post(API_TB, headers=headers, data=json.dumps(payload))
+        response = requests.post(API_TAOBAO, headers=headers, data=json.dumps(payload))
         logging.info(response)
     except Exception as e:
         logging.info(e)
-    console.log(response)
     if response.status_code != 200:
         raise Exception("Failed to fetch image details.")
     
     data = response.json()
     
     # Second API request
-    response2 = requests.post(API2_TB, headers=headers, data=json.dumps(payload))
+    response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
     if response2.status_code != 200:
         raise Exception("Failed to fetch image desc.")
     
