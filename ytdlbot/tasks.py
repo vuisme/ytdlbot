@@ -354,7 +354,61 @@ def ytdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     temp_dir.cleanup()
 
 
-def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, url: str):
+def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, urls: typing.List[str]):
+    chat_id = bot_msg.chat.id
+    temp_dir = tempfile.TemporaryDirectory(prefix="spdl-", dir=TMPFILE_PATH)
+    
+    video_paths = []
+    image_paths = []
+    
+    for url in urls:
+        logging.info(f"Downloading URL: {url}")
+        try:
+            if "video" in url:
+                video_paths.extend(sp_dl(url, temp_dir.name, bot_msg))
+            elif "image" in url:
+                image_paths.extend(sp_dl(url, temp_dir.name, bot_msg))
+            else:
+                logging.warning(f"Unknown URL type: {url}")
+        except Exception as e:
+            logging.error(f"Failed to download {url}: {e}")
+    
+    logging.info("Download complete.")
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    bot_msg.edit_text("Download complete. Sending now...")
+    
+    # Adding to history if user settings allow
+    data = MySQL().get_user_settings(chat_id)
+    if data[4] == "ON":
+        logging.info("Adding to history...")
+        for path in video_paths:
+            MySQL().add_history(chat_id, urls[video_paths.index(path)], pathlib.Path(path).name)
+        for path in image_paths:
+            MySQL().add_history(chat_id, urls[image_paths.index(path)], pathlib.Path(path).name)
+    
+    # Upload processed videos
+    try:
+        if video_paths:
+            upload_processor(client, bot_msg, "videos", video_paths)
+        if image_paths:
+            upload_processor(client, bot_msg, "images", image_paths)
+    except pyrogram.errors.Flood as e:
+        logging.critical("FloodWait from Telegram: %s", e)
+        client.send_message(
+            chat_id,
+            f"I'm being rate limited by Telegram. Your files will come after {e} seconds. Please wait patiently.",
+        )
+        client.send_message(OWNER, f"CRITICAL INFO: {e}")
+        time.sleep(e.value)
+        if video_paths:
+            upload_processor(client, bot_msg, "videos", video_paths)
+        if image_paths:
+            upload_processor(client, bot_msg, "images", image_paths)
+    
+    bot_msg.edit_text("Download success!✅")
+
+
+def spdl_normal_downloadbk(client: Client, bot_msg: types.Message | typing.Any, url: str):
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="spdl-", dir=TMPFILE_PATH)
 
