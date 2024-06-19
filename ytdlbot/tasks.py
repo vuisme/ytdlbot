@@ -444,7 +444,9 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     logging.info(vp_or_fid)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
-        cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
+        # cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
+        cap = "list ảnh"
+        logging.info(vp_or_fid)
         logging.info('up load den day')
         res_msg: list["types.Message"] | Any = client.send_media_group(chat_id, generate_input_media(vp_or_fid, cap))
         # TODO no cache for now
