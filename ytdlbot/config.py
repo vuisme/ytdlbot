@@ -17,7 +17,8 @@ PYRO_WORKERS: int = int(os.getenv("PYRO_WORKERS", 100))
 APP_ID: int = int(os.getenv("APP_ID", 198214))
 APP_HASH = os.getenv("APP_HASH", "1234b90")
 TOKEN = os.getenv("TOKEN", "1234")
-
+API_TAOBAO = os.getenv("API_TAOBAO","")
+API_TAOBAO2 = os.getenv("API_TAOBAO2","")
 REDIS = os.getenv("REDIS", "redis")
 
 TG_PREMIUM_MAX_SIZE = 4000 * 1024 * 1024
