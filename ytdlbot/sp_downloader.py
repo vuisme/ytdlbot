@@ -29,6 +29,8 @@ from config import (
     TG_PREMIUM_MAX_SIZE,
     FileTooBig,
     IPv6,
+    API_TB,
+    API_TB2
 )
 from downloader import (
     edit_text,
@@ -42,6 +44,63 @@ from limit import Payment
 from utils import sizeof_fmt, parse_cookie_file, extract_code_from_instagram_url
 
 
+def extract_taobao_id(url: str) -> str:
+    """Extract Taobao ID from the URL."""
+    match = re.search(r'id=(\d+)', url)
+    if match:
+        return match.group(1)
+    return None
+
+def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
+    """Download media from Taobao."""
+    taobao_id = extract_taobao_id(url)
+    if not taobao_id:
+        raise ValueError("Invalid Taobao link format.")
+    
+    API_TB = "https://api.example.com/taobao"  # Replace with actual API endpoint
+    API2_TB = "https://api2.example.com/taobao"  # Replace with actual API endpoint
+    
+    payload = {'id': taobao_id}
+    headers = {'Content-Type': 'application/json'}
+    
+    # First API request
+    response = requests.post(API_TB, headers=headers, data=json.dumps(payload))
+    if response.status_code != 200:
+        raise Exception("Failed to fetch image details.")
+    
+    data = response.json()
+    
+    # Second API request
+    response2 = requests.post(API2_TB, headers=headers, data=json.dumps(payload))
+    if response2.status_code != 200:
+        raise Exception("Failed to fetch image desc.")
+    
+    data2 = response2.json()
+    
+    # Extract URLs
+    img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('images', []) + data.get('skubaseImages', []) + data2.get('descImages', [])
+    
+    # Clean and deduplicate URLs
+    cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
+    
+    if not cleaned_urls:
+        raise Exception("No valid image URLs found.")
+    
+    video_paths = []
+    for idx, img_url in enumerate(cleaned_urls):
+        req = requests.get(img_url, stream=True)
+        filename = f"taobao_{taobao_id}_{idx}.jpg"
+        save_path = pathlib.Path(tempdir, filename)
+        
+        with open(save_path, "wb") as fp:
+            for chunk in req.iter_content(chunk_size=8192):
+                fp.write(chunk)
+        
+        video_paths.append(save_path)
+    logging.info(video_paths)
+    return video_paths
+
+
 def sp_dl(url: str, tempdir: str, bm, **kwargs) -> list:
     """Specific link downloader"""
     domain = urlparse(url).hostname
@@ -53,6 +112,8 @@ def sp_dl(url: str, tempdir: str, bm, **kwargs) -> list:
         return pixeldrain(url, tempdir, bm, **kwargs)
     elif "krakenfiles.com" in domain:
         return krakenfiles(url, tempdir, bm, **kwargs)
+    elif "item.taobao.com" in domain:
+        return taobao(url, tempdir, bm, **kwargs)
     elif any(
         x in domain
         for x in [
@@ -136,7 +197,6 @@ def instagram(url: str, tempdir: str, bm, **kwargs):
                 downloaded += len(chunk)
             video_paths.append(save_path)
             counter += 1
-
     return video_paths
 
 
