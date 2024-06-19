@@ -66,9 +66,9 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     # First API request
     try:
         response = requests.post(API_TB, headers=headers, data=json.dumps(payload))
-        logger.info(response)
+        logging.info(response)
     except Exception as e:
-        logger.info(e)
+        logging.info(e)
     console.log(response)
     if response.status_code != 200:
         raise Exception("Failed to fetch image details.")
