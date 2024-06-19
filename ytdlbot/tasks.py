@@ -394,17 +394,6 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
 
     else:
         logging.info("Không có ảnh")    
-    try:
-        upload_processor(client, bot_msg, url, video_paths)
-    except pyrogram.errors.Flood as e:
-        logging.critical("FloodWait from Telegram: %s", e)
-        client.send_message(
-            chat_id,
-            f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
-        )
-        client.send_message(OWNER, f"CRITICAL INFO: {e}")
-        time.sleep(e.value)
-        upload_processor(client, bot_msg, url, video_paths)
 
     bot_msg.edit_text("Download success!✅")
 
