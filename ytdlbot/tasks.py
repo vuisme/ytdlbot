@@ -432,6 +432,24 @@ def generate_input_media(file_paths: list, cap: str) -> list:
     return input_media
 
 
+def generate_input_media2(file_paths: List[Path], cap: str) -> list:
+    input_media = []
+    for path in file_paths:
+        mime = filetype.guess_mime(path)
+        if "video" in mime:
+            input_media.append(pyrogram.types.InputMediaVideo(media=path))
+        elif "image" in mime:
+            input_media.append(pyrogram.types.InputMediaPhoto(media=path))
+        elif "audio" in mime:
+            input_media.append(pyrogram.types.InputMediaAudio(media=path))
+        else:
+            input_media.append(pyrogram.types.InputMediaDocument(media=path))
+
+    input_media[0].caption = cap
+    logging.info(input_media)
+    return input_media
+
+
 def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid: str | list):
     redis = Redis()
     # raise pyrogram.errors.exceptions.FloodWait(13)
@@ -584,21 +602,6 @@ def gen_cap(bm, url, video_path):
     )
     return cap, meta
 
-
-def generate_input_media2(file_paths: List[Path], cap: str) -> List[dict]:
-    # Đảm bảo file_paths là danh sách và chứa các đường dẫn hợp lệ
-    if not file_paths:
-        logging.error("file_paths rỗng hoặc None")
-        return []
-
-    input_media = []
-    for file_path in file_paths:
-        if not isinstance(file_path, Path):
-            logging.error(f"Đường dẫn tệp không hợp lệ: {file_path}")
-            continue
-        input_media.append({"type": "photo", "media": str(file_path), "caption": cap})
-    
-    return input_media
 
 # Ví dụ danh sách các đường dẫn tệp hợp  
 def gen_video_markup():
