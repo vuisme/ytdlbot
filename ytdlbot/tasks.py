@@ -224,7 +224,8 @@ def spdl_download_entrance(client: Client, bot_msg: types.Message, url: str, mod
             redis.update_metrics("cache_hit")
             return
         redis.update_metrics("cache_miss")
-        mode = mode or payment.get_user_settings(chat_id)[3]
+        mode = mode or payment.get_user_settings(chat_id)[3
+        logging.info("đi đến đây spdl_download_entrance")
         spdl_normal_download(client, bot_msg, url)
     except FileTooBig as e:
         logging.warning("Seeking for help from premium user...")
@@ -361,6 +362,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     video_paths = sp_dl(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    logging.info("đi đến đây send_chat_action")
     bot_msg.edit_text("Download complete. Sending now...")
     data = MySQL().get_user_settings(chat_id)
     if data[4] == "ON":
