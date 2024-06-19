@@ -92,22 +92,51 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
         raise Exception("No valid image URLs found.")
     logging.info(cleaned_urls)
     video_paths = []
-    for idx, img_url in enumerate(cleaned_urls):
-        req = requests.get(img_url, stream=True)
-    
-        # Trích xuất tên tệp từ URL mà không có query parameters. 
-        parsed_url = urlparse(img_url)
-        filename = pathlib.Path(parsed_url.path).name  # Chỉ lấy phần tên tệp từ đường dẫn
 
-        # Tạo đường dẫn lưu tệp
-        save_path = pathlib.Path(tempdir, filename)
-        logging.info(save_path)
+    # Header với User-Agent
+    headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+
+    for idx, img_url in enumerate(cleaned_urls):
+        try:
+            req = requests.get(img_url, headers=headers, stream=True)
+        
+            # Kiểm tra mã trạng thái HTTP
+            if req.status_code != 200:
+                logging.error(f"Lỗi khi tải về URL: {img_url} với mã trạng thái: {req.status_code}")
+                continue
+        
+            # Kiểm tra loại nội dung 
+            content_type = req.headers.get('Content-Type')
+            if 'image' not in content_type:
+                logging.error(f"Nội dung không phải là hình ảnh từ URL: {img_url}")
+                continue
+        
+            # Trích xuất tên tệp từ URL mà không có query parameters.
+            parsed_url = urlparse(img_url)
+            filename = pathlib.Path(parsed_url.path).name  # Chỉ lấy phần tên tệp từ đường dẫn
+
+            # Tạo đường dẫn lưu tệp.   
+            save_path = pathlib.Path(tempdir, filename)
+            logging.info(f"Saving image to: {save_path}")
+        
+            # Tạo thư mục nếu chưa tồn tại
+            os.makedirs(tempdir, exist_ok=True)
+        
+            with open(save_path, "wb") as fp:
+                for chunk in req.iter_content(chunk_size=8192):
+                    if chunk:  # Kiểm tra nếu đoạn không rỗng
+                        fp.write(chunk)
+        
+            # Kiểm tra kích thước tệp sau khi tải về
+            if os.path.getsize(save_path) <= 290:
+                logging.error(f"Tệp quá nhỏ hoặc không hợp lệ: {save_path}")
+                continue
     
-        with open(save_path, "wb") as fp:
-             for chunk in req.iter_content(chunk_size=8192):
-                 fp.write(chunk)
+            # Thêm đường dẫn tệp vào danh sách
+            video_paths.append(save_path)
     
-        video_paths.append(save_path)
+        except Exception as e:
+            logging.error(f"Đã xảy ra lỗi khi tải về hoặc ghi tệp: {e}")
 
     logging.info(video_paths)
     return video_paths
