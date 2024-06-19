@@ -61,14 +61,17 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     payload = {'id': taobao_id}
     headers = {'Content-Type': 'application/json'}
     
-    # First API request
     try:
         response = requests.post(API_TAOBAO, headers=headers, data=json.dumps(payload))
-        logging.info(response)
+        logging.info(f"Response from first API: {response}")
+        logging.info(f"Response content: {response.content.decode('utf-8')}")
+        if response.status_code != 200:
+            logging.error(f"Failed to fetch image details, status code: {response.status_code}")
+            raise Exception("Failed to fetch image details.")
+        data = response.json()
     except Exception as e:
-        logging.info(e)
-    if response.status_code != 200:
-        raise Exception("Failed to fetch image details.")
+        logging.error(f"Error during first API request: {e}")
+        raise
     
     data = response.json()
     
