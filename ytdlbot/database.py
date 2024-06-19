@@ -268,8 +268,9 @@ class MySQL:
                 host=MYSQL_HOST, port=int(MYSQL_PORT), user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl", charset="utf8mb4"
             )
             self.con.ping(reconnect=True)
-        except Exception:
+        except Exception as e:
             logging.warning("MySQL connection failed, using fake mysql instead.")
+            logging.warning(e)
             self.con = FakeMySQL()
 
         self.con.ping(reconnect=True)
