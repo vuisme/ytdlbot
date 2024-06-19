@@ -412,7 +412,10 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     # if is str, it's a file id; else it's a list of paths
     payment = Payment()
     chat_id = bot_msg.chat.id
+    logging.info("upload process")
     markup = gen_video_markup()
+    logging.info("gen_video_markup")
+    logging.info(vp_or_fid)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
