@@ -27,3 +27,4 @@ mnemonic==0.21
 qrcode==7.4.2
 blinker==1.8.1
 flask===3.0.3
+git+https://github.com/vuisme/yt-dlp-taobao
