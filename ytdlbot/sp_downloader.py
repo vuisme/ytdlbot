@@ -79,19 +79,19 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     
     # Extract URLs
     img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('images', []) + data.get('skubaseImages', []) + data2.get('descImages', [])
-    
+    logging.info(img_urls)
     # Clean and deduplicate URLs
     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
     
     if not cleaned_urls:
         raise Exception("No valid image URLs found.")
-    
+    logging.info(cleaned_urls)
     video_paths = []
     for idx, img_url in enumerate(cleaned_urls):
         req = requests.get(img_url, stream=True)
         filename = f"taobao_{taobao_id}_{idx}.jpg"
         save_path = pathlib.Path(tempdir, filename)
-        
+        logging.info(save_path)
         with open(save_path, "wb") as fp:
             for chunk in req.iter_content(chunk_size=8192):
                 fp.write(chunk)
