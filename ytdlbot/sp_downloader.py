@@ -56,10 +56,10 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     taobao_id = extract_taobao_id(url)
     if not taobao_id:
         raise ValueError("Invalid Taobao link format.")
-    
+    logging.info(taobao_id)
     API_TB = API_TAOBAO  # Replace with actual API endpoint
     API2_TB = API_TAOBAO2  # Replace with actual API endpoint
-    
+    logging.info(API_TB)
     payload = {'id': taobao_id}
     headers = {'Content-Type': 'application/json'}
     
