@@ -370,10 +370,10 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
         MySQL().add_history(chat_id, url, pathlib.Path(video_paths[0]).name)
     min_size_kb = 20
     image_lists = filter_images(video_paths, min_size_kb)
-    if image_lists:
+    if video_paths:
         img_lists = []
         max_images_per_list = 9
-        split_lists = split_image_lists(image_lists, max_images_per_list)
+        split_lists = split_image_lists(video_paths, max_images_per_list)
         logging.info("splitlist")
         logging.info(split_lists)
         for i, image_paths in enumerate(split_lists, start=1):
