@@ -363,6 +363,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     logging.info("Download complete.")
     logging.info(video_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    mp4_paths = [path for path in lst_paths if path.suffix.lower() == '.mp4']
     logging.info("đi đến đây send_chat_action")
     bot_msg.edit_text("Download complete. Sending now...")
     data = MySQL().get_user_settings(chat_id)
@@ -381,7 +382,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
             try:
                 logging.info("send lan %s", i)
                 logging.info(image_paths)
-                upload_processor(client, bot_msg, url, image_paths)
+                # upload_processor(client, bot_msg, url, image_paths)
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 client.send_message(
@@ -391,12 +392,21 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
                 client.send_message(OWNER, f"CRITICAL INFO: {e}")
                 time.sleep(e.value)
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
-
+    
     else:
         logging.info("Không có ảnh")    
-
+    try:
+        upload_processor(client, bot_msg, url, mp4_paths)
+    except pyrogram.errors.Flood as e:
+        logging.critical("FloodWait from Telegram: %s", e)
+        client.send_message(
+            chat_id,
+            f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+        )
+        client.send_message(OWNER, f"CRITICAL INFO: {e}")
+        time.sleep(e.value)
+        upload_processor(client, bot_msg, url, mp4_paths)
     bot_msg.edit_text("Download success!✅")
-
     if RCLONE_PATH:
         for item in os.listdir(temp_dir.name):
             logging.info("Copying %s to %s", item, RCLONE_PATH)
