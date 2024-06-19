@@ -29,8 +29,8 @@ from config import (
     TG_PREMIUM_MAX_SIZE,
     FileTooBig,
     IPv6,
-    API_TB,
-    API_TB2
+    API_TAOBAO,
+    API_TAOBAO2
 )
 from downloader import (
     edit_text,
@@ -57,8 +57,8 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     if not taobao_id:
         raise ValueError("Invalid Taobao link format.")
     
-    API_TB = "https://api.example.com/taobao"  # Replace with actual API endpoint
-    API2_TB = "https://api2.example.com/taobao"  # Replace with actual API endpoint
+    API_TB = API_TAOBAO  # Replace with actual API endpoint
+    API2_TB = API_TAOBAO2  # Replace with actual API endpoint
     
     payload = {'id': taobao_id}
     headers = {'Content-Type': 'application/json'}
