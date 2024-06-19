@@ -109,7 +109,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
             content_type = req.headers.get('Content-Type')
             if 'image' not in content_type:
                 logging.error(f"Nội dung không phải là hình ảnh từ URL: {img_url}")
-                continue
+                
         
             # Trích xuất tên tệp từ URL mà không có query parameters.
             parsed_url = urlparse(img_url)
@@ -128,7 +128,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
                         fp.write(chunk)
         
             # Kiểm tra kích thước tệp sau khi tải về
-            if os.path.getsize(save_path) <= 290:
+            if os.path.getsize(save_path) <= 10000:
                 logging.error(f"Tệp quá nhỏ hoặc không hợp lệ: {save_path}")
                 continue
     
