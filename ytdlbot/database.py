@@ -25,7 +25,7 @@ import requests
 from beautifultable import BeautifulTable
 from influxdb import InfluxDBClient
 
-from config import MYSQL_HOST, MYSQL_PASS, MYSQL_USER, REDIS
+from config import MYSQL_HOST, MYSQL_PORT, MYSQL_PASS, MYSQL_USER, REDIS
 
 init_con = sqlite3.connect(":memory:", check_same_thread=False)
 
@@ -265,7 +265,7 @@ class MySQL:
     def __init__(self):
         try:
             self.con = pymysql.connect(
-                host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl", charset="utf8mb4"
+                host=MYSQL_HOST, port=int(MYSQL_PORT), user=MYSQL_USER, passwd=MYSQL_PASS, db="ytdl", charset="utf8mb4"
             )
             self.con.ping(reconnect=True)
         except Exception:
