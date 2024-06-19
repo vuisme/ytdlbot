@@ -23,11 +23,11 @@ from utils import get_func_queue
 
 class BotText:
     start = """
-    Welcome to YouTube Download bot. Type /help for more information. Recommend to use EU Bot
-    EU🇪🇺: @benny_2ytdlbot
-    SG🇸🇬：@benny_ytdlbot
+    Taobao Media Version 3.0.0
+    Miễn phí: 10 lượt tải/ngày.
+    Premium: 50 lượt tải/ngày, hỗ trợ tải thêm ảnh và video trong mô tả sản phẩm
 
-    Join https://t.me/+OGRC8tp9-U9mZDZl for updates."""
+    Gõ /help để biết thêm chi tiết"""
 
     help = """
 1. For YouTube and any websites supported by yt-dlp, just send the link and we will download and send it to you.
