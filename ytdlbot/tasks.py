@@ -19,8 +19,9 @@ import threading
 import time
 import traceback
 import typing
-from typing import Any
+from typing import Any, List
 from urllib.parse import quote_plus
+from pathlib import Path
 
 import filetype
 import psutil
