@@ -368,6 +368,45 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     if data[4] == "ON":
         logging.info("Adding to history...")
         MySQL().add_history(chat_id, url, pathlib.Path(video_paths[0]).name)
+    min_size_kb = 20
+    image_lists = filter_images(video_paths, min_size_kb)
+    # if image_lists:
+        # img_lists = []
+        # max_images_per_list = 9
+        # split_lists = split_image_lists(image_lists, max_images_per_list)
+        # for i, image_paths in enumerate(split_lists, start=1):
+            # try:
+                # upload_processor(client, bot_msg, url, image_paths)
+            # except pyrogram.errors.Flood as e:
+                # logging.critical("FloodWait from Telegram: %s", e)
+                # client.send_message(
+                    # chat_id,
+                    # f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+                # )
+                # client.send_message(OWNER, f"CRITICAL INFO: {e}")
+                # time.sleep(e.value)
+                # upload_processor(client, bot_msg, url, image_paths)
+            # # upload_processor(client, bot_msg, url, image_paths)
+    if image_lists:
+        img_lists = []
+        max_images_per_list = 9
+        split_lists = split_image_lists(image_lists, max_images_per_list)
+        for i, image_paths in enumerate(split_lists, start=1):
+            try:
+                logging.info("send lan %s", i)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+            except pyrogram.errors.Flood as e:
+                logging.critical("FloodWait from Telegram: %s", e)
+                client.send_message(
+                    chat_id,
+                    f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+                )
+                client.send_message(OWNER, f"CRITICAL INFO: {e}")
+                time.sleep(e.value)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+
+    else:
+        logging.info("Không có ảnh")    
     try:
         upload_processor(client, bot_msg, url, video_paths)
     except pyrogram.errors.Flood as e:
@@ -592,6 +631,31 @@ def hot_patch(*args):
     logging.info("Code is updated, applying hot patch now...")
     subprocess.call(pip_install, shell=True, cwd=app_path)
     psutil.Process().kill()
+
+
+def filter_images(posix_paths, min_size_kb):
+    image_paths = []
+    for posix_path in posix_paths:
+        filepath = str(posix_path)
+        try:
+            # Kiểm tra định dạng ảnh và kích thước
+            if filepath.lower().endswith(('.jpeg', '.jpg', '.png')) and os.path.getsize(filepath) > min_size_kb * 1024:
+                image_paths.append(filepath)
+        except Exception as e:
+            pass  # Bỏ qua nếu không phải là ảnh hoặc có lỗi khi đọc kích thước
+    return image_paths
+
+def split_image_lists(image_paths, max_images_per_list):
+    if not image_paths:
+        print("Không có hình ảnh phù hợp.")
+        return []
+
+    split_lists = []
+
+    for i in range(0, len(image_paths), max_images_per_list):
+        split_lists.append(image_paths[i:i + max_images_per_list])
+
+    return split_lists
 
 
 def purge_tasks():
