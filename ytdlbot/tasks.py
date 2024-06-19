@@ -437,9 +437,9 @@ def generate_input_media2(file_paths: list, cap: str) -> list:
     input_media = []
     for path in file_paths:
         logging.info(path)
-        mime = filetype.guess_mime(path)
+        mime = filetype.guess_mime(str(path))
         logging.info(mime)
-        input_media.append(InputMediaPhoto(path))
+        input_media.append(InputMediaPhoto(str(path)))
 
     input_media[0].caption = cap
     logging.info(input_media)
