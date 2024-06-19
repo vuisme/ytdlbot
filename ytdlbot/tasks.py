@@ -429,6 +429,7 @@ def generate_input_media(file_paths: list, cap: str) -> list:
             input_media.append(pyrogram.types.InputMediaDocument(media=path))
 
     input_media[0].caption = cap
+    logging.info(input_media)
     return input_media
 
 
