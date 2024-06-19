@@ -434,9 +434,10 @@ def generate_input_media(file_paths: list, cap: str) -> list:
 
 def generate_input_media2(file_paths: List[Path], cap: str) -> list:
     input_media = []
-    logging.info(file_paths)
     for path in file_paths:
+        logging.info(path)
         mime = filetype.guess_mime(path)
+        logging.info(mime)
         if "video" in mime:
             input_media.append(pyrogram.types.InputMediaVideo(media=path))
         elif "image" in mime:
