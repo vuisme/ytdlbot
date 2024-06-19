@@ -224,7 +224,7 @@ def spdl_download_entrance(client: Client, bot_msg: types.Message, url: str, mod
             redis.update_metrics("cache_hit")
             return
         redis.update_metrics("cache_miss")
-        mode = mode or payment.get_user_settings(chat_id)[3
+        mode = mode or payment.get_user_settings(chat_id)[3]
         logging.info("đi đến đây spdl_download_entrance")
         spdl_normal_download(client, bot_msg, url)
     except FileTooBig as e:
