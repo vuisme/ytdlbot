@@ -433,7 +433,7 @@ def generate_input_media(file_paths: list, cap: str) -> list:
     return input_media
 
 
-def generate_input_media2(file_paths: List[Path], cap: str) -> list:
+def generate_input_media2(file_paths: list, cap: str) -> list:
     input_media = []
     for path in file_paths:
         logging.info(path)
