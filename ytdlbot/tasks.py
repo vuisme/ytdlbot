@@ -227,7 +227,6 @@ def spdl_download_entrance(client: Client, bot_msg: types.Message, url: str, mod
             return
         redis.update_metrics("cache_miss")
         mode = mode or payment.get_user_settings(chat_id)[3]
-        logging.info("đi đến đây spdl_download_entrance")
         spdl_normal_download(client, bot_msg, url)
     except FileTooBig as e:
         logging.warning("Seeking for help from premium user...")
@@ -245,6 +244,38 @@ def spdl_download_entrance(client: Client, bot_msg: types.Message, url: str, mod
         error_msg = "Sorry, Something went wrong."
         bot_msg.edit_text(f"Download failed!❌\n\n`{error_msg}", disable_web_page_preview=True)
 
+
+def cn_download_entrance(client: Client, bot_msg: types.Message, url: str, mode=None):
+    payment = Payment()
+    redis = Redis()
+    chat_id = bot_msg.chat.id
+    unique = get_unique_clink(url, chat_id)
+    cached_fid = redis.get_send_cache(unique)
+    
+    try:
+        if cached_fid:
+            forward_video(client, bot_msg, url, cached_fid)
+            redis.update_metrics("cache_hit")
+            return
+        redis.update_metrics("cache_miss")
+        mode = mode or payment.get_user_settings(chat_id)[3]
+        cn_normal_download(client, bot_msg, url)
+    except FileTooBig as e:
+        logging.warning("Seeking for help from premium user...")
+        # this is only for normal node. Celery node will need to do it in celery tasks
+        markup = premium_button(chat_id)
+        if markup:
+            bot_msg.edit_text(f"{e}\n\n{bot_text.premium_warning}", reply_markup=markup)
+        else:
+            bot_msg.edit_text(f"{e}\nBig file download is not available now. Please /buy or try again later ")
+    except ValueError as e:
+        logging.error("Invalid URL provided: %s", e)
+        bot_msg.edit_text(f"Download failed!❌\n\n{e}", disable_web_page_preview=True)
+    except Exception as e:
+        logging.error("Failed to download %s, error: %s", url, e)
+        error_msg = "Sorry, Something went wrong."
+        bot_msg.edit_text(f"Download failed!❌\n\n`{error_msg}", disable_web_page_preview=True)
+        
 
 def audio_entrance(client: Client, bot_msg: types.Message):
     if ENABLE_CELERY:
@@ -363,6 +394,39 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
 
     video_paths = sp_dl(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    bot_msg.edit_text("Download complete. Sending now...")
+    data = MySQL().get_user_settings(chat_id)
+    if data[4] == "ON":
+        logging.info("Adding to history...")
+        MySQL().add_history(chat_id, url, pathlib.Path(video_paths[0]).name)
+    try:
+        upload_processor(client, bot_msg, url, video_paths)
+    except pyrogram.errors.Flood as e:
+        logging.critical("FloodWait from Telegram: %s", e)
+        client.send_message(
+            chat_id,
+            f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
+        )
+        client.send_message(OWNER, f"CRITICAL INFO: {e}")
+        time.sleep(e.value)
+        upload_processor(client, bot_msg, url, video_paths)
+
+    bot_msg.edit_text("Download success!✅")
+
+    if RCLONE_PATH:
+        for item in os.listdir(temp_dir.name):
+            logging.info("Copying %s to %s", item, RCLONE_PATH)
+            shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
+    temp_dir.cleanup()
+
+
+def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url: str):
+    chat_id = bot_msg.chat.id
+    temp_dir = tempfile.TemporaryDirectory(prefix="spdl-", dir=TMPFILE_PATH)
+
+    video_paths = sp_dl(url, temp_dir.name, bot_msg)
+    logging.info("Download complete.")
     logging.info(video_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
     mp4_paths = [path for path in video_paths if path.suffix.lower() == '.mp4']
@@ -424,26 +488,12 @@ def generate_input_media(file_paths: list, cap: str) -> list:
     return input_media
 
 
-def generate_input_media2(file_paths: list, cap: str) -> list:
-    input_media = []
-    for path in file_paths:
-        logging.info(path)
-        mime = filetype.guess_mime(str(path))
-        logging.info(mime)
-        input_media.append(InputMediaPhoto(str(path)))
-
-    input_media[0].caption = cap
-    logging.info(input_media)
-    return input_media
-
-
 def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid: str | list):
     redis = Redis()
     # raise pyrogram.errors.exceptions.FloodWait(13)
     # if is str, it's a file id; else it's a list of paths
     payment = Payment()
     chat_id = bot_msg.chat.id
-    logging.info("upload process")
     markup = gen_video_markup()
     logging.info(vp_or_fid)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
