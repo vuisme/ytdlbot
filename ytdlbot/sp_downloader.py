@@ -235,6 +235,8 @@ def sp_dl(url: str, tempdir: str, bm, **kwargs) -> list:
         return krakenfiles(url, tempdir, bm, **kwargs)
     elif "item.taobao.com" in domain:
         return taobao(url, tempdir, bm, **kwargs)
+    elif "mobile.yangkeduo.com" in domain:
+        return pindoudou(url, tempdir, bm, **kwargs)
     elif any(
         x in domain
         for x in [
