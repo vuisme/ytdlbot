@@ -460,7 +460,10 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
-
+        client.send_message(
+                    chat_id,
+                    f"Download Images success!✅",
+                )
     else:
         logging.info("Không có ảnh")    
     if RCLONE_PATH:
@@ -626,7 +629,7 @@ def gen_cap(bm, url, video_path):
         remain = ""
 
     if worker_name := os.getenv("WORKER_NAME"):
-        worker = f"Downloaded by  {worker_name}"
+        worker = f"Downloaded by {worker_name}"
     else:
         worker = ""
     cap = (
@@ -640,9 +643,13 @@ def gen_cap(bm, url, video_path):
 def gen_video_markup():
     markup = types.InlineKeyboardMarkup(
         [
-            [  # First row
+            [
                 types.InlineKeyboardButton(  # Generates a callback query when pressed
-                    "convert to audio", callback_data="convert"
+                    "📥 Image (Taobao/Pindoudou)",
+                    callback_data="getimg"
+                ),
+                types.InlineKeyboardButton(  # Generates a callback query when pressed
+                    "🎧 Audio", callback_data="convert"
                 )
             ]
         ]
