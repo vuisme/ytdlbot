@@ -61,8 +61,7 @@ from tasks import (
     ytdl_download_entrance,
     spdl_download_entrance,
 )
-from utils import auto_restart, clean_tempfile, customize_logger, get_revision
-
+from utils import auto_restart, clean_tempfile, customize_logger, get_revision, tbcn, qr1688
 logging.info("Authorized users are %s", AUTHORIZED_USER)
 customize_logger(["pyrogram.client", "pyrogram.session.session", "pyrogram.connection.connection"])
 logging.getLogger("apscheduler.executors.default").propagate = False
