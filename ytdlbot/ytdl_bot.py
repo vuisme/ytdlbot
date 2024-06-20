@@ -503,6 +503,17 @@ def download_handler(client: Client, message: types.Message):
         urls = contents.split()
     else:
         urls = [re.sub(r"/ytdl\s*", "", message.text)]
+        if not re.findall(r"^https?://", url.lower()):
+            redis.update_metrics("bad_request")
+            text = search_ytb(url)
+            message.reply_text(text, quote=True, disable_web_page_preview=True)
+            return
+
+        if text := link_checker(url):
+            message.reply_text(text, quote=True)
+            redis.update_metrics("reject_link_checker")
+            return
+            
         urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
         logging.info("phan tich link")
         logging.info(urls)
@@ -554,18 +565,6 @@ def download_handler(client: Client, message: types.Message):
         logging.info("start %s", urls)
 
     for url in urls:
-        # check url
-        if not re.findall(r"^https?://", url.lower()):
-            redis.update_metrics("bad_request")
-            text = search_ytb(url)
-            message.reply_text(text, quote=True, disable_web_page_preview=True)
-            return
-
-        if text := link_checker(url):
-            message.reply_text(text, quote=True)
-            redis.update_metrics("reject_link_checker")
-            return
-
         # old user is not limited by token
         if ENABLE_VIP and not payment.check_old_user(chat_id):
             free, pay, reset = payment.get_token(chat_id)
