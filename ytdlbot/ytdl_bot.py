@@ -500,48 +500,46 @@ def download_handler(client: Client, message: types.Message):
             logging.info("Downloading file to %s", tf.name)
             message.download(tf.name)
             contents = open(tf.name, "r").read()  # don't know why
-        urls = contents.split()
+        msgLink = contents.split()
     else:
-        urls = [re.sub(r"/ytdl\s*", "", message.text)]
-        if not re.findall(r"^https?://", urls[0].lower()):
+        msgLink = [re.sub(r"/ytdl\s*", "", message.text)]
+        logging.info("start %s", msgLink)
+        
+    for msg in msgLink:
+        if not re.findall(r"^https?://", msg.lower()):
             redis.update_metrics("bad_request")
-            text = search_ytb(urls)
+            text = search_ytb(msgLink)
             message.reply_text(text, quote=True, disable_web_page_preview=True)
             return
 
-        if text := link_checker(urls):
+        if text := link_checker(msgLink):
             message.reply_text(text, quote=True)
             redis.update_metrics("reject_link_checker")
             return
             
-        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", url).group("linkrm")
         logging.info("phan tich link")
         logging.info(urls)
         # url = VIP.extract_canonical_link(rawurl)
-        if "item.taobao.com" in urls:
-            vid = parse_qs(urlparse(urls).query).get('id')
-            urls = "https://item.taobao.com/item.htm?id=" + str(vid[0])
-            logging.inf("item link")
-            logging.info(urls)
         if "offerId" in urls:
             vid = parse_qs(urlparse(urls).query).get('offerId')
-            urls = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
+            url = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
         if "intl.taobao.com" in urls:
             vid = parse_qs(urlparse(urls).query).get('id')
             url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
         if "tmall.com" in urls:
             vid = parse_qs(urlparse(urls).query).get('id')
-            urls = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+            url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
         if "1688.com/offer/" in urls:
             vid = os.path.basename(urlparse(urls).path)
-            urls = "https://m.1688.com/offer/" + vid
+            url = "https://m.1688.com/offer/" + vid
             logging.info("link sau khi convert")
-            logging.info(urls)
+            logging.info(url)
         if "qr.1688.com" in urls:
             oklink = qr1688(urls)
             logging.info("link 1688 sau khi convert")
             logging.info(urls)
-            urls = unquote(unquote(oklink))
+            url = unquote(unquote(oklink))
         if "tb.cn" in urls:
             linktb = tbcn(urls)
             vid = parse_qs(urlparse(linktb).query).get('id')
@@ -549,22 +547,19 @@ def download_handler(client: Client, message: types.Message):
                 disassembled = urlparse(linktb)
                 videoid, file_ext = splitext(basename(disassembled.path))
                 videoid = re.sub(r"\D", "", videoid)
-                urls = "https://item.taobao.com/item.htm?id=" + videoid
+                url = "https://item.taobao.com/item.htm?id=" + videoid
             elif "video-fullpage" in linktb:
                 plink = urlparse(linktb)
                 videolink = parse_qs(plink.query)['videoUrl'][0]
-                urls = videolink
+                url = videolink
                 logging.info("here")
                 logging.info(videolink)
             else:
                 videoid = str(vid[0])
-                urls = "https://item.taobao.com/item.htm?id=" + videoid
+                url = "https://item.taobao.com/item.htm?id=" + videoid
             logging.info("tb.cn convert xong")
             logging.info(linktb)
-            logging.info(urls)
-        logging.info("start %s", urls)
-
-    for url in urls:
+            logging.info(url)
         # old user is not limited by token
         if ENABLE_VIP and not payment.check_old_user(chat_id):
             free, pay, reset = payment.get_token(chat_id)
