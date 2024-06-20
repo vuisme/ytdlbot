@@ -502,15 +502,15 @@ def download_handler(client: Client, message: types.Message):
             contents = open(tf.name, "r").read()  # don't know why
         urls = contents.split()
     else:
-        if not re.findall(r"(?P<linkrm>https?://[^\s]+)", message.text):
-            redis.update_metrics("bad_request")
-            message.reply_text("I think you should send me a link.", quote=True)
-            return
         urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+        logging.info("phan tich link")
+        logging.info(urls)
         # url = VIP.extract_canonical_link(rawurl)
         if "item.taobao.com" in urls:
             vid = parse_qs(urlparse(urls).query).get('id')
             urls = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+            logging.inf("item link")
+            logging.info(urls)
         if "offerId" in urls:
             vid = parse_qs(urlparse(urls).query).get('offerId')
             urls = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
