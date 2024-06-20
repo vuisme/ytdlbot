@@ -59,6 +59,7 @@ from tasks import (
     hot_patch,
     purge_tasks,
     ytdl_download_entrance,
+    cn_download_entrance,
     spdl_download_entrance,
 )
 from utils import auto_restart, clean_tempfile, customize_logger, get_revision, tbcn, qr1688
@@ -458,7 +459,7 @@ def generate_invoice(amount: int, title: str, description: str, payload: str):
 def link_checker(url: str) -> str:
     if url.startswith("https://www.instagram.com"):
         return ""
-    ytdl = yt_dlp.YoutubeDL()
+
     if url.startswith("https://fb.watch"):
         return "fb.watch link is blocked. Please copy this link to Browser and wait for new link. Copy new link (start by m.facebook.com, facebook.com... and send new link to bot"
 
@@ -470,9 +471,6 @@ def link_checker(url: str) -> str:
     if not M3U8_SUPPORT and (re.findall(r"m3u8|\.m3u8|\.m3u$", url.lower())):
         return "m3u8 links are disabled."
 
-    with contextlib.suppress(yt_dlp.utils.DownloadError):
-        if ytdl.extract_info(url, download=False).get("live_status") == "is_live":
-            return "Live stream links are disabled. Please download it after the stream ends."
 
 
 def search_ytb(kw: str):
