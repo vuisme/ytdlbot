@@ -504,7 +504,7 @@ def download_handler(client: Client, message: types.Message):
         logging.info("start %s", msgLink)
         
     for msg in msgLink:
-        if not re.findall(r"^https?://", msg.lower()):
+        if not re.findall(r"https?://", msg.lower()):
             redis.update_metrics("bad_request")
             text = search_ytb(msg)
             message.reply_text(text, quote=True, disable_web_page_preview=True)
