@@ -48,6 +48,7 @@ from config import (
     REQUIRED_MEMBERSHIP,
     TOKEN_PRICE,
     TRX_SIGNAL,
+    URL_ARRAY,
 )
 from constant import BotText
 from database import InfluxDB, MySQL, Redis
@@ -646,12 +647,18 @@ def inline_query(client: Client, inline_query: types.InlineQuery):
 
 @app.on_callback_query(filters.regex(r"convert"))
 def audio_callback(client: Client, callback_query: types.CallbackQuery):
+    vmsg = callback_query.message
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
     redis = Redis()
     if not ENABLE_FFMPEG:
         callback_query.answer("Request rejected.")
         callback_query.message.reply_text("Audio conversion is disabled now.")
         return
-
+    for link in URL_ARRAY:
+        if link in url:
+            callback_query.answer("Request rejected")
+            callback_query.message.reply_text("Không hỗ trợ convert audio từ Shop")
+            return    
     callback_query.answer(f"Converting to audio...please wait patiently")
     redis.update_metrics("audio_request")
     audio_entrance(client, callback_query.message)
