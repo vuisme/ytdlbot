@@ -62,6 +62,7 @@ from tasks import (
     ytdl_download_entrance,
     cn_download_entrance,
     spdl_download_entrance,
+    image_entrance,
 )
 from utils import auto_restart, clean_tempfile, customize_logger, get_revision, tbcn, qr1688
 logging.info("Authorized users are %s", AUTHORIZED_USER)
@@ -662,6 +663,22 @@ def audio_callback(client: Client, callback_query: types.CallbackQuery):
     callback_query.answer(f"Converting to audio...please wait patiently")
     redis.update_metrics("audio_request")
     audio_entrance(client, callback_query.message)
+
+
+@app.on_callback_query(filters.regex(r"getimg"))
+def getimg_callback(client: Client, callback_query: types.CallbackQuery):
+    vmsg = callback_query.message
+    url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
+    redis = Redis()
+    for link in URL_ARRAY:
+        if link in url:
+            callback_query.answer("Đang lấy ảnh...")
+            redis.update_metrics("images_request")
+            image_entrance(client, callback_query.message)
+        else:
+            callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+            return
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))
