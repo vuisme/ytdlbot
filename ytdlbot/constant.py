@@ -30,16 +30,21 @@ class BotText:
     Gõ /help để biết thêm chi tiết"""
 
     help = """
-1. For YouTube and any websites supported by yt-dlp, just send the link and we will download and send it to you.
+Gửi đúng định dạng link để ít gặp lỗi không đáng có!
+1. Hỗ trợ tải từ Taobao (link dạng item.taobao.com, tmall.com, tb.cn...)
 
-2. For specific links use `/spdl {URL}`. More info at https://github.com/SanujaNS/ytdlbot-telegram#supported-websites 
+2. Hỗ trợ tải từ Pindoudou (link dạng mobile.yangkedou.com)
 
-3. If the bot doesn't work, try again or join https://t.me/+OGRC8tp9-U9mZDZl for updates.
+3. Tải từ YouTube và các trang media lớn (kể cả pornhub, xnxx...) mà plugin yt-dlp hỗ trợ, chỉ cần gửi link để thử.
 
-4. Wanna deploy it yourself?\nHere's the source code: https://github.com/tgbot-collection/ytdlbot
+4. Một số link đặc biệt cần dùng lệnh `/spdl {liên kết}`. Xem thêm các link đó tại https://github.com/SanujaNS/ytdlbot-telegram#supported-websites 
+
+5. Gặp lỗi hãy gửi vào kênh hỗ trợ.
+
+6. Wanna deploy it yourself?\nHere's the source code: https://github.com/tgbot-collection/ytdlbot
     """
 
-    about = "YouTube Downloader by @BennyThink.\n\nOpen source on GitHub: https://github.com/tgbot-collection/ytdlbot"
+    about = "Taobao Media Bot Ver 3.0.0 by @cpanel10x. \n\nPhát triển từ YouTube Downloader by @BennyThink.\n\nOpen source on GitHub: https://github.com/tgbot-collection/ytdlbot"
 
     buy = f"""
 **Terms:**
@@ -47,7 +52,7 @@ class BotText:
 
 2. You can buy additional download tokens, valid permanently.
 
-3. Refunds are possible, contact me if you need that @BennyThink
+3. Refunds are possible, contact me if you need that @cpanel10x
 
 4. Download for paid user will be automatically changed to Local mode to avoid queuing.
 
