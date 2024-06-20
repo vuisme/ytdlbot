@@ -504,16 +504,17 @@ def download_handler(client: Client, message: types.Message):
         logging.info("start %s", msgLink)
         
     for msg in msgLink:
-        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", msg).group("linkrm")
-        url = urls
-        logging.info("phan tich link")
-        logging.info(urls)
-        if not re.findall(r"https?://", msg.lower()):
+        match = re.search(r"(?P<linkrm>https?://[^\s]+)", msg)
+        if match:
+            urls = match.group("linkrm")
+        else:
             redis.update_metrics("bad_request")
             text = search_ytb(msg)
             message.reply_text(text, quote=True, disable_web_page_preview=True)
             return
-
+        url = urls
+        logging.info("phan tich link")
+        logging.info(urls)
         if text := link_checker(url):
             message.reply_text(text, quote=True)
             redis.update_metrics("reject_link_checker")
