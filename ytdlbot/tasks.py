@@ -769,7 +769,8 @@ def split_image_lists(image_paths, max_images_per_list):
     supported_extensions = ['.jpg', '.jpeg', '.png', '.gif']
 
     for path in image_paths:
-        if any(path.lower().endswith(ext) for ext in supported_extensions):
+        path_str = str(path)  # Chuyển đổi PosixPath thành chuỗi
+        if any(path_str.lower().endswith(ext) for ext in supported_extensions):
             if count % max_images_per_list == 0:
                 image_groups.append([])
             image_groups[-1].append(path)
