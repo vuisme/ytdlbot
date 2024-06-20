@@ -145,6 +145,14 @@ def direct_download_task(chat_id: int, message_id: int, url: str):
     logging.info("Direct download celery tasks ended.")
 
 
+@app.task()
+def image_task(chat_id: int, message_id: int):
+    logging.info("Image celery tasks started for %s-%s", chat_id, message_id)
+    bot_msg = retrieve_message(chat_id, message_id)
+    normal_image(bot, bot_msg)
+    logging.info("Image celery tasks ended.")
+
+
 def get_unique_clink(original_url: str, user_id: int):
     payment = Payment()
     settings = payment.get_user_settings(user_id)
@@ -284,6 +292,13 @@ def audio_entrance(client: Client, bot_msg: types.Message):
         normal_audio(client, bot_msg)
 
 
+def image_entrance(client: Client, bot_msg: types.Message):
+    if ENABLE_CELERY:
+        image_task.delay(bot_msg.chat.id, bot_msg.id)
+    else:
+        normal_image(client, bot_msg)
+
+
 def direct_normal_download(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine], url: str):
     chat_id = bot_msg.chat.id
     headers = {
@@ -327,6 +342,48 @@ def direct_normal_download(client: Client, bot_msg: typing.Union[types.Message, 
             progress_args=(bot_msg,),
         )
         bot_msg.edit_text("Download success!✅")
+
+
+def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine]):
+    url: str = re.findall(r"https?://.*", bot_msg.caption)[0]
+    chat_id = bot_msg.chat.id
+    temp_dir = tempfile.TemporaryDirectory(prefix="cndl-", dir=TMPFILE_PATH)
+    status_msg: typing.Union[types.Message, typing.Coroutine] = bot_msg.reply_text(
+        "Đang lấy ảnh, vui lòng chờ...", quote=True
+    )
+    video_paths = sp_dl(url, temp_dir.name, bot_msg)
+    logging.info("Download complete.")
+    logging.info(video_paths)
+    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+    bot_msg.edit_text("Download complete. Sending now...")
+    if video_paths:
+        img_lists = []
+        max_images_per_list = 9
+        split_lists = split_image_lists(video_paths, max_images_per_list)
+        client.send_message(
+                    chat_id,
+                    f"Found image, sending...",
+                )
+        for i, image_paths in enumerate(split_lists, start=1):
+            try:
+                logging.info("send lan %s", i)
+                logging.info(image_paths)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+            except pyrogram.errors.Flood as e:
+                logging.critical("FloodWait from Telegram: %s", e)
+                time.sleep(e.value)
+                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+        client.send_message(
+                    chat_id,
+                    f"Download Images success!✅",
+                )
+    else:
+        logging.info("Không có ảnh")    
+    if RCLONE_PATH:
+        for item in os.listdir(temp_dir.name):
+            logging.info("Copying %s to %s", item, RCLONE_PATH)
+            shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
+    temp_dir.cleanup()
 
 
 def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine]):
@@ -423,7 +480,7 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
 
 def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url: str):
     chat_id = bot_msg.chat.id
-    temp_dir = tempfile.TemporaryDirectory(prefix="spdl-", dir=TMPFILE_PATH)
+    temp_dir = tempfile.TemporaryDirectory(prefix="cndl-", dir=TMPFILE_PATH)
 
     video_paths = sp_dl(url, temp_dir.name, bot_msg)
     logging.info("Download complete.")
