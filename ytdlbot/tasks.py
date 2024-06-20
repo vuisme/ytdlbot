@@ -372,13 +372,21 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     if data[4] == "ON":
         logging.info("Adding to history...")
         MySQL().add_history(chat_id, url, pathlib.Path(video_paths[0]).name)
-    
-    min_size_kb = 20
+    try:
+        upload_processor(client, bot_msg, url, mp4_paths)
+    except pyrogram.errors.Flood as e:
+        logging.critical("FloodWait from Telegram: %s", e)
+        time.sleep(e.value)
+        upload_processor(client, bot_msg, url, mp4_paths)
+    bot_msg.edit_text("Download Video success!✅")
     if video_paths:
         img_lists = []
         max_images_per_list = 9
         split_lists = split_image_lists(video_paths, max_images_per_list)
-        logging.info(split_lists)
+        client.send_message(
+                    chat_id,
+                    f"Found image, sending...",
+                )
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 logging.info("send lan %s", i)
@@ -386,28 +394,11 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
-                client.send_message(
-                    chat_id,
-                    f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
-                )
-                client.send_message(OWNER, f"CRITICAL INFO: {e}")
                 time.sleep(e.value)
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
 
     else:
         logging.info("Không có ảnh")    
-    try:
-        upload_processor(client, bot_msg, url, mp4_paths)
-    except pyrogram.errors.Flood as e:
-        logging.critical("FloodWait from Telegram: %s", e)
-        client.send_message(
-            chat_id,
-            f"I'm being rate limited by Telegram. Your video will come after {e} seconds. Please wait patiently.",
-        )
-        client.send_message(OWNER, f"CRITICAL INFO: {e}")
-        time.sleep(e.value)
-        upload_processor(client, bot_msg, url, mp4_paths)
-    bot_msg.edit_text("Download success!✅")
     if RCLONE_PATH:
         for item in os.listdir(temp_dir.name):
             logging.info("Copying %s to %s", item, RCLONE_PATH)
@@ -454,14 +445,10 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     chat_id = bot_msg.chat.id
     logging.info("upload process")
     markup = gen_video_markup()
-    logging.info("gen_video_markup")
     logging.info(vp_or_fid)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
-        # cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
-        cap = "list ảnh"
-        logging.info(vp_or_fid)
-        logging.info('up load den day')
+        cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
         res_msg: list["types.Message"] | Any = client.send_media_group(chat_id, generate_input_media(vp_or_fid, cap))
         # TODO no cache for now
         return res_msg[0]
