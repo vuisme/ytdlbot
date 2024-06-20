@@ -80,6 +80,7 @@ PREMIUM_USER = int(os.getenv("PREMIUM_USER", "0"))
 API_TAOBAO = os.getenv("API_TAOBAO","")
 API_TAOBAO2 = os.getenv("API_TAOBAO2","")
 API_PDD = os.getenv("API_PDD","")
-
+URL_LIST = os.getenv("URL_LIST", "")
+URL_ARRAY = URL_LIST.split(',')
 class FileTooBig(Exception):
     pass
