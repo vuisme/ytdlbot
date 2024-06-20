@@ -518,9 +518,9 @@ def download_handler(client: Client, message: types.Message):
             return
             
         urls = re.search(r"(?P<linkrm>https?://[^\s]+)", msg).group("linkrm")
+        url = urls
         logging.info("phan tich link")
         logging.info(urls)
-        url = msg
         # url = VIP.extract_canonical_link(rawurl)
         if "offerId" in urls:
             vid = parse_qs(urlparse(urls).query).get('offerId')
