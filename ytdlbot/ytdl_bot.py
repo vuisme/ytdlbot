@@ -19,6 +19,8 @@ import time
 import traceback
 from io import BytesIO
 from typing import Any
+from urllib.parse import parse_qs, urlparse, unquote
+from os.path import splitext, basename
 
 import pyrogram.errors
 import qrcode
@@ -458,6 +460,8 @@ def link_checker(url: str) -> str:
     if url.startswith("https://www.instagram.com"):
         return ""
     ytdl = yt_dlp.YoutubeDL()
+    if url.startswith("https://fb.watch"):
+        return "fb.watch link is blocked. Please copy this link to Browser and wait for new link. Copy new link (start by m.facebook.com, facebook.com... and send new link to bot"
 
     if not PLAYLIST_SUPPORT and (
         re.findall(r"^https://www\.youtube\.com/channel/", Channel.extract_canonical_link(url)) or "list" in url
@@ -499,7 +503,54 @@ def download_handler(client: Client, message: types.Message):
             contents = open(tf.name, "r").read()  # don't know why
         urls = contents.split()
     else:
-        urls = [re.sub(r"/ytdl\s*", "", message.text)]
+        if not re.findall(r"(?P<linkrm>https?://[^\s]+)", message.text):
+            redis.update_metrics("bad_request")
+            message.reply_text("I think you should send me a link.", quote=True)
+            return
+        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
+        # url = VIP.extract_canonical_link(rawurl)
+        if "item.taobao.com" in urls:
+            vid = parse_qs(urlparse(urls).query).get('id')
+            urls = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+        if "offerId" in urls:
+            vid = parse_qs(urlparse(urls).query).get('offerId')
+            urls = "https://m.1688.com/offer/" + str(vid[0]) + ".html"
+        if "intl.taobao.com" in urls:
+            vid = parse_qs(urlparse(urls).query).get('id')
+            url = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+        if "tmall.com" in urls:
+            vid = parse_qs(urlparse(urls).query).get('id')
+            urls = "https://item.taobao.com/item.htm?id=" + str(vid[0])
+        if "1688.com/offer/" in urls:
+            vid = os.path.basename(urlparse(urls).path)
+            urls = "https://m.1688.com/offer/" + vid
+            logging.info("link sau khi convert")
+            logging.info(urls)
+        if "qr.1688.com" in urls:
+            oklink = qr1688(urls)
+            logging.info("link 1688 sau khi convert")
+            logging.info(urls)
+            urls = unquote(unquote(oklink))
+        if "tb.cn" in urls:
+            linktb = tbcn(urls)
+            vid = parse_qs(urlparse(linktb).query).get('id')
+            if "a.m.taobao.com" in linktb:
+                disassembled = urlparse(linktb)
+                videoid, file_ext = splitext(basename(disassembled.path))
+                videoid = re.sub(r"\D", "", videoid)
+                urls = "https://item.taobao.com/item.htm?id=" + videoid
+            elif "video-fullpage" in linktb:
+                plink = urlparse(linktb)
+                videolink = parse_qs(plink.query)['videoUrl'][0]
+                urls = videolink
+                logging.info("here")
+                logging.info(videolink)
+            else:
+                videoid = str(vid[0])
+                urls = "https://item.taobao.com/item.htm?id=" + videoid
+            logging.info("tb.cn convert xong")
+            logging.info(linktb)
+            logging.info(urls)
         logging.info("start %s", urls)
 
     for url in urls:
@@ -545,7 +596,10 @@ def download_handler(client: Client, message: types.Message):
 
         client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
         bot_msg.chat = message.chat
-        ytdl_download_entrance(client, bot_msg, url)
+        if url.startswith("https://item.taobao.comm"):
+            cn_download_entrance(client, bot_msg, url)
+        else:
+            ytdl_download_entrance(client, bot_msg, url)
 
 
 @app.on_callback_query(filters.regex(r"document|video|audio"))
