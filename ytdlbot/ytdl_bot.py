@@ -520,6 +520,7 @@ def download_handler(client: Client, message: types.Message):
         urls = re.search(r"(?P<linkrm>https?://[^\s]+)", msg).group("linkrm")
         logging.info("phan tich link")
         logging.info(urls)
+        url = ''
         # url = VIP.extract_canonical_link(rawurl)
         if "offerId" in urls:
             vid = parse_qs(urlparse(urls).query).get('offerId')
@@ -590,7 +591,7 @@ def download_handler(client: Client, message: types.Message):
 
         client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
         bot_msg.chat = message.chat
-        if url.startswith("https://item.taobao.comm"):
+        if url.startswith("https://item.taobao.com"):
             cn_download_entrance(client, bot_msg, url)
         else:
             ytdl_download_entrance(client, bot_msg, url)
