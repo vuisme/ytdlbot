@@ -670,15 +670,17 @@ def getimg_callback(client: Client, callback_query: types.CallbackQuery):
     vmsg = callback_query.message
     url: "str" = re.findall(r"https?://.*", vmsg.caption)[0]
     redis = Redis()
+    url_processed = False
     for link in URL_ARRAY:
         if link in url:
             callback_query.answer("Đang lấy ảnh...")
             redis.update_metrics("images_request")
             image_entrance(client, callback_query.message)
-        else:
-            callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Shop")
-            callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Shop")
-            return
+            url_processed = True
+            break 
+    if not url_processed:
+        callback_query.answer("Chỉ hỗ trợ lấy lại ảnh từ Shop")
+        callback_query.message.reply_text("Chỉ hỗ trợ lấy lại ảnh từ Shop")
 
 
 @app.on_callback_query(filters.regex(r"Local|Celery"))
