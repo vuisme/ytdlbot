@@ -17,8 +17,6 @@ PYRO_WORKERS: int = int(os.getenv("PYRO_WORKERS", 100))
 APP_ID: int = int(os.getenv("APP_ID", 198214))
 APP_HASH = os.getenv("APP_HASH", "1234b90")
 TOKEN = os.getenv("TOKEN", "1234")
-API_TAOBAO = os.getenv("API_TAOBAO","")
-API_TAOBAO2 = os.getenv("API_TAOBAO2","")
 REDIS = os.getenv("REDIS", "redis")
 
 TG_PREMIUM_MAX_SIZE = 4000 * 1024 * 1024
@@ -79,7 +77,9 @@ TRON_MNEMONIC = os.getenv("TRON_MNEMONIC", "cram floor today legend service dril
 TRX_SIGNAL = signal("trx_received")
 
 PREMIUM_USER = int(os.getenv("PREMIUM_USER", "0"))
-
+API_TAOBAO = os.getenv("API_TAOBAO","")
+API_TAOBAO2 = os.getenv("API_TAOBAO2","")
+API_PDD = os.getenv("API_PDD","")
 
 class FileTooBig(Exception):
     pass
