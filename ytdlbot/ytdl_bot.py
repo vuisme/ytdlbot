@@ -508,16 +508,16 @@ def download_handler(client: Client, message: types.Message):
     for msg in msgLink:
         if not re.findall(r"^https?://", msg.lower()):
             redis.update_metrics("bad_request")
-            text = search_ytb(msgLink)
+            text = search_ytb(msg)
             message.reply_text(text, quote=True, disable_web_page_preview=True)
             return
 
-        if text := link_checker(msgLink):
+        if text := link_checker(msg):
             message.reply_text(text, quote=True)
             redis.update_metrics("reject_link_checker")
             return
             
-        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", url).group("linkrm")
+        urls = re.search(r"(?P<linkrm>https?://[^\s]+)", msg).group("linkrm")
         logging.info("phan tich link")
         logging.info(urls)
         # url = VIP.extract_canonical_link(rawurl)
