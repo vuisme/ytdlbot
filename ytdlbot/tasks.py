@@ -355,15 +355,11 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
     logging.info("Download complete.")
     logging.info(video_paths)
     client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
-    bot_msg.edit_text("Download complete. Sending now...")
     if video_paths:
         img_lists = []
         max_images_per_list = 9
         split_lists = split_image_lists(video_paths, max_images_per_list)
-        client.send_message(
-                    chat_id,
-                    f"Found image, sending...",
-                )
+        status_msg.edit_text("Sending images now...")
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 logging.info("send lan %s", i)
@@ -373,12 +369,10 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
                 client.send_media_group(chat_id, generate_input_media(image_paths,""))
-        client.send_message(
-                    chat_id,
-                    f"Download Images success!✅",
-                )
     else:
-        logging.info("Không có ảnh")    
+        logging.info("Không có ảnh") 
+    status_msg.edit_text("✅ Download Images Complete.")
+    Redis().update_metrics("images_success")
     if RCLONE_PATH:
         for item in os.listdir(temp_dir.name):
             logging.info("Copying %s to %s", item, RCLONE_PATH)
@@ -752,16 +746,36 @@ def filter_images(posix_paths, min_size_kb):
     return image_paths
 
 def split_image_lists(image_paths, max_images_per_list):
+    """
+    Chia danh sách các đường dẫn hình ảnh thành các danh sách nhỏ hơn, mỗi danh sách có tối đa số lượng hình ảnh được chỉ định.
+
+    Parameters:
+    image_paths (list): Danh sách các đường dẫn hình ảnh.
+    max_images_per_list (int): Số lượng hình ảnh tối đa trong mỗi danh sách nhỏ.
+
+    Returns:
+    list: Danh sách chứa các danh sách nhỏ hơn của các đường dẫn hình ảnh.
+    """
     if not image_paths:
         print("Không có hình ảnh phù hợp.")
         return []
 
-    split_lists = []
+    if max_images_per_list <= 0:
+        raise ValueError("Số lượng hình ảnh tối đa trong mỗi danh sách phải lớn hơn 0.")
 
-    for i in range(0, len(image_paths), max_images_per_list):
-        split_lists.append(image_paths[i:i + max_images_per_list])
+    image_groups = []
+    count = 0
 
-    return split_lists
+    supported_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+
+    for path in image_paths:
+        if any(path.lower().endswith(ext) for ext in supported_extensions):
+            if count % max_images_per_list == 0:
+                image_groups.append([])
+            image_groups[-1].append(path)
+            count += 1
+
+    return image_groups
 
 
 def purge_tasks():
