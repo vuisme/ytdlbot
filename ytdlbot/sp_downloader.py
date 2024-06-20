@@ -30,7 +30,8 @@ from config import (
     FileTooBig,
     IPv6,
     API_TAOBAO,
-    API_TAOBAO2
+    API_TAOBAO2,
+    API_PDD
 )
 from downloader import (
     edit_text,
@@ -84,6 +85,85 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     
     # Extract URLs
     img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('images', []) + data.get('skubaseImages', []) + data2.get('descImages', [])
+    logging.info(img_urls)
+    # Clean and deduplicate URLs
+    cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
+    
+    if not cleaned_urls:
+        raise Exception("No valid image URLs found.")
+    logging.info(cleaned_urls)
+    video_paths = []
+
+    # Header với User-Agent
+    headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+
+    for idx, img_url in enumerate(cleaned_urls):
+        try:
+            req = requests.get(img_url, headers=headers, stream=True)
+        
+            # Kiểm tra mã trạng thái HTTP
+            if req.status_code != 200:
+                logging.error(f"Lỗi khi tải về URL: {img_url} với mã trạng thái: {req.status_code}")
+                continue
+        
+            # Kiểm tra loại nội dung 
+            content_type = req.headers.get('Content-Type')
+            if 'image' not in content_type:
+                logging.error(f"Nội dung không phải là hình ảnh từ URL: {img_url}")
+                
+        
+            # Trích xuất tên tệp từ URL mà không có query parameters.
+            parsed_url = urlparse(img_url)
+            filename = pathlib.Path(parsed_url.path).name  # Chỉ lấy phần tên tệp từ đường dẫn
+
+            # Tạo đường dẫn lưu tệp.   
+            save_path = pathlib.Path(tempdir, filename)
+            logging.info(f"Saving image to: {save_path}")
+        
+            # Tạo thư mục nếu chưa tồn tại
+            os.makedirs(tempdir, exist_ok=True)
+        
+            with open(save_path, "wb") as fp:
+                for chunk in req.iter_content(chunk_size=8192):
+                    if chunk:  # Kiểm tra nếu đoạn không rỗng
+                        fp.write(chunk)
+        
+            # Kiểm tra kích thước tệp sau khi tải về
+            if os.path.getsize(save_path) <= 10000:
+                logging.error(f"Tệp quá nhỏ hoặc không hợp lệ: {save_path}")
+                continue
+    
+            # Thêm đường dẫn tệp vào danh sách
+            video_paths.append(save_path)
+    
+        except Exception as e:
+            logging.error(f"Đã xảy ra lỗi khi tải về hoặc ghi tệp: {e}")
+
+    logging.info(video_paths)
+    return video_paths
+
+
+def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
+    """Download media from Taobao."""
+    payload = {'linksp': url}
+    headers = {'Content-Type': 'application/json'}
+    
+    try:
+        response = requests.post(API_PDD, headers=headers, data=json.dumps(payload))
+        logging.info(f"Response from first API: {response}")
+        logging.info(f"Response content: {response.content.decode('utf-8')}")
+        if response.status_code != 200:
+            logging.error(f"Failed to fetch PINDOUDOU details, status code: {response.status_code}")
+            raise Exception("Failed to fetch Pindoudou details.")
+        data = response.json()
+    except Exception as e:
+        logging.error(f"Error during first API request: {e}")
+        raise
+    
+    data = response.json()
+    
+    # Extract URLs
+    img_urls = data.get('topGallery', []) + data.get('viewImage', []) + data.get('detailGalleryUrl', []) + data.get('videoGallery', []) + data.get('liveVideo', [])
     logging.info(img_urls)
     # Clean and deduplicate URLs
     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
