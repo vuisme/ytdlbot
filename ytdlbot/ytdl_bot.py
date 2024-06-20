@@ -502,6 +502,7 @@ def download_handler(client: Client, message: types.Message):
             contents = open(tf.name, "r").read()  # don't know why
         urls = contents.split()
     else:
+        urls = [re.sub(r"/ytdl\s*", "", message.text)]
         urls = re.search(r"(?P<linkrm>https?://[^\s]+)", message.text).group("linkrm")
         logging.info("phan tich link")
         logging.info(urls)
