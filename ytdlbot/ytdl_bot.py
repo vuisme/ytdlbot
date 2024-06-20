@@ -591,7 +591,7 @@ def download_handler(client: Client, message: types.Message):
         client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_VIDEO)
         bot_msg.chat = message.chat
         logging.info(url)
-        if (url.startswith("https://item.taobao.com") || url.startswith("https://mobile.yangkeduo.com")):
+        if url.startswith("https://item.taobao.com") or url.startswith("https://mobile.yangkeduo.com"):
             cn_download_entrance(client, bot_msg, url)
         else:
             ytdl_download_entrance(client, bot_msg, url)
