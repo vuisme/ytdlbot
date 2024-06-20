@@ -503,13 +503,13 @@ def download_handler(client: Client, message: types.Message):
         urls = contents.split()
     else:
         urls = [re.sub(r"/ytdl\s*", "", message.text)]
-        if not re.findall(r"^https?://", url.lower()):
+        if not re.findall(r"^https?://", urls.lower()):
             redis.update_metrics("bad_request")
-            text = search_ytb(url)
+            text = search_ytb(urls)
             message.reply_text(text, quote=True, disable_web_page_preview=True)
             return
 
-        if text := link_checker(url):
+        if text := link_checker(urls):
             message.reply_text(text, quote=True)
             redis.update_metrics("reject_link_checker")
             return
