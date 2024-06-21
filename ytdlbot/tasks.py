@@ -506,7 +506,8 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
             try:
                 logging.info("send lan %s", i)
                 logging.info(image_paths)
-                client.send_media_group(chat_id, generate_input_media(image_paths,""))
+                # client.send_media_group(chat_id, generate_input_media(image_paths,""))
+                upload_processor(client, bot_msg, url, image_paths, "Ảnh Sản Phẩm")
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
@@ -542,7 +543,7 @@ def generate_input_media(file_paths: list, cap: str) -> list:
     return input_media
 
 
-def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid: str | list):
+def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid: str | list, img_details: str = None):
     redis = Redis()
     # raise pyrogram.errors.exceptions.FloodWait(13)
     # if is str, it's a file id; else it's a list of paths
@@ -552,7 +553,10 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     logging.info(vp_or_fid)
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
-        cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
+        if img_details:
+            cap, meta = img_details
+        else:
+            cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
         res_msg: list["types.Message"] | Any = client.send_media_group(chat_id, generate_input_media(vp_or_fid, cap))
         # TODO no cache for now
         return res_msg[0]
