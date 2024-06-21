@@ -507,7 +507,7 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 logging.info("send lan %s", i)
                 logging.info(image_paths)
                 # client.send_media_group(chat_id, generate_input_media(image_paths,""))
-                upload_processor(client, bot_msg, url, image_paths, "Ảnh Sản Phẩm")
+                upload_processor(client, bot_msg, "", image_paths, "Ảnh Sản Phẩm")
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
