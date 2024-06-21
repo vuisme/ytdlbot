@@ -567,8 +567,8 @@ def download_handler(client: Client, message: types.Message):
             free, pay, reset = payment.get_token(chat_id)
             logging.info(pay)
             logging.info(free)
-            if free + pay <= 0:
-                message.reply_text(f"You don't have enough token. Please wait until {reset} or /buy .", quote=True)
+            if int(free) + int(pay) <= 0:
+                message.reply_text(f"Đã hết lượt tải miễn phí trong ngày. Vui lòng chờ đến {reset} hoặc mua thêm /buy .", quote=True)
                 redis.update_metrics("reject_token")
                 return
             else:
