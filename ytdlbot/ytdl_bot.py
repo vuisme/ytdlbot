@@ -565,6 +565,8 @@ def download_handler(client: Client, message: types.Message):
         # old user is not limited by token
         if ENABLE_VIP and not payment.check_old_user(chat_id):
             free, pay, reset = payment.get_token(chat_id)
+            logging.info(pay)
+            logging.info(free)
             if free + pay <= 0:
                 message.reply_text(f"You don't have enough token. Please wait until {reset} or /buy .", quote=True)
                 redis.update_metrics("reject_token")
