@@ -236,13 +236,10 @@ class Payment(Redis, MySQL):
         self.con.commit()
 
     def user_exists(self, user_id: int) -> bool:
-        self.cur.execute("SELECT 1 FROM users WHERE user_id=%s", (user_id,))
+        self.cur.execute("SELECT 1 FROM 894875684 WHERE user_id=%s", (user_id,))
         return self.cur.fetchone() is not None
 
     def admin_add_token(self, user_id: int, amount: int) -> str:
-        if not self.user_exists(user_id):
-            return "User ID does not exist."
-
         num_tokens = amount * TOKEN_PRICE
         pay_id = '12345'  # Generate a random 10-character payment ID
         self.add_pay_user([user_id, amount, pay_id, 0, num_tokens])
