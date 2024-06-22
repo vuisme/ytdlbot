@@ -520,7 +520,7 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 try:
                     logging.info("Sending batch %s", i)
                     logging.info(image_paths)
-                    upload_processor(client, bot_msg, url, image_paths)
+                    upload_processor(client, bot_msg, url, image_paths, "Ảnh Sản Phẩm")
                 except pyrogram.errors.Flood as e:
                     logging.critical("FloodWait from Telegram: %s", e)
                     time.sleep(e.value)
@@ -557,10 +557,11 @@ def generate_input_media(file_paths: list, cap: str) -> list:
     return input_media
 
 
-def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid: str | list):
+def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid: str | list, custom_cap: str = None):
     redis = Redis()
     # raise pyrogram.errors.exceptions.FloodWait(13)
     # if is str, it's a file id; else it's a list of paths
+    logging.info(custom_cap)
     payment = Payment()
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
