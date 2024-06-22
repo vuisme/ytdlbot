@@ -569,6 +569,8 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
+        if custom_cap:
+            cap = custom_cap
         res_msg: list["types.Message"] | Any = client.send_media_group(chat_id, generate_input_media(vp_or_fid, cap))
         # TODO no cache for now
         return res_msg[0]
