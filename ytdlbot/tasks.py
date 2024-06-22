@@ -476,53 +476,67 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="cndl-", dir=TMPFILE_PATH)
 
-    video_paths = sp_dl(url, temp_dir.name, bot_msg)
-    logging.info("Download complete.")
-    logging.info(video_paths)
-    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
-    mp4_paths = [path for path in video_paths if path.suffix.lower() == '.mp4']
-    logging.info("đi đến đây send_chat_action")
-    bot_msg.edit_text("Download complete. Sending now...")
-    data = MySQL().get_user_settings(chat_id)
-    if data[4] == "ON":
-        logging.info("Adding to history...")
-        MySQL().add_history(chat_id, url, pathlib.Path(video_paths[0]).name)
     try:
-        upload_processor(client, bot_msg, url, mp4_paths)
-    except pyrogram.errors.Flood as e:
-        logging.critical("FloodWait from Telegram: %s", e)
-        time.sleep(e.value)
-        upload_processor(client, bot_msg, url, mp4_paths)
-    bot_msg.edit_text("Download Video success!✅")
-    if video_paths:
-        img_lists = []
-        max_images_per_list = 9
-        split_lists = split_image_lists(video_paths, max_images_per_list)
-        client.send_message(
-                    chat_id,
-                    f"Found image, sending...",
-                )
-        for i, image_paths in enumerate(split_lists, start=1):
+        # Download video and get file paths
+        downloaded_paths = sp_dl(url, temp_dir.name, bot_msg)
+        logging.info("Download complete.")
+        logging.info(downloaded_paths)
+
+        if not downloaded_paths:
+            bot_msg.edit_text("Không có ảnh và video phù hợp.")
+            return
+
+        # Notify user about upload progress
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+
+        # Filter mp4 files
+        mp4_paths = [path for path in downloaded_paths if path.suffix.lower() == '.mp4']
+        
+        bot_msg.edit_text("Đã tải xong, đang upload...")
+
+        # Update download history if the setting is enabled
+        user_settings = MySQL().get_user_settings(chat_id)
+        if user_settings[4] == "ON":
+            logging.info("Adding to history...")
+            MySQL().add_history(chat_id, url, pathlib.Path(downloaded_paths[0]).name)
+        
+        # Upload videos
+        if mp4_paths:
             try:
-                logging.info("send lan %s", i)
-                logging.info(image_paths)
-                # client.send_media_group(chat_id, generate_input_media(image_paths,""))
-                upload_processor(client, bot_msg, url, image_paths)
+                upload_processor(client, bot_msg, url, mp4_paths)
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
-                client.send_media_group(chat_id, generate_input_media(image_paths,""))
-        client.send_message(
-                    chat_id,
-                    f"Download Images success!✅",
-                )
-    else:
-        logging.info("Không có ảnh")    
-    if RCLONE_PATH:
-        for item in os.listdir(temp_dir.name):
-            logging.info("Copying %s to %s", item, RCLONE_PATH)
-            shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
-    temp_dir.cleanup()
+                upload_processor(client, bot_msg, url, mp4_paths)
+            bot_msg.edit_text("Gửi Video hoàn tất!✅")
+        
+        # Upload images
+        split_lists = []
+        split_lists = split_image_lists(downloaded_paths, max_images_per_list=9)
+        if split_lists:
+            client.send_message(chat_id, "Đang gửi ảnh sản phẩm...")
+
+            for i, image_paths in enumerate(split_lists, start=1):
+                try:
+                    logging.info("Sending batch %s", i)
+                    logging.info(image_paths)
+                    upload_processor(client, bot_msg, url, image_paths)
+                except pyrogram.errors.Flood as e:
+                    logging.critical("FloodWait from Telegram: %s", e)
+                    time.sleep(e.value)
+                    upload_processor(client, bot_msg, url, image_paths)
+            
+            client.send_message(chat_id, "Gửi ảnh hoàn tất!✅")
+        else:
+            logging.info("No images found")
+        
+        # Optionally copy files to RCLONE_PATH
+        if RCLONE_PATH:
+            for item in os.listdir(temp_dir.name):
+                logging.info("Copying %s to %s", item, RCLONE_PATH)
+                shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
+    finally:
+        temp_dir.cleanup()
 
 
 def generate_input_media(file_paths: list, cap: str) -> list:
