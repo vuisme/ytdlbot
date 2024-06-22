@@ -235,6 +235,21 @@ class Payment(Redis, MySQL):
         self.set_user_settings(pay_data[0], "mode", "Local")
         self.con.commit()
 
+    def user_exists(self, user_id: int) -> bool:
+        self.cur.execute("SELECT 1 FROM users WHERE user_id=%s", (user_id,))
+        return self.cur.fetchone() is not None
+
+    def admin_add_token(self, user_id: int, amount: int) -> str:
+        if not self.user_exists(user_id):
+            return "User ID does not exist."
+
+        num_tokens = amount * TOKEN_PRICE
+        pay_id = '12345'  # Generate a random 10-character payment ID
+        self.add_pay_user([user_id, amount, pay_id, 0, num_tokens])
+        logging.info("Admin added %s tokens to user %s with payment ID %s", num_tokens, user_id, pay_id)
+        return "Admin successfully added tokens."
+
+
     def verify_payment(self, user_id: int, unique: str) -> str:
         pay = BuyMeACoffee() if "@" in unique else Afdian()
         self.cur.execute("SELECT * FROM payment WHERE payment_id=%s ", (unique,))
