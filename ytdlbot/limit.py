@@ -10,6 +10,8 @@ __author__ = "Benny <benny.think@gmail.com>"
 import hashlib
 import logging
 import time
+import random
+import string
 
 import requests
 from tronpy import Tron
@@ -235,13 +237,17 @@ class Payment(Redis, MySQL):
         self.set_user_settings(pay_data[0], "mode", "Local")
         self.con.commit()
 
+    def generate_random_string(self, length: int) -> str:
+        letters = string.ascii_letters + string.digits
+        return ''.join(random.choice(letters) for i in range(length))
+        
     def user_exists(self, user_id: int) -> bool:
         self.cur.execute("SELECT 1 FROM 894875684 WHERE user_id=%s", (user_id,))
         return self.cur.fetchone() is not None
 
     def admin_add_token(self, user_id: int, amount: int) -> str:
         num_tokens = amount * TOKEN_PRICE
-        pay_id = '12345'  # Generate a random 10-character payment ID
+        pay_id = self.generate_random_string(10)  # Generate a random 10-character payment ID
         self.add_pay_user([user_id, amount, pay_id, 0, num_tokens])
         logging.info("Admin added %s tokens to user %s with payment ID %s", num_tokens, user_id, pay_id)
         return "Admin successfully added tokens."
