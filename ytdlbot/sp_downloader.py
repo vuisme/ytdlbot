@@ -84,7 +84,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     data2 = response2.json()
     
     # Extract URLs
-    img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('images', []) + data.get('skubaseImages', []) + data2.get('descImages', [])
+    img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('baseImages', []) + data.get('skuImages', []) + data2.get('descImages', [])
     logging.info(img_urls)
     # Clean and deduplicate URLs
     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
@@ -144,7 +144,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
 
 
 def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
-    """Download media from Taobao."""
+    """Download media from Pindoudou."""
     payload = {'linksp': url}
     headers = {'Content-Type': 'application/json'}
     
@@ -163,7 +163,7 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
     data = response.json()
     
     # Extract URLs
-    img_urls = data.get('topGallery', []) + data.get('viewImage', []) + data.get('detailGalleryUrl', []) + data.get('videoGallery', []) + data.get('liveVideo', [])
+    img_urls = data.get('topImages', []) + data.get('baseImages', []) + data.get('skuImages', []) + data.get('descImages', []) + data.get('video', []) + data.get('liveVideo', [])
     logging.info(img_urls)
     # Clean and deduplicate URLs
     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
