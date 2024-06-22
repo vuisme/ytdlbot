@@ -50,6 +50,8 @@ class Channel(Payment):
 
     @staticmethod
     def extract_canonical_link(url: str) -> str:
+        if "taobao.com" in url or "tmall.com" in url:
+            return url
         # canonic link works for many websites. It will strip out unnecessary stuff
         props = ["canonical", "alternate", "shortlinkUrl"]
         headers = {
