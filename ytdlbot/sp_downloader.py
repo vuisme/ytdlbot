@@ -54,6 +54,8 @@ def extract_taobao_id(url: str) -> str:
 
 def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     """Download media from Taobao."""
+    payment = Payment()
+    user_id = bm.chat.id
     taobao_id = extract_taobao_id(url)
     if not taobao_id:
         raise ValueError("Invalid Taobao link format.")
@@ -75,7 +77,8 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
         raise
     
     data = response.json()
-    
+    paid_token = payment.get_pay_token(user_id)
+    logging.info(paid_token)
     # Second API request
     response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
     if response2.status_code != 200:
