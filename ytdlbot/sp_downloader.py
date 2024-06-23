@@ -150,6 +150,8 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
 
 def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
     """Download media from Pindoudou."""
+    payment = Payment()
+    user_id = bm.chat.id
     payload = {'linksp': url}
     headers = {'Content-Type': 'application/json'}
     
@@ -166,10 +168,14 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
         raise
     
     data = response.json()
-    
+    paid_token = payment.get_pay_token(user_id)
+    logging.info(paid_token)
+    if paid_token > 0:
     # Extract URLs
-    img_urls = data.get('topImages', []) + data.get('baseImages', []) + data.get('skuImages', []) + data.get('descImages', []) + data.get('video', []) + data.get('liveVideo', [])
-    logging.info(img_urls)
+        img_urls = data.get('topImages', []) + data.get('baseImages', []) + data.get('skuImages', []) + data.get('descImages', []) + data.get('video', []) + data.get('liveVideo', [])
+        logging.info(img_urls)
+    else:
+        img_urls = data.get('topImages', []) + data.get('baseImages', []) + data.get('video', []) + data.get('liveVideo', [])
     # Clean and deduplicate URLs
     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
     
