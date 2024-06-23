@@ -124,7 +124,7 @@ def start_handler(client: Client, message: types.Message):
         info = ""
     if ENABLE_VIP:
         free_token, pay_token, reset = payment.get_token(from_id)
-        info = f"Free token: {free_token}, Pay token: {pay_token}, Reset: {reset}"
+        info = f"Lượt tải miễn phí: {free_token}\nLượt tải trả phí: {pay_token}\nReset: {reset}"
     else:
         info = ""
     text = f"{BotText.start}\n\n{info}\n{BotText.custom_text}"
