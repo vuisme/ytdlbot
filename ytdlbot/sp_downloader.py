@@ -79,15 +79,17 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
     data = response.json()
     paid_token = payment.get_pay_token(user_id)
     logging.info(paid_token)
-    # Second API request
-    response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
-    if response2.status_code != 200:
-        raise Exception("Failed to fetch image desc.")
+    if paid_token > 0:
+        # Second API request
+        response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
+        if response2.status_code != 200:
+            raise Exception("Failed to fetch image desc.")
     
-    data2 = response2.json()
-    
+        data2 = response2.json()
+        img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('baseImages', []) + data.get('skuImages', []) + data2.get('descImages', [])
     # Extract URLs
-    img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('baseImages', []) + data.get('skuImages', []) + data2.get('descImages', [])
+    else:
+        img_urls = data.get('video', []) + data.get('baseImages', [])
     logging.info(img_urls)
     # Clean and deduplicate URLs
     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
