@@ -693,7 +693,7 @@ def gen_cap(bm, url, video_path):
     free = payment.get_free_token(chat_id)
     pay = payment.get_pay_token(chat_id)
     if ENABLE_VIP:
-        remain = f"Download token count: free {free}, pay {pay}"
+        remain = f"Lượt tải còn lại: {free} lượt miễn phí, {pay} lượt trả phí"
     else:
         remain = ""
 
