@@ -25,7 +25,7 @@ class BotText:
     start = """
     Taobao Media Version 3.0.0
     Miễn phí: 10 lượt tải/ngày.
-    Premium: 50 lượt tải/ngày, hỗ trợ tải thêm ảnh và video trong mô tả sản phẩm
+    Mua thêm: 20k = 20 lượt tải, hỗ trợ tải thêm ảnh và video trong mô tả sản phẩm khi tài khoản có lượt tải trả phí
 
     Gõ /help để biết thêm chi tiết"""
 
@@ -61,7 +61,7 @@ Gửi đúng định dạng link để ít gặp lỗi không đáng có!
 **Price:**
 valid permanently
 1. 1 USD == {TOKEN_PRICE} tokens
-2. 7 CNY == {TOKEN_PRICE} tokens
+2. 20.000 VNĐ == {TOKEN_PRICE} tokens
 3. 10 TRX == {TOKEN_PRICE} tokens
 
 **Payment options:**
@@ -74,7 +74,7 @@ Pay any amount you want. For example you can send 20 TRX for {TOKEN_PRICE * 2} t
 **After payment:**
 1. Afdian: attach order number with /redeem command (e.g., `/redeem 123456`).
 2. Buy Me a Coffee: attach email with /redeem command (e.g., `/redeem 123@x.com`). **Use different email each time.**
-3. Telegram Payment & Tron(TRX): automatically activated within 60s. Check /start to see your balance.
+3. Tron(TRX): automatically activated within 60s. Check /start to see your balance.
 
 Want to buy more token with Telegram payment? Let's say 100? Here you go! `/buy 123`
     """
