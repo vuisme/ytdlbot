@@ -429,30 +429,27 @@ def redeem_handler(client: Client, message: types.Message):
 
 @app.on_message(filters.command(["add"]))
 def add_vip_handler(client: Client, message: types.Message):
-    payment = Payment()
-    chat_id = message.chat.id
-    text = message.text.strip()
+    username = message.from_user.username
+    if username == OWNER:
+       payment = Payment()
+       chat_id = message.chat.id
+       text = message.text.strip()
 
-    # Parse the input values
-    try:
-        parts = text.split()
-        if len(parts) != 3:
-            raise ValueError("Invalid input format. Please use /add <chat_id> <amount>.")
+       # Parse the input values
+       try:
+           parts = text.split()
+           if len(parts) != 3:
+               raise ValueError("Invalid input format. Please use /add chat_id amount.")
         
-        command, chat_id_str, amount_str = parts
-        chat_id = int(chat_id_str)
-        amount = int(amount_str)
+           command, chat_id_str, amount_str = parts
+           chat_id = int(chat_id_str)
+           amount = int(amount_str)
 
-        # Verify the payment
-        msg = payment.admin_add_token(chat_id, amount)
-        message.reply_text(msg, quote=True)
-    except ValueError as e:
-        message.reply_text(str(e), quote=True)
-
-# Ensure you have the necessary imports at the top of your script:
-# from pyrogram import Client, filters, types
-# And ensure your Payment class is defined and imported correctly.
-
+           # Verify the payment
+           msg = payment.admin_add_token(chat_id, amount)
+           message.reply_text(msg, quote=True)
+       except ValueError as e:
+           message.reply_text(str(e), quote=True)
 
 
 @app.on_message(filters.user(PREMIUM_USER) & filters.incoming & filters.caption)
