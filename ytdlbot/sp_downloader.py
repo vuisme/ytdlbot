@@ -59,8 +59,6 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     taobao_id = extract_taobao_id(url)
     if not taobao_id:
         raise ValueError("Invalid Taobao link format.")
-    logging.info(taobao_id)
-    logging.info(API_TAOBAO)
     payload = {'id': taobao_id}
     headers = {'Content-Type': 'application/json'}
     
@@ -78,259 +76,84 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     
     paid_token = payment.get_pay_token(user_id)
     logging.info(paid_token)
-    if paid_token > 0:
-        # Second API request
-        response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
-        if response2.status_code != 200:
-            raise Exception("Failed to fetch image desc.")
+    # if paid_token > 0:
+        # # Second API request
+        # response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
+        # if response2.status_code != 200:
+            # raise Exception("Failed to fetch image desc.")
     
-        data2 = response2.json()
-        img_urls = {
-            'video': data.get('video', []),
-            'descVideos': data2.get('descVideos', []),
-            'baseImages': data.get('baseImages', []),
-            'skuImages': data.get('skuImages', []),
-            'descImages': data2.get('descImages', [])
-        }
-    else:
-        img_urls = {
-            'video': data.get('video', []),
-            'baseImages': data.get('baseImages', []),
-        }
-    logging.info(img_urls)
-    
+        # data2 = response2.json()
+        # img_urls = {
+            # 'video': data.get('video', []),
+            # 'descVideos': data2.get('descVideos', []),
+            # 'baseImages': data.get('baseImages', []),
+            # 'skuImages': data.get('skuImages', []),
+            # 'descImages': data2.get('descImages', [])
+        # }
+    # else:
+        # img_urls = {
+            # 'video': data.get('video', []),
+            # 'baseImages': data.get('baseImages', []),
+        # }
+    # logging.info(img_urls)
+    keys = ['video', 'baseImages', 'skuImages']
+    video_paths = {key: [] for key in keys}
     # Clean and deduplicate URLs
-    for key in img_urls:
-        img_urls[key] = list(set(img['url'] for img in img_urls[key] if 'url' in img))
-
-    video_paths = {
-        'video': [],
-        'descVideos': [],
-        'baseImages': [],
-        'skuImages': [],
-        'descImages': []
-    }
-
-    headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
-
-    for category, urls in img_urls.items():
-        for idx, img_url in enumerate(urls):
-            try:
-                req = requests.get(img_url, headers=headers, stream=True)
-            
-                if req.status_code != 200:
-                    logging.error(f"Lỗi khi tải về URL: {img_url} với mã trạng thái: {req.status_code}")
+    # Header with User-Agent
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+    
+    for key in keys:
+        if key in data:
+            for img_info in data[key]:
+                img_url = img_info.get('url')
+                if not img_url:
                     continue
-            
-                content_type = req.headers.get('Content-Type')
-                if 'image' not in content_type and 'video' not in content_type:
-                    logging.error(f"Nội dung không phải là hình ảnh hoặc video từ URL: {img_url}")
-                    continue
-            
-                parsed_url = urlparse(img_url)
-                filename = pathlib.Path(parsed_url.path).name
+                
+                try:
+                    req = requests.get(img_url, headers=headers, stream=True)
+                
+                    # Check HTTP status code
+                    if req.status_code != 200:
+                        logging.error(f"Error downloading URL: {img_url} with status code: {req.status_code}")
+                        continue
+                
+                    # Check content type
+                    content_type = req.headers.get('Content-Type')
+                    if 'image' not in content_type and 'video' not in content_type:
+                        logging.error(f"Content is not an image or video from URL: {img_url}")
+                        continue
+                
+                    # Extract filename from URL without query parameters
+                    parsed_url = urlparse(img_url)
+                    filename = pathlib.Path(parsed_url.path).name  # Only get the file name from the path
 
-                save_path = pathlib.Path(tempdir, filename)
-                logging.info(f"Saving file to: {save_path}")
+                    # Create file path to save
+                    save_path = pathlib.Path(tempdir, filename)
+                    logging.info(f"Saving media to: {save_path}")
+                
+                    # Create directory if it doesn't exist
+                    os.makedirs(tempdir, exist_ok=True)
+                
+                    with open(save_path, "wb") as fp:
+                        for chunk in req.iter_content(chunk_size=8192):
+                            if chunk:  # Check if chunk is not empty
+                                fp.write(chunk)
+                
+                    # Check file size after download
+                    if os.path.getsize(save_path) <= 10000:
+                        logging.error(f"File too small or invalid: {save_path}")
+                        continue
             
-                os.makedirs(tempdir, exist_ok=True)
+                    # Update img_info with the local file path
+                    img_info['url'] = str(save_path)
+                    video_paths[key].append(img_info)
             
-                with open(save_path, "wb") as fp:
-                    for chunk in req.iter_content(chunk_size=8192):
-                        if chunk:
-                            fp.write(chunk)
-            
-                if os.path.getsize(save_path) <= 10000:
-                    logging.error(f"Tệp quá nhỏ hoặc không hợp lệ: {save_path}")
-                    continue
-                video_paths[category].append(str(save_path))
-        
-            except Exception as e:
-                logging.error(f"Đã xảy ra lỗi khi tải về hoặc ghi tệp: {e}")
+                except Exception as e:
+                    logging.error(f"Error downloading or writing file: {e}")
 
     logging.info(video_paths)
     return video_paths
     
-# def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
-#     """Download media from Taobao."""
-#     payment = Payment()
-#     user_id = bm.chat.id
-#     taobao_id = extract_taobao_id(url)
-#     if not taobao_id:
-#         raise ValueError("Invalid Taobao link format.")
-#     logging.info(taobao_id)
-#     logging.info(API_TAOBAO)
-#     payload = {'id': taobao_id}
-#     headers = {'Content-Type': 'application/json'}
-    
-#     try:
-#         response = requests.post(API_TAOBAO, headers=headers, data=json.dumps(payload))
-#         logging.info(f"Response from first API: {response}")
-#         logging.info(f"Response content: {response.content.decode('utf-8')}")
-#         if response.status_code != 200:
-#             logging.error(f"Failed to fetch image details, status code: {response.status_code}")
-#             raise Exception("Failed to fetch image details.")
-#         data = response.json()
-#     except Exception as e:
-#         logging.error(f"Error during first API request: {e}")
-#         raise
-    
-#     data = response.json()
-#     paid_token = payment.get_pay_token(user_id)
-#     logging.info(paid_token)
-#     if paid_token > 0:
-#         # Second API request
-#         response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
-#         if response2.status_code != 200:
-#             raise Exception("Failed to fetch image desc.")
-    
-#         data2 = response2.json()
-#         img_urls = data.get('video', []) + data2.get('descVideos', []) + data.get('baseImages', []) + data.get('skuImages', []) + data2.get('descImages', [])
-#     # Extract URLs
-#     else:
-#         img_urls = data.get('video', []) + data.get('baseImages', [])
-#     logging.info(img_urls)
-#     # Clean and deduplicate URLs
-#     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
-    
-#     if not cleaned_urls:
-#         raise Exception("No valid image URLs found.")
-#     logging.info(cleaned_urls)
-#     video_paths = []
-
-#     # Header với User-Agent
-#     headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
-
-#     for idx, img_url in enumerate(cleaned_urls):
-#         try:
-#             req = requests.get(img_url, headers=headers, stream=True)
-        
-#             # Kiểm tra mã trạng thái HTTP
-#             if req.status_code != 200:
-#                 logging.error(f"Lỗi khi tải về URL: {img_url} với mã trạng thái: {req.status_code}")
-#                 continue
-        
-#             # Kiểm tra loại nội dung 
-#             content_type = req.headers.get('Content-Type')
-#             if 'image' not in content_type:
-#                 logging.error(f"Nội dung không phải là hình ảnh từ URL: {img_url}")
-                
-        
-#             # Trích xuất tên tệp từ URL mà không có query parameters.
-#             parsed_url = urlparse(img_url)
-#             filename = pathlib.Path(parsed_url.path).name  # Chỉ lấy phần tên tệp từ đường dẫn
-
-#             # Tạo đường dẫn lưu tệp.   
-#             save_path = pathlib.Path(tempdir, filename)
-#             logging.info(f"Saving image to: {save_path}")
-        
-#             # Tạo thư mục nếu chưa tồn tại
-#             os.makedirs(tempdir, exist_ok=True)
-        
-#             with open(save_path, "wb") as fp:
-#                 for chunk in req.iter_content(chunk_size=8192):
-#                     if chunk:  # Kiểm tra nếu đoạn không rỗng
-#                         fp.write(chunk)
-        
-#             # Kiểm tra kích thước tệp sau khi tải về
-#             if os.path.getsize(save_path) <= 10000:
-#                 logging.error(f"Tệp quá nhỏ hoặc không hợp lệ: {save_path}")
-#                 continue
-    
-#             # Thêm đường dẫn tệp vào danh sách
-#             video_paths.append(save_path)
-    
-#         except Exception as e:
-#             logging.error(f"Đã xảy ra lỗi khi tải về hoặc ghi tệp: {e}")
-
-#     logging.info(video_paths)
-#     return video_paths
-
-
-# def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
-#     """Download media from Pindoudou."""
-#     payment = Payment()
-#     user_id = bm.chat.id
-#     payload = {'linksp': url}
-#     headers = {'Content-Type': 'application/json'}
-    
-#     try:
-#         response = requests.post(API_PDD, headers=headers, data=json.dumps(payload))
-#         logging.info(f"Response from first API: {response}")
-#         logging.info(f"Response content: {response.content.decode('utf-8')}")
-#         if response.status_code != 200:
-#             logging.error(f"Failed to fetch PINDOUDOU details, status code: {response.status_code}")
-#             raise Exception("Failed to fetch Pindoudou details.")
-#         data = response.json()
-#     except Exception as e:
-#         logging.error(f"Error during first API request: {e}")
-#         raise
-    
-#     data = response.json()
-#     paid_token = payment.get_pay_token(user_id)
-#     logging.info(paid_token)
-#     if paid_token > 0:
-#     # Extract URLs
-#         img_urls = data.get('topImages', []) + data.get('baseImages', []) + data.get('skuImages', []) + data.get('descImages', []) + data.get('video', []) + data.get('liveVideo', [])
-#         logging.info(img_urls)
-#     else:
-#         img_urls = data.get('topImages', []) + data.get('baseImages', []) + data.get('video', []) + data.get('liveVideo', [])
-#     # Clean and deduplicate URLs
-#     cleaned_urls = list(set(img['url'] for img in img_urls if 'url' in img))
-    
-#     if not cleaned_urls:
-#         raise Exception("No valid image URLs found.")
-#     logging.info(cleaned_urls)
-#     video_paths = []
-
-#     # Header với User-Agent
-#     headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
-
-#     for idx, img_url in enumerate(cleaned_urls):
-#         try:
-#             req = requests.get(img_url, headers=headers, stream=True)
-        
-#             # Kiểm tra mã trạng thái HTTP
-#             if req.status_code != 200:
-#                 logging.error(f"Lỗi khi tải về URL: {img_url} với mã trạng thái: {req.status_code}")
-#                 continue
-        
-#             # Kiểm tra loại nội dung 
-#             content_type = req.headers.get('Content-Type')
-#             if 'image' not in content_type:
-#                 logging.error(f"Nội dung không phải là hình ảnh từ URL: {img_url}")
-                
-        
-#             # Trích xuất tên tệp từ URL mà không có query parameters.
-#             parsed_url = urlparse(img_url)
-#             filename = pathlib.Path(parsed_url.path).name  # Chỉ lấy phần tên tệp từ đường dẫn
-
-#             # Tạo đường dẫn lưu tệp.   
-#             save_path = pathlib.Path(tempdir, filename)
-#             logging.info(f"Saving image to: {save_path}")
-        
-#             # Tạo thư mục nếu chưa tồn tại
-#             os.makedirs(tempdir, exist_ok=True)
-        
-#             with open(save_path, "wb") as fp:
-#                 for chunk in req.iter_content(chunk_size=8192):
-#                     if chunk:  # Kiểm tra nếu đoạn không rỗng
-#                         fp.write(chunk)
-        
-#             # Kiểm tra kích thước tệp sau khi tải về
-#             if os.path.getsize(save_path) <= 10000:
-#                 logging.error(f"Tệp quá nhỏ hoặc không hợp lệ: {save_path}")
-#                 continue
-    
-#             # Thêm đường dẫn tệp vào danh sách
-#             video_paths.append(save_path)
-    
-#         except Exception as e:
-#             logging.error(f"Đã xảy ra lỗi khi tải về hoặc ghi tệp: {e}")
-
-#     logging.info(video_paths)
-#     return video_paths
-
 def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
     """Download media from Pindoudou."""
     payload = {'linksp': url}
