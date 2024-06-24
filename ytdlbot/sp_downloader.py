@@ -92,7 +92,6 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
             raise
 
     keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos']
-    keys = ['video', 'baseImages', 'skuImages']
     video_paths = {key: [] for key in keys}
     # Clean and deduplicate URLs
     # Header with User-Agent
@@ -152,6 +151,8 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     
 def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
     """Download media from Pindoudou."""
+    payment = Payment()
+    user_id = bm.chat.id
     payload = {'linksp': url}
     headers = {'Content-Type': 'application/json'}
     
@@ -166,9 +167,12 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
     except Exception as e:
         logging.error(f"Error during first API request: {e}")
         raise
-    
-    # Define the keys to extract URLs from
-    keys = ['topImages', 'baseImages', 'skuImages', 'descImages', 'video', 'liveVideo']
+    paid_token = payment.get_pay_token(user_id)
+    logging.info(paid_token)
+    if paid_token > 0:
+        keys = ['topImages', 'baseImages', 'skuImages', 'descImages', 'video', 'liveVideo']
+    else:
+        keys = ['topImages', 'baseImages', 'video', 'liveVideo']
     video_paths = {key: [] for key in keys}
 
     # Header with User-Agent
