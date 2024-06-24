@@ -492,8 +492,6 @@ def send_images(client, bot_msg, chat_id, url, image_category, image_list):
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
                 upload_processor(client, bot_msg, url, image_paths, typeImages)
-
-        client.send_message(chat_id, f"Gửi {typeImages} hoàn tất!✅")
     else:
         logging.info("No images found for %s", image_category)
 
@@ -537,7 +535,6 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
                 upload_processor(client, bot_msg, url, mp4_paths)
-            bot_msg.edit_text("Gửi Video hoàn tất!✅")
         image_categories = ["topImages", "baseImages", "skuImages", "descImages"]
         for category in image_categories:
             if category in downloaded_paths:
@@ -552,6 +549,7 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 logging.info("Copying %s to %s", item, RCLONE_PATH)
                 shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
     finally:
+        bot_msg.edit_text("Đã xong tác vụ!✅")
         temp_dir.cleanup()
 
 
@@ -582,7 +580,7 @@ def upload_processor(client: Client, bot_msg: types.Message, url: str, vp_or_fid
     chat_id = bot_msg.chat.id
     markup = gen_video_markup()
     logging.info(vp_or_fid)
-    if isinstance(vp_or_fid, list) and len(vp_or_fid) > 1:
+    if (isinstance(vp_or_fid, list) and len(vp_or_fid) > 1) or custom_cap:
         # just generate the first for simplicity, send as media group(2-20)
         cap, meta = gen_cap(bot_msg, url, vp_or_fid[0])
         if custom_cap:
