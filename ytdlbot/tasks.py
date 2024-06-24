@@ -487,13 +487,13 @@ def send_images(client, bot_msg, chat_id, url, image_category, image_list):
             try:
                 logging.info("Sending batch %s for %s", i, image_category)
                 logging.info(image_paths)
-                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {typeImages}")
+                upload_processor(client, bot_msg, url, image_paths, typeImages)
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
-                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {typeImages}")
+                upload_processor(client, bot_msg, url, image_paths, typeImages)
 
-        client.send_message(chat_id, f"Gửi {image_category} hoàn tất!✅")
+        client.send_message(chat_id, f"Gửi {typeImages} hoàn tất!✅")
     else:
         logging.info("No images found for %s", image_category)
 
