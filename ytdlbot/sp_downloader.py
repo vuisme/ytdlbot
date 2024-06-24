@@ -143,8 +143,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
                 if os.path.getsize(save_path) <= 10000:
                     logging.error(f"Tệp quá nhỏ hoặc không hợp lệ: {save_path}")
                     continue
-                img_info['url'] = str(save_path)
-                video_paths[category].append(img_info)
+                video_paths[category].append(str(save_path))
         
             except Exception as e:
                 logging.error(f"Đã xảy ra lỗi khi tải về hoặc ghi tệp: {e}")
