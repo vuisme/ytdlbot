@@ -351,33 +351,33 @@ def normal_image(client: Client, bot_msg: typing.Union[types.Message, typing.Cor
     status_msg: typing.Union[types.Message, typing.Coroutine] = bot_msg.reply_text(
         "Đang lấy ảnh, vui lòng chờ...", quote=True
     )
-    video_paths = sp_dl(url, temp_dir.name, bot_msg)
-    logging.info("Download complete.")
-    logging.info(video_paths)
-    client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
-    if video_paths:
-        img_lists = []
-        max_images_per_list = 9
-        split_lists = split_image_lists(video_paths, max_images_per_list)
-        status_msg.edit_text("Sending images now...")
-        for i, image_paths in enumerate(split_lists, start=1):
-            try:
-                logging.info("send lan %s", i)
-                logging.info(image_paths)
-                client.send_media_group(chat_id, generate_input_media(image_paths,""))
-            except pyrogram.errors.Flood as e:
-                logging.critical("FloodWait from Telegram: %s", e)
-                time.sleep(e.value)
-                client.send_media_group(chat_id, generate_input_media(image_paths,""))
-    else:
-        logging.info("Không có ảnh") 
-    status_msg.edit_text("✅ Download Images Complete.")
-    Redis().update_metrics("images_success")
-    if RCLONE_PATH:
-        for item in os.listdir(temp_dir.name):
-            logging.info("Copying %s to %s", item, RCLONE_PATH)
-            shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
-    temp_dir.cleanup()
+    chat_id = bot_msg.chat.id
+    try:
+        # Download video and get file paths
+        downloaded_paths = sp_dl(url, temp_dir.name, bot_msg)
+        logging.info("Download complete.")
+        logging.info(downloaded_paths)
+        if not downloaded_paths:
+            bot_msg.edit_text("Không có ảnh và video phù hợp.")
+            return
+        # Notify user about upload progress
+        client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
+        bot_msg.edit_text("Đã tải xong, đang upload...")
+        image_categories = ["topImages", "baseImages", "skuImages", "descImages"]
+        for category in image_categories:
+            if category in downloaded_paths:
+                image_list = [img_info['url'] for img_info in downloaded_paths[category]]
+                logging.info(category)
+                logging.info(image_list)    
+                send_images(client, bot_msg, chat_id, url, category, image_list)
+            else:
+                logging.info("No images found for %s", category)
+        if RCLONE_PATH:
+            for item in os.listdir(temp_dir.name):
+                logging.info("Copying %s to %s", item, RCLONE_PATH)
+                shutil.copy(os.path.join(temp_dir.name, item), RCLONE_PATH)
+    finally:
+        temp_dir.cleanup()
 
 
 def normal_audio(client: Client, bot_msg: typing.Union[types.Message, typing.Coroutine]):
@@ -507,15 +507,11 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
         downloaded_paths = sp_dl(url, temp_dir.name, bot_msg)
         logging.info("Download complete.")
         logging.info(downloaded_paths)
-
         if not downloaded_paths:
             bot_msg.edit_text("Không có ảnh và video phù hợp.")
             return
-
         # Notify user about upload progress
         client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
-
-        # Filter mp4 files
         mp4_paths = []
         # mp4_paths = [path for path in downloaded_paths if path.suffix.lower() == '.mp4']
         if 'video' in downloaded_paths:
@@ -532,11 +528,7 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 for file_info in downloaded_paths['liveVideo']:
                     if file_info['url'].endswith('.mp4'):
                         mp4_paths.append(file_info['url'])
-        
-        
         bot_msg.edit_text("Đã tải xong, đang upload...")
-        
-        # Upload videos
         if mp4_paths:
             try:
                 logging.info(mp4_paths)
@@ -555,27 +547,6 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 send_images(client, bot_msg, chat_id, url, category, image_list)
             else:
                 logging.info("No images found for %s", category)
-        # # Upload images
-        # split_lists = []
-        # split_lists = split_image_lists(downloaded_paths, max_images_per_list=9)
-        # if split_lists:
-        #     client.send_message(chat_id, "Đang gửi ảnh sản phẩm...")
-
-        #     for i, image_paths in enumerate(split_lists, start=1):
-        #         try:
-        #             logging.info("Sending batch %s", i)
-        #             logging.info(image_paths)
-        #             upload_processor(client, bot_msg, url, image_paths, "Ảnh Sản Phẩm")
-        #         except pyrogram.errors.Flood as e:
-        #             logging.critical("FloodWait from Telegram: %s", e)
-        #             time.sleep(e.value)
-        #             upload_processor(client, bot_msg, url, image_paths)
-            
-        #     client.send_message(chat_id, "Gửi ảnh hoàn tất!✅")
-        # else:
-        #     logging.info("No images found")
-        
-        # Optionally copy files to RCLONE_PATH
         if RCLONE_PATH:
             for item in os.listdir(temp_dir.name):
                 logging.info("Copying %s to %s", item, RCLONE_PATH)
