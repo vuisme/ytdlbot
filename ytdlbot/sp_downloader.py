@@ -15,6 +15,7 @@ import pathlib
 import re
 import traceback
 from urllib.parse import urlparse, parse_qs, urljoin, unquote
+import time
 
 from pyrogram import types
 from tqdm import tqdm
@@ -77,6 +78,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     paid_token = payment.get_pay_token(user_id)
     logging.info(paid_token)
     if paid_token > 0:
+        time.sleep(10)
         # Second API request
         try:
             response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
