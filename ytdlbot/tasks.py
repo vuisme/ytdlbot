@@ -517,6 +517,11 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 for file_info in downloaded_paths['video']:
                     if file_info['url'].endswith('.mp4'):
                         mp4_paths.append(file_info['url'])
+
+        if 'descVideos' in downloaded_paths:
+                for file_info in downloaded_paths['video']:
+                    if file_info['url'].endswith('.mp4'):
+                        mp4_paths.append(file_info['url'])
         
         if 'liveVideo' in downloaded_paths:
                 for file_info in downloaded_paths['liveVideo']:
