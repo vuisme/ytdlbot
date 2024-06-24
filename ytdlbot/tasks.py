@@ -525,13 +525,6 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
         
         
         bot_msg.edit_text("Đã tải xong, đang upload...")
-
-        # Update download history if the setting is enabled
-        user_settings = MySQL().get_user_settings(chat_id)
-        if user_settings[4] == "ON":
-            logging.info("Adding to history...")
-            logging.info(downloaded_paths[0])
-            MySQL().add_history(chat_id, url, pathlib.Path(downloaded_paths[0]).name)
         
         # Upload videos
         if mp4_paths:
