@@ -232,7 +232,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> list:
 #     logging.info(video_paths)
 #     return video_paths
 
-def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
+def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
     """Download media from Pindoudou."""
     payload = {'linksp': url}
     headers = {'Content-Type': 'application/json'}
@@ -249,63 +249,61 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> list:
         logging.error(f"Error during first API request: {e}")
         raise
     
-    # Extract URLs
-    img_urls = data.get('topImages', []) + data.get('baseImages', []) + data.get('skuImages', []) + data.get('descImages', []) + data.get('video', []) + data.get('liveVideo', [])
-    logging.info(img_urls)
-    # Clean and deduplicate URLs
-    cleaned_urls = list({img['url']: img for img in img_urls if 'url' in img}.values())
-    
-    if not cleaned_urls:
-        raise Exception("No valid image URLs found.")
-    logging.info(cleaned_urls)
-    video_paths = []
+    # Define the keys to extract URLs from
+    keys = ['topImages', 'baseImages', 'skuImages', 'descImages', 'video', 'liveVideo']
+    video_paths = {key: [] for key in keys}
 
     # Header with User-Agent
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-
-    for img_info in cleaned_urls:
-        img_url = img_info['url']
-        try:
-            req = requests.get(img_url, headers=headers, stream=True)
-        
-            # Check HTTP status code
-            if req.status_code != 200:
-                logging.error(f"Error downloading URL: {img_url} with status code: {req.status_code}")
-                continue
-        
-            # Check content type
-            content_type = req.headers.get('Content-Type')
-            if 'image' not in content_type and 'video' not in content_type:
-                logging.error(f"Content is not an image or video from URL: {img_url}")
-                continue
-        
-            # Extract filename from URL without query parameters
-            parsed_url = urlparse(img_url)
-            filename = pathlib.Path(parsed_url.path).name  # Only get the file name from the path
-
-            # Create file path to save
-            save_path = pathlib.Path(tempdir, filename)
-            logging.info(f"Saving media to: {save_path}")
-        
-            # Create directory if it doesn't exist
-            os.makedirs(tempdir, exist_ok=True)
-        
-            with open(save_path, "wb") as fp:
-                for chunk in req.iter_content(chunk_size=8192):
-                    if chunk:  # Check if chunk is not empty
-                        fp.write(chunk)
-        
-            # Check file size after download
-            if os.path.getsize(save_path) <= 10000:
-                logging.error(f"File too small or invalid: {save_path}")
-                continue
     
-            # Update img_info with the local file path
-            img_info['url'] = str(save_path)
-            video_paths.append(img_info)
-    
-        except Exception as e:
-            logging.error(f"Error downloading or writing file: {e}")
+    for key in keys:
+        if key in data:
+            for img_info in data[key]:
+                img_url = img_info.get('url')
+                if not img_url:
+                    continue
+                
+                try:
+                    req = requests.get(img_url, headers=headers, stream=True)
+                
+                    # Check HTTP status code
+                    if req.status_code != 200:
+                        logging.error(f"Error downloading URL: {img_url} with status code: {req.status_code}")
+                        continue
+                
+                    # Check content type
+                    content_type = req.headers.get('Content-Type')
+                    if 'image' not in content_type and 'video' not in content_type:
+                        logging.error(f"Content is not an image or video from URL: {img_url}")
+                        continue
+                
+                    # Extract filename from URL without query parameters
+                    parsed_url = urlparse(img_url)
+                    filename = pathlib.Path(parsed_url.path).name  # Only get the file name from the path
+
+                    # Create file path to save
+                    save_path = pathlib.Path(tempdir, filename)
+                    logging.info(f"Saving media to: {save_path}")
+                
+                    # Create directory if it doesn't exist
+                    os.makedirs(tempdir, exist_ok=True)
+                
+                    with open(save_path, "wb") as fp:
+                        for chunk in req.iter_content(chunk_size=8192):
+                            if chunk:  # Check if chunk is not empty
+                                fp.write(chunk)
+                
+                    # Check file size after download
+                    if os.path.getsize(save_path) <= 10000:
+                        logging.error(f"File too small or invalid: {save_path}")
+                        continue
+            
+                    # Update img_info with the local file path
+                    img_info['url'] = str(save_path)
+                    video_paths[key].append(img_info)
+            
+                except Exception as e:
+                    logging.error(f"Error downloading or writing file: {e}")
 
     logging.info(video_paths)
     return video_paths
