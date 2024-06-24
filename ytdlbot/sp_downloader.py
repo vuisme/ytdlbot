@@ -128,9 +128,9 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
                     continue
             
                 parsed_url = urlparse(img_url)
-                filename = Path(parsed_url.path).name
+                filename = pathlib.Path(parsed_url.path).name
 
-                save_path = Path(tempdir, filename)
+                save_path = pathlib.Path(tempdir, filename)
                 logging.info(f"Saving file to: {save_path}")
             
                 os.makedirs(tempdir, exist_ok=True)
