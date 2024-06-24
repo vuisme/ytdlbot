@@ -474,19 +474,24 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
 
 def send_images(client, bot_msg, chat_id, url, image_category, image_list):
     """Function to send images for a specific category."""
+    category_descriptions = {
+        'topImages': 'Ảnh chính của sản phẩm',
+        'baseImages': 'Ảnh chính của sản phẩm',
+        'skuImages': 'Ảnh thuộc tính của sản phẩm',
+        'descImages': 'Ảnh mô tả của sản phẩm'
+    }
+    typeImages = category_descriptions.get(image_category, image_category)
     split_lists = split_image_lists(image_list, max_images_per_list=9)
     if split_lists:
-        client.send_message(chat_id, f"Đang gửi {image_category}...")
-
         for i, image_paths in enumerate(split_lists, start=1):
             try:
                 logging.info("Sending batch %s for %s", i, image_category)
                 logging.info(image_paths)
-                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {image_category}")
+                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {typeImages}")
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
-                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {image_category}")
+                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {typeImages}")
 
         client.send_message(chat_id, f"Gửi {image_category} hoàn tất!✅")
     else:
