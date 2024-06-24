@@ -472,6 +472,27 @@ def spdl_normal_download(client: Client, bot_msg: types.Message | typing.Any, ur
     temp_dir.cleanup()
 
 
+def send_images(client, bot_msg, chat_id, url, image_category, image_list):
+    """Function to send images for a specific category."""
+    split_lists = split_image_lists(image_list, max_images_per_list=9)
+    if split_lists:
+        client.send_message(chat_id, f"Đang gửi {image_category}...")
+
+        for i, image_paths in enumerate(split_lists, start=1):
+            try:
+                logging.info("Sending batch %s for %s", i, image_category)
+                logging.info(image_paths)
+                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {image_category}")
+            except pyrogram.errors.Flood as e:
+                logging.critical("FloodWait from Telegram: %s", e)
+                time.sleep(e.value)
+                upload_processor(client, bot_msg, url, image_paths, f"Ảnh {image_category}")
+
+        client.send_message(chat_id, f"Gửi {image_category} hoàn tất!✅")
+    else:
+        logging.info("No images found for %s", image_category)
+
+
 def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url: str):
     chat_id = bot_msg.chat.id
     temp_dir = tempfile.TemporaryDirectory(prefix="cndl-", dir=TMPFILE_PATH)
@@ -490,7 +511,18 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
         client.send_chat_action(chat_id, enums.ChatAction.UPLOAD_DOCUMENT)
 
         # Filter mp4 files
-        mp4_paths = [path for path in downloaded_paths if path.suffix.lower() == '.mp4']
+        mp4_paths = []
+        # mp4_paths = [path for path in downloaded_paths if path.suffix.lower() == '.mp4']
+        if 'video' in downloaded_paths:
+                for file_info in downloaded_paths['video']:
+                    if file_info['url'].endswith('.mp4'):
+                        mp4_paths.append(file_info['url'])
+        
+        if 'liveVideo' in downloaded_paths:
+                for file_info in downloaded_paths['liveVideo']:
+                    if file_info['url'].endswith('.mp4'):
+                        mp4_paths.append(file_info['url'])
+        
         
         bot_msg.edit_text("Đã tải xong, đang upload...")
 
@@ -509,26 +541,32 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 time.sleep(e.value)
                 upload_processor(client, bot_msg, url, mp4_paths)
             bot_msg.edit_text("Gửi Video hoàn tất!✅")
-        
-        # Upload images
-        split_lists = []
-        split_lists = split_image_lists(downloaded_paths, max_images_per_list=9)
-        if split_lists:
-            client.send_message(chat_id, "Đang gửi ảnh sản phẩm...")
+        image_categories = ["topImages", "baseImages", "skuImages", "descImages"]
+        for category in image_categories:
+            if category in downloaded_paths:
+                image_list = [img_info['url'] for img_info in downloaded_paths[category]]
+                send_images(client, bot_msg, chat_id, url, category, image_list)
+            else:
+                logging.info("No images found for %s", category)
+        # # Upload images
+        # split_lists = []
+        # split_lists = split_image_lists(downloaded_paths, max_images_per_list=9)
+        # if split_lists:
+        #     client.send_message(chat_id, "Đang gửi ảnh sản phẩm...")
 
-            for i, image_paths in enumerate(split_lists, start=1):
-                try:
-                    logging.info("Sending batch %s", i)
-                    logging.info(image_paths)
-                    upload_processor(client, bot_msg, url, image_paths, "Ảnh Sản Phẩm")
-                except pyrogram.errors.Flood as e:
-                    logging.critical("FloodWait from Telegram: %s", e)
-                    time.sleep(e.value)
-                    upload_processor(client, bot_msg, url, image_paths)
+        #     for i, image_paths in enumerate(split_lists, start=1):
+        #         try:
+        #             logging.info("Sending batch %s", i)
+        #             logging.info(image_paths)
+        #             upload_processor(client, bot_msg, url, image_paths, "Ảnh Sản Phẩm")
+        #         except pyrogram.errors.Flood as e:
+        #             logging.critical("FloodWait from Telegram: %s", e)
+        #             time.sleep(e.value)
+        #             upload_processor(client, bot_msg, url, image_paths)
             
-            client.send_message(chat_id, "Gửi ảnh hoàn tất!✅")
-        else:
-            logging.info("No images found")
+        #     client.send_message(chat_id, "Gửi ảnh hoàn tất!✅")
+        # else:
+        #     logging.info("No images found")
         
         # Optionally copy files to RCLONE_PATH
         if RCLONE_PATH:
@@ -763,6 +801,40 @@ def filter_images(posix_paths, min_size_kb):
             pass  # Bỏ qua nếu không phải là ảnh hoặc có lỗi khi đọc kích thước
     return image_paths
 
+def split_image_lists_bk(image_paths, max_images_per_list):
+    """
+    Chia danh sách các đường dẫn hình ảnh thành các danh sách nhỏ hơn, mỗi danh sách có tối đa số lượng hình ảnh được chỉ định.
+
+    Parameters:
+    image_paths (list): Danh sách các đường dẫn hình ảnh.
+    max_images_per_list (int): Số lượng hình ảnh tối đa trong mỗi danh sách nhỏ.
+
+    Returns:
+    list: Danh sách chứa các danh sách nhỏ hơn của các đường dẫn hình ảnh.
+    """
+    if not image_paths:
+        print("Không có hình ảnh phù hợp.")
+        return []
+
+    if max_images_per_list <= 0:
+        raise ValueError("Số lượng hình ảnh tối đa trong mỗi danh sách phải lớn hơn 0.")
+
+    image_groups = []
+    count = 0
+
+    supported_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+
+    for path in image_paths:
+        path_str = str(path)  # Chuyển đổi PosixPath thành chuỗi
+        if any(path_str.lower().endswith(ext) for ext in supported_extensions):
+            if count % max_images_per_list == 0:
+                image_groups.append([])
+            image_groups[-1].append(path)
+            count += 1
+
+    return image_groups
+
+
 def split_image_lists(image_paths, max_images_per_list):
     """
     Chia danh sách các đường dẫn hình ảnh thành các danh sách nhỏ hơn, mỗi danh sách có tối đa số lượng hình ảnh được chỉ định.
@@ -795,6 +867,7 @@ def split_image_lists(image_paths, max_images_per_list):
             count += 1
 
     return image_groups
+
 
 
 def purge_tasks():
