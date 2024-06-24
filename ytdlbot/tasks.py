@@ -530,11 +530,13 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
         user_settings = MySQL().get_user_settings(chat_id)
         if user_settings[4] == "ON":
             logging.info("Adding to history...")
+            logging.info(downloaded_paths[0]).name)
             MySQL().add_history(chat_id, url, pathlib.Path(downloaded_paths[0]).name)
         
         # Upload videos
         if mp4_paths:
             try:
+                logging.info(mp4_paths)
                 upload_processor(client, bot_msg, url, mp4_paths)
             except pyrogram.errors.Flood as e:
                 logging.critical("FloodWait from Telegram: %s", e)
@@ -545,6 +547,8 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
         for category in image_categories:
             if category in downloaded_paths:
                 image_list = [img_info['url'] for img_info in downloaded_paths[category]]
+                logging.info(category)
+                logging.info(image_list)    
                 send_images(client, bot_msg, chat_id, url, category, image_list)
             else:
                 logging.info("No images found for %s", category)
