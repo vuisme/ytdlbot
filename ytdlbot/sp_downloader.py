@@ -167,6 +167,7 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
     except Exception as e:
         logging.error(f"Error during first API request: {e}")
         raise
+
     paid_token = payment.get_pay_token(user_id)
     logging.info(paid_token)
     if paid_token > 0:
@@ -178,12 +179,18 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
     # Header with User-Agent
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
     
+    # Set to track processed URLs
+    processed_urls = set()
+
     for key in keys:
         if key in data:
             for img_info in data[key]:
                 img_url = img_info.get('url')
-                if not img_url:
+                if not img_url or img_url in processed_urls:
                     continue
+                
+                # Add URL to the set of processed URLs
+                processed_urls.add(img_url)
                 
                 try:
                     req = requests.get(img_url, headers=headers, stream=True)
