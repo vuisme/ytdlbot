@@ -155,25 +155,23 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
     user_id = bm.chat.id
     payload = {'linksp': url}
     headers = {'Content-Type': 'application/json'}
-    
-    try:
-        response = requests.post(API_PDD, headers=headers, data=json.dumps(payload))
-        logging.info(f"Response from first API: {response}")
-        logging.info(f"Response content: {response.content.decode('utf-8')}")
-        if response.status_code != 200:
-            logging.error(f"Failed to fetch PINDOUDOU details, status code: {response.status_code}")
-            raise Exception("Failed to fetch Pindoudou details.")
-        data = response.json()
-    except Exception as e:
-        logging.error(f"Error during first API request: {e}")
-        raise
-
     paid_token = payment.get_pay_token(user_id)
     logging.info(paid_token)
     if paid_token > 0:
-        keys = ['topImages', 'baseImages', 'skuImages', 'descImages', 'video', 'liveVideo']
+        try:
+            response = requests.post(API_PDD, headers=headers, data=json.dumps(payload))
+            logging.info(f"Response from first API: {response}")
+            logging.info(f"Response content: {response.content.decode('utf-8')}")
+            if response.status_code != 200:
+                logging.error(f"Failed to fetch PINDOUDOU details, status code: {response.status_code}")
+                raise Exception("Failed to fetch Pindoudou details.")
+            data = response.json()
+            keys = ['topImages', 'baseImages', 'skuImages', 'descImages', 'video', 'liveVideo']
+        except Exception as e:
+            logging.error(f"Error during first API request: {e}")
+            raise
     else:
-        keys = ['topImages', 'baseImages', 'video', 'liveVideo']
+        raise Exception("Need VIP") 
     video_paths = {key: [] for key in keys}
 
     # Header with User-Agent
