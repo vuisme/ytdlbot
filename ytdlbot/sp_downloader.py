@@ -91,7 +91,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
             logging.error(f"Error during second API request: {e}")
             raise
 
-    keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos']
+    keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos', 'ratedImages']
     video_paths = {key: [] for key in keys}
     # Clean and deduplicate URLs
     # Header with User-Agent
@@ -166,7 +166,7 @@ def pindoudou(url: str, tempdir: str, bm, **kwargs) -> dict:
                 logging.error(f"Failed to fetch PINDOUDOU details, status code: {response.status_code}")
                 raise Exception("Failed to fetch Pindoudou details.")
             data = response.json()
-            keys = ['topImages', 'baseImages', 'skuImages', 'descImages', 'video', 'liveVideo']
+            keys = ['topImages', 'baseImages', 'skuImages', 'descImages', 'video', 'liveVideo', 'ratedImages']
         except Exception as e:
             logging.error(f"Error during first API request: {e}")
             raise
