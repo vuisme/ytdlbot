@@ -77,21 +77,24 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     
     paid_token = payment.get_pay_token(user_id)
     logging.info(paid_token)
+    # if paid_token > 0:
+    #     time.sleep(10)
+    #     # Second API request
+    #     try:
+    #         response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
+    #         if response2.status_code != 200:
+    #             raise Exception("Failed to fetch image desc.")
+    #         data2 = response2.json()
+    #         data['descImages'] = data2.get('descImages', [])
+    #         data['descVideos'] = data2.get('descVideos', [])
+    #     except Exception as e:
+    #         logging.error(f"Error during second API request: {e}")
+    #         raise
+    # keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos', 'ratedImages']
     if paid_token > 0:
-        time.sleep(10)
-        # Second API request
-        try:
-            response2 = requests.post(API_TAOBAO2, headers=headers, data=json.dumps(payload))
-            if response2.status_code != 200:
-                raise Exception("Failed to fetch image desc.")
-            data2 = response2.json()
-            data['descImages'] = data2.get('descImages', [])
-            data['descVideos'] = data2.get('descVideos', [])
-        except Exception as e:
-            logging.error(f"Error during second API request: {e}")
-            raise
-
-    keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos', 'ratedImages']
+        keys = ['video', 'baseImages', 'skuImages', 'ratedImages']
+    else:
+        keys = ['video', 'baseImages', 'skuImages']
     video_paths = {key: [] for key in keys}
     # Clean and deduplicate URLs
     # Header with User-Agent
