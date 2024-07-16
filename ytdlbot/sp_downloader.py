@@ -91,7 +91,10 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     #         logging.error(f"Error during second API request: {e}")
     #         raise
     # keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos', 'ratedImages']
-    keys = ['video', 'baseImages', 'skuImages', 'rateImages', 'rateVideos', 'descImages']
+    if paid_token = 0:
+        keys = ['video', 'baseImages']
+    else:
+        keys = ['video', 'baseImages', 'skuImages', 'rateImages', 'rateVideos', 'descImages']
     video_paths = {key: [] for key in keys}
     # Clean and deduplicate URLs
     # Header with User-Agent
