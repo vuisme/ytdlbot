@@ -91,7 +91,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     #         logging.error(f"Error during second API request: {e}")
     #         raise
     # keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos', 'ratedImages']
-    if paid_token = 0:
+    if paid_token == 0:
         keys = ['video', 'baseImages']
     else:
         keys = ['video', 'baseImages', 'skuImages', 'rateImages', 'rateVideos', 'descImages']
