@@ -92,7 +92,7 @@ def taobao(url: str, tempdir: str, bm, **kwargs) -> dict:
     #         raise
     # keys = ['video', 'baseImages', 'skuImages', 'descImages', 'descVideos', 'ratedImages']
     if paid_token > 0:
-        keys = ['video', 'baseImages', 'skuImages', 'rateImages', 'rateVideos']
+        keys = ['video', 'baseImages', 'skuImages', 'rateImages', 'rateVideos', 'descImages']
     else:
         keys = ['video', 'baseImages', 'skuImages']
     video_paths = {key: [] for key in keys}
