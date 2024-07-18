@@ -479,7 +479,7 @@ def send_images(client, bot_msg, chat_id, url, image_category, image_list):
         'baseImages': 'Ảnh chính của sản phẩm',
         'skuImages': 'Ảnh thuộc tính của sản phẩm',
         'descImages': 'Ảnh mô tả của sản phẩm',
-        'ratedImages': 'Ảnh đánh giá'
+        'rateImages': 'Ảnh đánh giá'
     }
     typeImages = category_descriptions.get(image_category, image_category)
     split_lists = split_image_lists(image_list, max_images_per_list=9)
@@ -522,7 +522,12 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 for file_info in downloaded_paths['descVideos']:
                     if file_info['url'].endswith('.mp4'):
                         mp4_paths.append(file_info['url'])
-        
+
+        if 'rateVideos' in downloaded_paths:
+                for file_info in downloaded_paths['rateVideos']:
+                    if file_info['url'].endswith('.mp4'):
+                        mp4_paths.append(file_info['url'])
+                        
         if 'liveVideo' in downloaded_paths:
                 for file_info in downloaded_paths['liveVideo']:
                     if file_info['url'].endswith('.mp4'):
@@ -536,7 +541,7 @@ def cn_normal_download(client: Client, bot_msg: types.Message | typing.Any, url:
                 logging.critical("FloodWait from Telegram: %s", e)
                 time.sleep(e.value)
                 upload_processor(client, bot_msg, url, mp4_paths)
-        image_categories = ["topImages", "baseImages", "skuImages", "descImages", "ratedImages"]
+        image_categories = ["topImages", "baseImages", "skuImages", "descImages", "rateImages"]
         for category in image_categories:
             if category in downloaded_paths:
                 image_list = [img_info['url'] for img_info in downloaded_paths[category]]
