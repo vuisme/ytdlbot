@@ -834,7 +834,7 @@ def split_image_lists(image_paths, max_images_per_list):
     image_groups = []
     count = 0
 
-    supported_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+    supported_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.mp4', '.webm']
 
     for path in image_paths:
         path_str = str(path)  # Chuyển đổi PosixPath thành chuỗi
